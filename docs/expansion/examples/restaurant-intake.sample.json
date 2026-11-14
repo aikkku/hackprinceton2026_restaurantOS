@@ -1,0 +1,133 @@
+{
+  "schemaVersion": "1.0",
+  "recordType": "expansion_intake",
+  "isDemo": true,
+  "origin": "simulated",
+  "description": "Fictional example of structured output after a short owner interview. No real restaurant, financial records, or property sources were used. This is an Expansion-local example, not a finalized shared API contract.",
+  "restaurant": {
+    "name": "Cedar Kitchen",
+    "cuisine": "Mediterranean",
+    "serviceType": "dine_in_and_takeout",
+    "currentCity": "Houston",
+    "currentState": "TX",
+    "currentCountry": "US",
+    "sourceAnswerIds": ["answer_0"]
+  },
+  "expansion": {
+    "goal": "second_location",
+    "targetCity": "Houston",
+    "targetState": "TX",
+    "targetCountry": "US",
+    "preferredNeighborhoods": ["Heights"],
+    "otherNeighborhoodsAcceptable": true,
+    "targetOpeningDate": null,
+    "sourceAnswerIds": ["answer_0", "answer_1"]
+  },
+  "budget": {
+    "currency": "USD",
+    "totalAvailableFunds": 100000,
+    "cashReserveToKeep": null,
+    "maximumUpfrontSpending": null,
+    "maximumMonthlyOccupancyCost": 5000,
+    "monthlyOccupancyCostIncludes": "base_rent_and_additional_occupancy_charges",
+    "monthlyOccupancyLimitIsHard": true,
+    "sourceAnswerIds": ["answer_2", "answer_3", "answer_6"]
+  },
+  "space": {
+    "preferredSeats": {
+      "minimum": 40,
+      "maximum": 50,
+      "isHardRequirement": false
+    },
+    "areaSqFt": {
+      "minimum": null,
+      "maximum": null
+    },
+    "mustHave": {
+      "existingKitchen": true,
+      "customerParking": true
+    },
+    "minimumCustomerParkingSpaces": null,
+    "ventilationRequirements": null,
+    "sourceAnswerIds": ["answer_4", "answer_5"]
+  },
+  "financialBaseline": {
+    "origin": "unavailable",
+    "currency": "USD",
+    "periodStart": null,
+    "periodEnd": null,
+    "netSales": null,
+    "guestsServed": null,
+    "averageSpendPerGuest": null,
+    "operatingDays": null,
+    "variableCosts": null,
+    "fixedLaborCosts": null,
+    "otherFixedCostsExcludingOccupancy": null,
+    "sourceAnswerIds": []
+  },
+  "sourceAnswers": [
+    {
+      "id": "answer_0",
+      "question": "Tell us a little about your restaurant and what you want to do next.",
+      "answer": "I run Cedar Kitchen, a Mediterranean dine-in and takeout restaurant in Houston, Texas. I want to open a second location."
+    },
+    {
+      "id": "answer_1",
+      "question": "Where would you like your next restaurant?",
+      "answer": "Houston, preferably Heights, but I am open to other neighborhoods in Houston."
+    },
+    {
+      "id": "answer_2",
+      "question": "How much money do you have available for the new location?",
+      "answer": "Around $100,000 total, but I want to keep some of that for emergencies. I do not know how much yet."
+    },
+    {
+      "id": "answer_3",
+      "question": "What monthly rent would feel comfortable?",
+      "answer": "About $5,000."
+    },
+    {
+      "id": "answer_4",
+      "question": "How big should it be?",
+      "answer": "Ideally around 40 to 50 seats. I can consider something a little smaller or bigger."
+    },
+    {
+      "id": "answer_5",
+      "question": "What does the space absolutely need?",
+      "answer": "A kitchen already installed and parking that my customers can use."
+    },
+    {
+      "id": "answer_6",
+      "question": "Is $5,000 a firm monthly limit, and should it cover extra building charges too?",
+      "answer": "Yes, $5,000 is my maximum per month including rent and extra building charges."
+    }
+  ],
+  "followUpQuestions": [
+    {
+      "field": "budget.cashReserveToKeep",
+      "question": "How much of the $100,000 would you like to keep for emergencies?",
+      "blocksInitialSearch": false,
+      "neededFor": "upfront_affordability_comparison"
+    },
+    {
+      "field": "space.ventilationRequirements",
+      "question": "What kind of cooking equipment will the new kitchen need?",
+      "blocksInitialSearch": false,
+      "neededFor": "kitchen_suitability_verification"
+    },
+    {
+      "field": "financialBaseline",
+      "question": "Would you like to share a recent sales and expense report so we can check what each location would need to sell?",
+      "blocksInitialSearch": false,
+      "neededFor": "financial_scenarios"
+    }
+  ],
+  "matchingNotes": [
+    "Use Houston as the search market and Heights as a preference, not an exclusion of other Houston neighborhoods.",
+    "The $5,000 limit applies to total monthly occupancy cost, not just quoted base rent. If additional charges are unknown, mark affordability as unverified.",
+    "The $100,000 includes an unspecified emergency reserve. Do not treat the entire amount as available for construction, equipment, and deposits.",
+    "The owner supplied a seating preference, not a square-footage requirement. Do not silently convert seats into a hard area filter.",
+    "An existing kitchen and customer parking are mandatory. Missing evidence means verification is needed; it does not establish that a feature is present or absent.",
+    "Do not estimate profitability or payback from this intake alone; financial baseline and candidate-specific costs are missing."
+  ]
+}
