@@ -133,7 +133,7 @@ function rotatePlan90(plan: FloorPlanDraft): FloorPlanDraft {
 
 export function autoRotateToEntranceWall(plan: FloorPlanDraft, desiredWall: DraftWall): FloorPlanDraft {
   if (desiredWall === "unknown" || plan.door.wall === desiredWall) return plan;
-  for (let deg of [90, 180, 270] as const) {
+  for (const deg of [90, 180, 270] as const) {
     const rotated = rotatePlan(plan, deg);
     if (rotated.door.wall === desiredWall) return rotated;
   }
