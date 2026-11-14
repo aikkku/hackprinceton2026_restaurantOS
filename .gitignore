@@ -4,3 +4,10 @@
 /next-env.d.ts
 *.tsbuildinfo
 .env*
+
+# ---- Expansion data (large / restricted / derived) ----
+# Documented in src/features/expansion/data/README.md - sync out of band, never commit.
+src/features/expansion/data/costar-hackathon-kit (1)/
+src/features/expansion/data/data/
+src/features/expansion/data/output/
+src/features/expansion/data/quickstart/
