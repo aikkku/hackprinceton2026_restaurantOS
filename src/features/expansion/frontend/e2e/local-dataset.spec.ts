@@ -42,6 +42,7 @@ test("local dataset supports unknown rent, inspect, edit, compare, save and relo
   await mockSource(page);
   await page.goto("/expansion");
   await page.getByLabel("Data mode").selectOption("local");
+  await page.getByRole('button', { name: 'Continue to the scouting map' }).click();
   await expect(page.getByLabel("City")).toHaveValue("synthetic-city");
   await expect(page.locator(".property-card")).toHaveCount(2);
   await expect(page.locator(".query-status")).toContainText("of 2 matching records");
@@ -78,6 +79,7 @@ test("local dataset distinguishes missing configuration and source failure, with
     json: { error: { code: configured ? "source_failure" : "not_configured", message: configured ? "Synthetic source failure" : "Set the local database configuration." } } }));
   await page.goto("/expansion");
   await page.getByLabel("Data mode").selectOption("local");
+  await page.getByRole('button', { name: 'Continue to the scouting map' }).click();
   await expect(page.getByRole("heading", { name: "Local dataset is not configured." })).toBeVisible();
   configured = true;
   await page.getByRole("button", { name: "Retry data" }).click();
@@ -91,6 +93,7 @@ test("local query empty and failure states preserve a draft and retry", async ({
   await mockSource(page);
   await page.goto("/expansion");
   await page.getByLabel("Data mode").selectOption("local");
+  await page.getByRole('button', { name: 'Continue to the scouting map' }).click();
   await page.getByRole("button", { name: /Synthetic space 1/ }).click();
   await page.getByRole("button", { name: "Try opening here" }).click();
   await page.getByLabel(/^Base rent/).fill("4321");
@@ -115,6 +118,7 @@ test("configured local data completes the actual API to browser save and restore
   await page.route("https://tiles.openfreemap.org/**", (route) => route.abort());
   await page.goto("/expansion");
   await page.getByLabel("Data mode").selectOption("local");
+  await page.getByRole('button', { name: 'Continue to the scouting map' }).click();
   await page.getByLabel("City").selectOption(body.cities[0].id);
   await expect(page.locator(".property-card").first()).toBeVisible();
   await page.locator(".area-list summary").click();
@@ -152,6 +156,7 @@ test("local mobile reduced motion and saved evidence survive source failure", as
   await mockSource(page);
   await page.goto("/expansion");
   await page.getByLabel("Data mode").selectOption("local");
+  await page.getByRole('button', { name: 'Continue to the scouting map' }).click();
   await page.getByRole("button", { name: /Synthetic space 1/ }).click();
   await page.getByRole("button", { name: "Try opening here" }).click();
   await page.getByLabel(/^Base rent/).fill("4000");
@@ -172,6 +177,7 @@ test("a slow saved-property restore cannot replace a newer selection", async ({ 
   await mockSource(page);
   await page.goto("/expansion");
   await page.getByLabel("Data mode").selectOption("local");
+  await page.getByRole('button', { name: 'Continue to the scouting map' }).click();
   await page.getByRole("button", { name: /Synthetic space 1/ }).click();
   await page.getByRole("button", { name: "Try opening here" }).click();
   await page.getByLabel(/^Base rent/).fill("4000");

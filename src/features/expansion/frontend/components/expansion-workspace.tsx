@@ -9,11 +9,13 @@ import {
   Building2,
   Check,
   ChevronRight,
+  ClipboardList,
   Compass,
   FlaskConical,
   Layers,
   MapPin,
   PanelRight,
+  Pencil,
   Plus,
   RotateCcw,
   SlidersHorizontal,
@@ -52,6 +54,7 @@ import {
 import { persistScenarios, storageKeyFor } from "../storage.ts";
 import { loadLocalArea, loadLocalProperty, type Viewport } from "../data/local-market.ts";
 import type { QueryCoverage } from "../../domain/local-data.ts";
+import { requirementDisplayValue, type ProfileRevision } from "../../domain/requirements.ts";
 import { ScoutMap, type Selection } from "./map/scout-map";
 
 const money = (value: number | null) =>
@@ -82,12 +85,16 @@ export function ExpansionWorkspace({
   initialStorageError,
   mode = "demo",
   onModeChange,
+  profile = null,
+  onEditProfile,
 }: {
   dataset: Dataset;
   initialSaved: Scenario[];
   initialStorageError: string | null;
   mode?: "demo" | "local";
   onModeChange?: (mode: "demo" | "local") => void;
+  profile?: { revision: ProfileRevision; saved: boolean } | null;
+  onEditProfile?: () => void;
 }) {
   const [dataset, setDataset] = useState(initialDataset);
   const [cityId, setCityId] = useState(initialDataset.cities[0].id);
@@ -426,6 +433,49 @@ export function ExpansionWorkspace({
             <PanelRight size={16} /> View analysis
           </button>
         </div>
+        {profile && (
+          <div className="profile-strip">
+            <span className="mini-icon">
+              <ClipboardList size={16} />
+            </span>
+            <div>
+              <strong>
+                {profile.revision.intakeSnapshot.restaurant.name} · profile
+                revision {profile.revision.revisionNumber}
+                {profile.saved ? "" : " · unsaved"}
+              </strong>
+              <span>
+                {(() => {
+                  const find = (id: string) =>
+                    profile.revision.requirements.requirements.find(
+                      (item) => item.id === id,
+                    );
+                  const occupancy = find("occupancy.monthlyLimit");
+                  const kitchen = find("space.existingKitchen");
+                  const parking = find("space.customerParking");
+                  return [
+                    occupancy
+                      ? `$${requirementDisplayValue(occupancy)}/month total occupancy cap`
+                      : null,
+                    kitchen && kitchen.value.kind === "boolean" && kitchen.value.value
+                      ? "existing kitchen"
+                      : null,
+                    parking && parking.value.kind === "boolean" && parking.value.value
+                      ? "customer parking"
+                      : null,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ");
+                })()}
+              </span>
+            </div>
+            {onEditProfile && (
+              <button className="text-button" onClick={onEditProfile}>
+                <Pencil size={13} /> Edit profile
+              </button>
+            )}
+          </div>
+        )}
         <div className="mission-strip">
           <span className="mission-icon">
             <Compass size={23} />
