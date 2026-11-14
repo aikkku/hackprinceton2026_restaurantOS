@@ -1,0 +1,429 @@
+{
+  "cities": [
+    {
+      "id": "houston-demo",
+      "name": "Houston, TX",
+      "center": [-95.381, 29.758],
+      "bounds": [-95.43, 29.715, -95.335, 29.805],
+      "isDemo": true
+    }
+  ],
+  "areas": [
+    {
+      "h3Index": "88446ca8a5fffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 01",
+      "factors": {
+        "demand": null,
+        "similarity": null,
+        "competition": null,
+        "cost": null
+      },
+      "averageBaseRentMonthly": null,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca981fffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 02",
+      "factors": {
+        "demand": 52,
+        "similarity": 61,
+        "competition": 44,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 2630,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca983fffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 03",
+      "factors": {
+        "demand": 59,
+        "similarity": 72,
+        "competition": 53,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 2860,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca987fffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 04",
+      "factors": {
+        "demand": 66,
+        "similarity": 83,
+        "competition": 62,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 3090,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca989fffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 05",
+      "factors": {
+        "demand": 73,
+        "similarity": 94,
+        "competition": null,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 3320,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca98bfffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 06",
+      "factors": {
+        "demand": 80,
+        "similarity": null,
+        "competition": 80,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 3550,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca991fffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 07",
+      "factors": {
+        "demand": null,
+        "similarity": 71,
+        "competition": 89,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 3780,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca993fffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 08",
+      "factors": {
+        "demand": 94,
+        "similarity": 82,
+        "competition": 38,
+        "cost": null
+      },
+      "averageBaseRentMonthly": null,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca995fffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 09",
+      "factors": {
+        "demand": 51,
+        "similarity": 93,
+        "competition": null,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 4240,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca997fffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 10",
+      "factors": {
+        "demand": 58,
+        "similarity": 59,
+        "competition": 56,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 4470,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca999fffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 11",
+      "factors": {
+        "demand": 65,
+        "similarity": null,
+        "competition": 65,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 4700,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca99bfffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 12",
+      "factors": {
+        "demand": 72,
+        "similarity": 81,
+        "competition": 74,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 4930,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca99dfffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 13",
+      "factors": {
+        "demand": null,
+        "similarity": 92,
+        "competition": null,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 5160,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca9b9fffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 14",
+      "factors": {
+        "demand": 86,
+        "similarity": 58,
+        "competition": 92,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 5390,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca9bbfffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 15",
+      "factors": {
+        "demand": 93,
+        "similarity": 69,
+        "competition": 41,
+        "cost": null
+      },
+      "averageBaseRentMonthly": null,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca9d1fffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 16",
+      "factors": {
+        "demand": 50,
+        "similarity": null,
+        "competition": 50,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 5850,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca9d3fffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 17",
+      "factors": {
+        "demand": 57,
+        "similarity": 91,
+        "competition": null,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 6080,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca9d5fffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 18",
+      "factors": {
+        "demand": 64,
+        "similarity": 57,
+        "competition": 68,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 6310,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    },
+    {
+      "h3Index": "88446ca9d7fffff",
+      "h3Resolution": 8,
+      "cityId": "houston-demo",
+      "label": "Scout sector 19",
+      "factors": {
+        "demand": null,
+        "similarity": 68,
+        "competition": 77,
+        "cost": null
+      },
+      "averageBaseRentMonthly": 6540,
+      "sourceIds": ["demo-area-indices"],
+      "isDemo": true
+    }
+  ],
+  "properties": [
+    {
+      "id": "demo-property-1",
+      "cityId": "houston-demo",
+      "h3Index": "88446ca989fffff",
+      "name": "Canopy Corner",
+      "latitude": 29.740092160732825,
+      "longitude": -95.36712186518933,
+      "floorAreaSqFt": 2000,
+      "askingRent": {
+        "amount": 24,
+        "unit": "USD_PER_SF_YEAR"
+      },
+      "availability": "available",
+      "previousUse": "Restaurant (fictional)",
+      "parkingSpaces": 12,
+      "sourceIds": ["demo-listing-1"],
+      "isDemo": true
+    },
+    {
+      "id": "demo-property-2",
+      "cityId": "houston-demo",
+      "h3Index": "88446ca995fffff",
+      "name": "Garden Arcade",
+      "latitude": 29.763030189103127,
+      "longitude": -95.37312533793694,
+      "floorAreaSqFt": 2400,
+      "askingRent": {
+        "amount": 4700,
+        "unit": "USD_PER_MONTH"
+      },
+      "availability": "available",
+      "previousUse": "Retail (fictional)",
+      "parkingSpaces": 8,
+      "sourceIds": ["demo-listing-2"],
+      "isDemo": true
+    },
+    {
+      "id": "demo-property-3",
+      "cityId": "houston-demo",
+      "h3Index": "88446ca99bfffff",
+      "name": "Market Hall",
+      "latitude": 29.762651374652197,
+      "longitude": -95.39318333826414,
+      "floorAreaSqFt": 1800,
+      "askingRent": {
+        "amount": 28,
+        "unit": "USD_PER_SF_YEAR"
+      },
+      "availability": "available",
+      "previousUse": "Café (fictional)",
+      "parkingSpaces": null,
+      "sourceIds": ["demo-listing-3"],
+      "isDemo": true
+    },
+    {
+      "id": "demo-property-4",
+      "cityId": "houston-demo",
+      "h3Index": "88446ca9d1fffff",
+      "name": "Oak Studio",
+      "latitude": 29.739712789163782,
+      "longitude": -95.38717520085287,
+      "floorAreaSqFt": 2800,
+      "askingRent": {
+        "amount": 32,
+        "unit": "USD_PER_SF_YEAR"
+      },
+      "availability": "unknown",
+      "previousUse": null,
+      "parkingSpaces": 6,
+      "sourceIds": ["demo-listing-4"],
+      "isDemo": true
+    }
+  ],
+  "evidence": [
+    {
+      "id": "demo-area-indices",
+      "recordId": "houston-demo-sectors-v1",
+      "label": "Fictional area indicators",
+      "notes": "Synthetic 0–100 demonstration indices, higher is favorable; not ACS, Places, measured demand or an empirical model. Rent values are fictional monthly USD/cell aggregates, not aggregated from these four listings.",
+      "provider": "RestaurantOS fixtures",
+      "origin": "simulated",
+      "isDemo": true,
+      "observedAt": null,
+      "rights": "Project-created synthetic fixture. No CoStar records or private business data."
+    },
+    {
+      "id": "demo-listing-1",
+      "recordId": "demo-property-1",
+      "label": "Canopy Corner · fictional listing",
+      "notes": "Invented test space at an H3 cell center. No actual address, lease availability, permitted use or property condition is verified.",
+      "provider": "RestaurantOS fixtures",
+      "origin": "simulated",
+      "isDemo": true,
+      "observedAt": null,
+      "rights": "Project-created synthetic fixture. No CoStar records or private business data."
+    },
+    {
+      "id": "demo-listing-2",
+      "recordId": "demo-property-2",
+      "label": "Garden Arcade · fictional listing",
+      "notes": "Invented test space at an H3 cell center. No actual address, lease availability, permitted use or property condition is verified.",
+      "provider": "RestaurantOS fixtures",
+      "origin": "simulated",
+      "isDemo": true,
+      "observedAt": null,
+      "rights": "Project-created synthetic fixture. No CoStar records or private business data."
+    },
+    {
+      "id": "demo-listing-3",
+      "recordId": "demo-property-3",
+      "label": "Market Hall · fictional listing",
+      "notes": "Invented test space at an H3 cell center. No actual address, lease availability, permitted use or property condition is verified.",
+      "provider": "RestaurantOS fixtures",
+      "origin": "simulated",
+      "isDemo": true,
+      "observedAt": null,
+      "rights": "Project-created synthetic fixture. No CoStar records or private business data."
+    },
+    {
+      "id": "demo-listing-4",
+      "recordId": "demo-property-4",
+      "label": "Oak Studio · fictional listing",
+      "notes": "Invented test space at an H3 cell center. No actual address, lease availability, permitted use or property condition is verified.",
+      "provider": "RestaurantOS fixtures",
+      "origin": "simulated",
+      "isDemo": true,
+      "observedAt": null,
+      "rights": "Project-created synthetic fixture. No CoStar records or private business data."
+    }
+  ]
+}

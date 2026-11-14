@@ -12,10 +12,13 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/features/tactical/*.test.ts"
+    "test": "node --test src/features/tactical/*.test.ts src/features/expansion/*.test.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "geist": "1.9.2",
+    "h3-js": "4.5.0",
+    "maplibre-gl": "5.24.1",
     "lucide-react": "1.47.0",
     "next": "16.3.6",
     "react": "19.2.7",
@@ -23,6 +26,8 @@
     "zod": "4.4.3"
   },
   "devDependencies": {
+    "@playwright/test": "1.65.1",
+    "@types/geojson": "7946.0.16",
     "@types/node": "22.19.20",
     "@types/react": "19.2.2",
     "@types/react-dom": "19.2.3",
