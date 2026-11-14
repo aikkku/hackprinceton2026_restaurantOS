@@ -21,7 +21,8 @@ Help an independent restaurant owner **improve the restaurant they already opera
 - No generic chatbot as the core user experience. An advisor may later access Tactical's saved analyses through shared tools.
 
 ## Tactical architecture
-- Group Tactical business logic, server actions/services, feature UI, and schemas within the domain folder unless a **genuinely shared** abstraction is agreed.
+- Use `src/app/tactical/` for Next.js route entry points. Put Tactical UI, browser storage, and demo fixtures in `frontend/`, and keep pure calculations and validation schemas in `domain/` so the browser and future server code can reuse them.
+- Reserve `backend/` for server-side data access, actions, and integrations. Keep server dependencies out of `frontend/` and `domain/`. Coordinate abstractions shared with Expansion before moving them outside Tactical.
 - Keep numerical methods as **pure tested functions** in the shared decision library when the same formula will serve Expansion; otherwise put them in a clearly named Tactical module and propose promotion later.
 - Separate three concepts: (1) observed facts, (2) editable simulation assumptions, and (3) calculated projections.
 - Never call an LLM from a render component. Run model calls server-side, validate responses, use caching/persistence when appropriate, and show error/retry states.

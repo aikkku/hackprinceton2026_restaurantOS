@@ -1,0 +1,50 @@
+{
+  "isDemo": true,
+  "profile": {
+    "id": "juniper-table",
+    "name": "Juniper Table",
+    "cuisine": "Neighborhood bistro",
+    "location": "Princeton, NJ"
+  },
+  "layout": {
+    "schemaVersion": 1,
+    "restaurantId": "juniper-table",
+    "name": "Juniper Table floor plan",
+    "unit": "m",
+    "room": { "width": 12, "depth": 7.5 },
+    "updatedAt": "2026-11-14T00:00:00.000Z",
+    "objects": [
+      { "id": "kitchen", "type": "kitchen_zone", "x": 0.4, "y": 0.45, "width": 3.65, "depth": 2.45, "rotation": 0 },
+      { "id": "counter", "type": "counter", "x": 0.65, "y": 3.25, "width": 2.95, "depth": 1.15, "rotation": 0, "seats": 3 },
+      { "id": "north-booth", "type": "booth", "x": 5.1, "y": 0.55, "width": 2.25, "depth": 1.4, "rotation": 0, "seats": 4 },
+      { "id": "east-booth", "type": "booth", "x": 8.5, "y": 0.55, "width": 2.25, "depth": 1.4, "rotation": 0, "seats": 4 },
+      { "id": "center-four", "type": "table_4", "x": 5.1, "y": 2.85, "width": 1.7, "depth": 1.7, "rotation": 0, "seats": 4 },
+      { "id": "east-four", "type": "table_4", "x": 8.15, "y": 2.85, "width": 1.7, "depth": 1.7, "rotation": 0, "seats": 4 },
+      { "id": "south-two", "type": "table_2", "x": 5.25, "y": 5.55, "width": 1.4, "depth": 0.9, "rotation": 0, "seats": 2 },
+      { "id": "corner-two", "type": "table_2", "x": 8.35, "y": 5.55, "width": 1.4, "depth": 0.9, "rotation": 0, "seats": 2 },
+      { "id": "entry", "type": "door", "x": 0.85, "y": 7.05, "width": 1.25, "depth": 0.45, "rotation": 0 },
+      { "id": "entry-plant", "type": "plant", "x": 0.55, "y": 5.75, "width": 0.6, "depth": 0.6, "rotation": 0 },
+      { "id": "corner-plant", "type": "plant", "x": 11.15, "y": 6.6, "width": 0.55, "depth": 0.55, "rotation": 0 }
+    ]
+  },
+  "reviews": [
+    { "id": "juniper-review-01", "date": "2026-10-31", "rating": 4, "text": "We loved dinner, but we waited about half an hour for a table on Saturday.", "themes": ["Wait time", "Weekend service"] },
+    { "id": "juniper-review-02", "date": "2026-11-07", "rating": 3, "text": "Our party of four came around seven and left when there wasn't a table available.", "themes": ["Seating", "Weekend service"] },
+    { "id": "juniper-review-03", "date": "2026-11-08", "rating": 5, "text": "We sat at the counter on Sunday and the team was lovely.", "themes": ["Service"] }
+  ],
+  "mission": {
+    "id": "juniper-seating",
+    "title": "The Seating Problem",
+    "summary": "Weekend guests mention long waits and trouble finding a table. Explore how a few more seats could change monthly contribution.",
+    "action": "Try adding seats",
+    "evidenceIds": ["juniper-review-01", "juniper-review-02"]
+  },
+  "assumptions": {
+    "turnsPerDay": 1.5,
+    "occupancyFraction": 0.65,
+    "averageCheck": 34,
+    "operatingDaysPerMonth": 26,
+    "incrementalContributionMargin": 0.32,
+    "investmentCost": 2400
+  }
+}

@@ -1,0 +1,42 @@
+:root {
+  --ros-forest: #183f38;
+  --ros-forest-hover: #24564a;
+  --ros-canvas: #f7f8f5;
+  --ros-surface: #fff;
+  --ros-ink: #24332f;
+  --ros-muted: #53665d;
+  --ros-border: #e2e8e3;
+  --ros-sage: #b7d7c5;
+  --ros-amber: #f0bd70;
+  --ros-danger: #a0362e;
+  --ros-wood: #c89155;
+  --ros-radius: 12px;
+  --ros-focus: #307966;
+  --ros-shadow: 0 2px 8px #183f3809;
+  --ros-fast: 140ms;
+  --ros-space-1: 4px;
+  --ros-space-2: 8px;
+  --ros-space-3: 12px;
+  --ros-space-4: 16px;
+  --ros-space-5: 24px;
+  --ros-space-6: 32px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html { min-width: 280px; }
+body {
+  margin: 0;
+  background: var(--ros-canvas);
+  color: var(--ros-ink);
+  font-family: var(--font-geist, system-ui), sans-serif;
+  line-height: 1.5;
+}
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: default; }
+:focus-visible { outline: 2px solid var(--ros-focus); outline-offset: 3px; }
+.route-error { margin: 4rem auto; padding: 1rem; max-width: 44rem; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
