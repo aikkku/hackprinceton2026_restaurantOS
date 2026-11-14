@@ -24,6 +24,10 @@ import { LayoutInspector } from "./layout-inspector";
 import { LayoutTransfer } from "./layout-transfer";
 import { ReviewInsights } from "./review-insights";
 import { AnalyzePlan } from "./analyze-plan";
+import { HrPage } from "./hr-page";
+import { SupplyPage } from "./supply-page";
+import { FinancePage } from "./finance-page";
+import { AiAssistant } from "./ai-assistant";
 import "./tactical.css";
 
 const objectIcons = {
@@ -44,11 +48,12 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
   const router = useRouter();
   const section = pathname.split("/")[2] ?? "floor";
   const pages = [
-    ["/tactical", "Floor plan"],
-    ["/tactical/scenarios", "Scenarios"],
-    ["/tactical/decisions", "Saved decisions"],
-    ["/tactical/reviews", "Customer signals"],
-    ["/tactical/analyze", "Analyze photos"],
+    ["/tactical", "Floor Plan"],
+    ["/tactical/reviews", "Customer Reviews"],
+    ["/tactical/hr", "HR"],
+    ["/tactical/supply", "Supply"],
+    ["/tactical/finance", "Financial Intelligence"],
+    ["/tactical/ai", "AI Assistant"],
   ];
   const [layout, setLayout] = useState(fixture.layout);
   const [checkpoint, setCheckpoint] = useState(fixture.layout);
@@ -321,7 +326,7 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
   }
 
   function openScenario(saved: Scenario) {
-    router.push("/tactical/scenarios");
+    router.push("/tactical");
     setScenarioNotice(null);
     setScenario(saved);
     setFormDefaults({ baselineSeats: saved.baselineSeats, inputs: saved.assumptions, action: scenarioAction(saved), targetTurnsPerDay: saved.targetTurnsPerDay });
@@ -350,13 +355,13 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
   }
 
   function tryTurnover() {
-    router.push("/tactical/scenarios");
+    router.push("/tactical");
     setPlacing(null);
     setScenarioNotice(null);
     setScenario(null);
     setFormDefaults({ baselineSeats: originalSeats, inputs: fixture.assumptions, action: "turnover" });
     setFormVersion((version) => version + 1);
-    scenarioSection.current?.focus();
+    setTimeout(() => scenarioSection.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
   }
 
   function loadScenarioLayout(saved: Scenario) {
@@ -393,7 +398,7 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
         <nav className="workspace-links" aria-label="Tactical sections">
           {pages.map(([href, label]) => <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined}>{label}</Link>)}
         </nav>
-        <div hidden={section !== "floor"}>
+        <div hidden={section !== "floor" && section !== "scenarios" && section !== "decisions"}>
         <div className="editor-grid">
           <section className="panel floor-panel" aria-labelledby="editor-title">
             <div className="floor-heading">
@@ -517,9 +522,11 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
           </div>
         </div>
 
-        <Link className="button primary" href="/tactical/scenarios">Simulate this layout <ArrowRight size={16} /></Link>
-        </div>
-        <div hidden={section !== "scenarios" && section !== "decisions"} className={section === "decisions" ? "decisions-page" : "scenarios-page"} ref={scenarioSection} tabIndex={-1}>
+        <div className="scenario-inline" ref={scenarioSection} tabIndex={-1}>
+          <div className="scenario-inline-header">
+            <h2>Scenarios</h2>
+            <p>Simulate layout and turnover changes to see projected outcomes.</p>
+          </div>
           <ScenarioPanel key={formVersion} defaultAction={formDefaults.action} defaultTargetTurnsPerDay={formDefaults.targetTurnsPerDay}
             defaults={formDefaults.inputs} baselineSeats={formDefaults.baselineSeats} draftSeats={counts.seats}
             scenario={scenario} saved={savedScenarios} isSaved={savedScenarios.some(({ id }) => scenario?.id === id)} overlaps={overlaps.size > 0}
@@ -527,11 +534,22 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
             onSimulate={previewScenario} onDelete={deleteScenario} onSave={saveScenario} onOpen={openScenario} onLoadLayout={loadScenarioLayout}
             onReset={resetScenario} formVersion={formVersion} />
         </div>
+        </div>
         <div hidden={section !== "reviews"}>
         <ReviewInsights reviews={fixture.reviews} mission={fixture.mission} onTrySeating={trySeating} />
+        <AnalyzePlan />
         </div>
-        <div hidden={section !== "analyze"}>
-          <AnalyzePlan />
+        <div hidden={section !== "hr"}>
+          <HrPage />
+        </div>
+        <div hidden={section !== "supply"}>
+          <SupplyPage />
+        </div>
+        <div hidden={section !== "finance"}>
+          <FinancePage assumptions={fixture.assumptions} />
+        </div>
+        <div hidden={section !== "ai"}>
+          <AiAssistant />
         </div>
         <footer className="workspace-footer"><Armchair size={16} /> Demo layouts and scenarios are saved in this browser.</footer>
       </main>
