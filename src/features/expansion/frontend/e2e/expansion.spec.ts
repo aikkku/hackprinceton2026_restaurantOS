@@ -32,6 +32,7 @@ test("Expansion does not change Tactical styles during client navigation", async
   const before = await tacticalStyles();
   await page.getByRole("link", { name: "Explore expansion" }).click();
   await expect(page).toHaveURL(/\/expansion/);
+  await page.getByRole("button", { name: "Continue to the scouting map" }).click();
   await expect(page.locator(".property-card")).toHaveCount(4);
   await page.getByRole("link", { name: "Manage restaurant" }).click();
   await expect(page).toHaveURL(/\/tactical/);
@@ -52,6 +53,7 @@ test("scout, simulate, compare, save and restore exact assumptions", async ({
   await page.goto("/");
   await expect(page).toHaveURL(/\/tactical/);
   await page.goto("/expansion");
+  await page.getByRole("button", { name: "Continue to the scouting map" }).click();
   await expect(
     page.getByRole("heading", {
       name: "A little scouting. A clearer decision.",
@@ -126,6 +128,7 @@ test("map failure, keyboard area selection, empty filters and zero weights remai
     route.abort(),
   );
   await page.goto("/expansion");
+  await page.getByRole("button", { name: "Continue to the scouting map" }).click();
   await expect(
     page.getByText("Street map unavailable. Geographic preview only."),
   ).toBeVisible({ timeout: 20000 });
@@ -157,6 +160,7 @@ test("corrupt storage is preserved until the user clears it", async ({
     localStorage.setItem("restaurantos.expansion.demo.scenarios.v1", "{bad"),
   );
   await page.goto("/expansion");
+  await page.getByRole("button", { name: "Continue to the scouting map" }).click();
   await expect(page.locator('.saved-section [role="alert"]')).toContainText(
     "Existing storage has been preserved",
   );
@@ -186,6 +190,7 @@ test("mobile and reduced motion layout has no horizontal overflow", async ({
     route.abort(),
   );
   await page.goto("/expansion");
+  await page.getByRole("button", { name: "Continue to the scouting map" }).click();
   await expect(page.locator(".property-card")).toHaveCount(4);
   await page.getByRole("button", { name: /Canopy Corner/ }).click();
   await page.getByRole("button", { name: "Try opening here" }).click();
