@@ -17,10 +17,11 @@
     "expansion:import": "node --env-file-if-exists=.env --env-file-if-exists=.env.local src/features/expansion/backend/import-local.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.8.0",
     "geist": "1.9.2",
     "h3-js": "4.5.0",
-    "maplibre-gl": "5.24.1",
     "lucide-react": "1.47.0",
+    "maplibre-gl": "5.24.1",
     "next": "16.3.6",
     "react": "19.2.7",
     "react-dom": "19.2.7",

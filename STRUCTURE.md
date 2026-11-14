@@ -10,14 +10,17 @@ Asilbek owns **Tactical**, which helps owners improve their existing restaurant.
 | [`src/app/tactical/page.tsx`](src/app/tactical/page.tsx) | `/tactical` entry point and page metadata. Hands rendering off to the Tactical feature. |
 | [`tactical/frontend/tactical-page.tsx`](src/features/tactical/frontend/tactical-page.tsx) | Loads the demo JSON, validates it, and passes it to the workspace. |
 | [`tactical/frontend/data/demo-restaurant.json`](src/features/tactical/frontend/data/demo-restaurant.json) | Edit the example restaurant, starting layout, reviews, seating mission, and default assumptions here. |
-| [`tactical/frontend/components/`](src/features/tactical/frontend/components/) | `tactical-workspace.tsx` owns editor state and the mission flow. `floor-plan.tsx` renders the SVG floor plan and handles pointer interaction. `scenario-panel.tsx` owns the simulation form, results, and analysis drawer. `tactical.css` styles the feature. |
-| [`tactical/frontend/storage.ts`](src/features/tactical/frontend/storage.ts) | Reads and validates browser-saved drafts and scenarios. The workspace saves them separately in `localStorage`. |
-| [`tactical/domain/`](src/features/tactical/domain/) | `layout.ts` handles geometry and seat counts. `scenario.ts` computes the seating projection. `schemas.ts` validates fixtures, layouts, assumptions, and scenario snapshots. |
+| [`tactical/frontend/components/`](src/features/tactical/frontend/components/) | `tactical-workspace.tsx` coordinates editing, undo/redo, and saves. `floor-plan.tsx` renders the zoomable SVG scene. `layout-inspector.tsx` edits furniture measurements, and `layout-transfer.tsx` imports/exports layout JSON. `scenario-panel.tsx` owns previews and analyst details, `scenario-comparison.tsx` compares saved options, and `review-insights.tsx` explores review themes. Component CSS files use the Tactical tokens. |
+| [`tactical/frontend/layout-edit.ts`](src/features/tactical/frontend/layout-edit.ts) | Converts entered furniture measurements and validates the resulting geometry. [`layout-transfer.ts`](src/features/tactical/frontend/layout-transfer.ts) validates imported layout files. |
+| [`tactical/frontend/storage.ts`](src/features/tactical/frontend/storage.ts) | Reads browser-saved drafts and scenarios, retains compatible older snapshots, and recovers valid scenarios alongside damaged entries. The workspace saves layouts and scenarios separately in `localStorage`. |
+| [`tactical/domain/`](src/features/tactical/domain/) | `layout.ts` handles geometry and seat counts. `scenario.ts` computes seating and turnover projections and verifies saved results. `reviews.ts` counts supplied review themes and filters their sources. `schemas.ts` validates fixtures, layouts, assumptions, and scenario snapshots. |
 | [`tactical/backend/`](src/features/tactical/backend/) | Reserved for server-side data access, actions, and integrations. Tactical currently uses fixture data and browser storage. |
-| [`tactical/tactical.test.ts`](src/features/tactical/tactical.test.ts) | Tests fixture evidence links, geometry, capacity, and financial calculations. |
+| [`tactical/tactical.test.ts`](src/features/tactical/tactical.test.ts) | Tests fixture evidence links, geometry, capacity, and financial calculations. Adjacent test files cover turnover, review summaries, layout files, precise edits, and saved-data recovery. |
 | [`src/features/expansion/`](src/features/expansion/) | Rain's Expansion workspace: `frontend/` owns UI, API loading, fixtures and browser storage; `domain/` owns validation, scoring and finance; `backend/` streams permitted local data into a rebuildable SQLite cache and serves bounded queries. |
 
 The current path through Tactical is `/tactical` → validate the demo fixture → open the workspace → edit the layout → calculate the seating scenario → inspect evidence or save a snapshot. All demo interactions work without credentials.
+
+Follow the [Tactical frontend walkthrough](docs/tactical/FRONTEND_WALKTHROUGH.md) to review the editor, customer signals, seating/turnover experiments, and saved comparisons one step at a time.
 
 ## Expansion layout for Rain
 

@@ -1,23 +1,29 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import {
   Armchair, ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ClipboardList, Copy, DoorOpen, Grid2X2,
   LayoutGrid, PanelTop, Plus, RotateCcw, RotateCw, Save, Sofa, Sprout, Table2, Trash2,
-  Undo2, Utensils, UtensilsCrossed,
+  Undo2, Redo2, ZoomIn, ZoomOut, Utensils, UtensilsCrossed,
 } from "lucide-react";
 import {
   displayLength, fitsRoom, footprint, furniture, gridStep, hasOverlap, layoutCounts, overlappingIds,
   positionObject, roundLength, toMeters,
 } from "../../domain/layout";
-import { simulateSeating } from "../../domain/scenario";
+import { simulateSeating, simulateTurnover, scenarioAction } from "../../domain/scenario";
 import {
-  modelVersion, objectLimit, roomSchema, type Assumptions, type Fixture, type Layout, type LayoutObject,
+  modelVersion, objectLimit, roomSchema, layoutSchema, type ScenarioSettings, type Assumptions, type Fixture, type Layout, type LayoutObject,
   type ObjectKind, type Scenario,
 } from "../../domain/schemas";
-import { loadDemoStorage, makeId, readSaved, savedScenariosSchema } from "../storage";
+import { loadDemoStorage, makeId, readScenarios } from "../storage";
 import { FloorPlan } from "./floor-plan";
 import { AnalysisDialog, ReviewEvidence, ScenarioPanel } from "./scenario-panel";
+import { LayoutInspector } from "./layout-inspector";
+import { LayoutTransfer } from "./layout-transfer";
+import { ReviewInsights } from "./review-insights";
+import { AnalyzePlan } from "./analyze-plan";
 import "./tactical.css";
 
 const objectIcons = {
@@ -34,10 +40,22 @@ const objectIcons = {
 const objectKinds = Object.keys(furniture) as ObjectKind[];
 
 export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const section = pathname.split("/")[2] ?? "floor";
+  const pages = [
+    ["/tactical", "Floor plan"],
+    ["/tactical/scenarios", "Scenarios"],
+    ["/tactical/decisions", "Saved decisions"],
+    ["/tactical/reviews", "Customer signals"],
+    ["/tactical/analyze", "Analyze photos"],
+  ];
   const [layout, setLayout] = useState(fixture.layout);
   const [checkpoint, setCheckpoint] = useState(fixture.layout);
   const [savedLayout, setSavedLayout] = useState<Layout | null>(null);
   const [history, setHistory] = useState<Layout[]>([]);
+  const [future, setFuture] = useState<Layout[]>([]);
+  const [zoom, setZoom] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [placing, setPlacing] = useState<ObjectKind | null>(null);
   const [unit, setUnit] = useState<"m" | "ft">("m");
@@ -49,9 +67,12 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
   const [scenarioNotice, setScenarioNotice] = useState<string | null>(null);
   const [scenario, setScenario] = useState<Scenario | null>(null);
   const [savedScenarios, setSavedScenarios] = useState<Scenario[]>([]);
-  const [formDefaults, setFormDefaults] = useState({ baselineSeats: layoutCounts(fixture.layout).seats, inputs: fixture.assumptions });
+  const [formDefaults, setFormDefaults] = useState<{
+    baselineSeats: number; inputs: Assumptions; action?: "seating" | "turnover"; targetTurnsPerDay?: number;
+  }>({ baselineSeats: layoutCounts(fixture.layout).seats, inputs: fixture.assumptions });
   const evidenceDialog = useRef<HTMLDialogElement>(null);
   const editorTitle = useRef<HTMLHeadingElement>(null);
+  const scenarioSection = useRef<HTMLDivElement>(null);
   const storage = useRef<Pick<ReturnType<typeof loadDemoStorage>, "layoutKey" | "scenariosKey"> | null>(null);
 
   useEffect(() => {
@@ -77,9 +98,24 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
   const originalSeats = layoutCounts(fixture.layout).seats;
   const overlaps = overlappingIds(layout.objects);
   const evidence = fixture.reviews.filter((review) => fixture.mission.evidenceIds.includes(review.id));
-  const isDirty = layout !== checkpoint;
+  const isDirty = layout.name !== checkpoint.name
+    || JSON.stringify(layout.room) !== JSON.stringify(checkpoint.room)
+    || JSON.stringify(layout.objects) !== JSON.stringify(checkpoint.objects);
+
+  useEffect(() => {
+    if (!isDirty) return;
+    const warnBeforeLeaving = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warnBeforeLeaving);
+    return () => window.removeEventListener("beforeunload", warnBeforeLeaving);
+  }, [isDirty]);
 
   function commit(next: Layout) {
+    const valid = layoutSchema.safeParse(next);
+    if (!valid.success) {
+      setNotice({ text: valid.error.issues[0].message, warning: true });
+      return;
+    }
+    setFuture([]);
     setHistory((previous) => [...previous.slice(-49), layout]);
     setLayout({ ...next, updatedAt: new Date().toISOString() });
     setNotice(null);
@@ -89,6 +125,7 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
     setLayout(next);
     setCheckpoint(baseline);
     setHistory([]);
+    setFuture([]);
     setSelectedId(null);
     setPlacing(null);
     setNotice(null);
@@ -108,9 +145,29 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
     const previous = history.at(-1);
     if (!previous) return;
     setLayout(previous);
+    setFuture((items) => [...items, layout]);
     setHistory(history.slice(0, -1));
     setSelectedId(previous.objects.some(({ id }) => id === selectedId) ? selectedId : null);
     setNotice(null);
+    setRoomFormVersion((version) => version + 1);
+  }
+
+  function redo() {
+    const next = future.at(-1);
+    if (!next) return;
+    setHistory((items) => [...items, layout]);
+    setFuture(future.slice(0, -1));
+    setLayout(next);
+    setSelectedId(null);
+    setNotice(null);
+    setRoomFormVersion((version) => version + 1);
+  }
+
+  function importLayout(imported: Layout) {
+    if (isDirty && !window.confirm("Import this layout and replace your unsaved changes?")) return;
+    commit(imported);
+    setSelectedId(null);
+    setPlacing(null);
     setRoomFormVersion((version) => version + 1);
   }
 
@@ -142,8 +199,13 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
       setNotice({ text: "Move or remove furniture outside the proposed room before resizing.", warning: true });
       return;
     }
-    if (room.data.width !== layout.room.width || room.data.depth !== layout.room.depth) {
-      commit({ ...layout, room: room.data });
+    const name = String(values.get("name") ?? "").trim();
+    if (!name) {
+      setNotice({ text: "Enter a layout name.", warning: true });
+      return;
+    }
+    if (room.data.width !== layout.room.width || room.data.depth !== layout.room.depth || name !== layout.name) {
+      commit({ ...layout, name, room: room.data });
       setRoomFormVersion((version) => version + 1);
     } else {
       setNotice(null);
@@ -191,7 +253,7 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
 
   function moveObject(object: LayoutObject) {
     const existing = layout.objects.find(({ id }) => object.id === id);
-    if (!existing || (existing.x === object.x && existing.y === object.y && existing.rotation === object.rotation)) return;
+    if (!existing || (existing.x === object.x && existing.y === object.y && existing.rotation === object.rotation && existing.width === object.width && existing.depth === object.depth && existing.seats === object.seats)) return;
     commit({ ...layout, objects: layout.objects.map((item) => item.id === object.id ? object : item) });
   }
 
@@ -224,20 +286,23 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
     setFormVersion((version) => version + 1);
   }
 
-  function previewScenario(baselineSeats: number, assumptions: Assumptions) {
-    if (overlaps.size) return;
+  function previewScenario(baselineSeats: number, assumptions: Assumptions, settings: ScenarioSettings) {
+    if (settings.action === "seating" && overlaps.size) return;
     setScenarioNotice(null);
     setScenario({
       id: makeId(),
       schemaVersion: 1,
-      modelVersion,
+      modelVersion: settings.action === "turnover" ? "turnover-v1" : modelVersion,
+      ...settings,
       createdAt: new Date().toISOString(),
       missionTitle: fixture.mission.title,
       evidence,
       layout,
       baselineSeats,
       assumptions,
-      result: simulateSeating(baselineSeats, counts.seats, assumptions),
+      result: settings.action === "turnover"
+        ? simulateTurnover(baselineSeats, settings.targetTurnsPerDay ?? assumptions.turnsPerDay, assumptions)
+        : simulateSeating(baselineSeats, counts.seats, assumptions),
     });
   }
 
@@ -246,7 +311,7 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
     setScenarioNotice(null);
     try {
       const key = storage.current.scenariosKey;
-      const previouslySaved = readSaved(key, savedScenariosSchema).value ?? savedScenarios;
+      const previouslySaved = readScenarios(key, fixture.profile.id).value;
       const saved = [scenario, ...previouslySaved.filter((item) => item.id !== scenario.id)];
       window.localStorage.setItem(key, JSON.stringify(saved));
       setSavedScenarios(saved);
@@ -256,16 +321,49 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
   }
 
   function openScenario(saved: Scenario) {
+    router.push("/tactical/scenarios");
     setScenarioNotice(null);
     setScenario(saved);
-    setFormDefaults({ baselineSeats: saved.baselineSeats, inputs: saved.assumptions });
+    setFormDefaults({ baselineSeats: saved.baselineSeats, inputs: saved.assumptions, action: scenarioAction(saved), targetTurnsPerDay: saved.targetTurnsPerDay });
     setFormVersion((version) => version + 1);
+  }
+
+  function deleteScenario(id: string) {
+    if (!storage.current || !window.confirm("Delete this saved scenario from this browser?")) return;
+    try {
+      const key = storage.current.scenariosKey;
+      const current = readScenarios(key, fixture.profile.id).value;
+      const next = current.filter((item) => item.id !== id);
+      window.localStorage.setItem(key, JSON.stringify(next));
+      setSavedScenarios(next);
+      setScenarioNotice(null);
+    } catch {
+      setScenarioNotice("Could not delete the scenario. Browser storage is unavailable.");
+    }
+  }
+
+  function trySeating() {
+    router.push("/tactical");
+    resetScenario();
+    setPlacing("table_2");
+    editorTitle.current?.focus();
+  }
+
+  function tryTurnover() {
+    router.push("/tactical/scenarios");
+    setPlacing(null);
+    setScenarioNotice(null);
+    setScenario(null);
+    setFormDefaults({ baselineSeats: originalSeats, inputs: fixture.assumptions, action: "turnover" });
+    setFormVersion((version) => version + 1);
+    scenarioSection.current?.focus();
   }
 
   function loadScenarioLayout(saved: Scenario) {
     if (isDirty && !window.confirm("Load the scenario layout and discard your unsaved changes?")) return;
     changeLayout(saved.layout, checkpoint);
     openScenario(saved);
+    router.push("/tactical");
     editorTitle.current?.focus();
   }
 
@@ -274,7 +372,12 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
       <header className="app-bar">
         <div className="app-bar-inner">
           <a className="brand" href="/tactical"><span className="brand-icon"><UtensilsCrossed size={19} /></span>RestaurantOS</a>
-          <span className="current-mode" aria-current="page">Manage restaurant</span>
+          <nav className="workspace-switch" aria-label="Workspace">
+            <span className="current-mode" aria-current="page">Manage restaurant</span>
+            <Link href="/expansion" onClick={(event) => {
+              if (isDirty && !window.confirm("Leave Tactical and discard unsaved layout changes?")) event.preventDefault();
+            }}>Explore expansion</Link>
+          </nav>
           <span className="demo-badge">Demo</span>
         </div>
       </header>
@@ -287,6 +390,10 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
           </dl>
         </div>
 
+        <nav className="workspace-links" aria-label="Tactical sections">
+          {pages.map(([href, label]) => <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined}>{label}</Link>)}
+        </nav>
+        <div hidden={section !== "floor"}>
         <div className="editor-grid">
           <section className="panel floor-panel" aria-labelledby="editor-title">
             <div className="floor-heading">
@@ -297,13 +404,26 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
               <span className={`pill ${isDirty ? "pill-warm" : ""}`}>{isDirty ? "Unsaved changes" : savedLayout === layout ? "Saved draft" : "Layout draft"}</span>
             </div>
             <div className="layout-options" aria-label="Layout options">
-              <button className="button compact quiet" onClick={() => openLayout("template")} disabled={!loaded}>Demo template</button>
-              <button className="button compact quiet" onClick={() => openLayout("blank")} disabled={!loaded}><Plus size={14} /> Blank layout</button>
-              <button className="button compact quiet" onClick={() => openLayout("saved")} disabled={!loaded || !savedLayout}>Open saved draft</button>
+              <button className="button compact quiet" onClick={() => openLayout("template")}>Demo template</button>
+              <button className="button compact quiet" onClick={() => openLayout("blank")}><Plus size={14} /> Blank layout</button>
+              <button className="button compact quiet" onClick={() => openLayout("saved")} disabled={!savedLayout}>Open saved draft</button>
             </div>
-            <div className="scene">
-              <FloorPlan layout={layout} unit={unit} selectedId={selectedId} placing={placing} snap={snap} overlaps={overlaps} onSelect={setSelectedId}
-                onPlace={(x, y) => { if (placing) addObject(newObject(placing), x, y); }} onMove={moveObject} />
+            <LayoutTransfer layout={layout} onImport={importLayout}
+              onNotice={(text) => setNotice({ text, warning: true })} />
+            <div className="scene-controls" aria-label="Floor plan view">
+              <span>Top-down view</span>
+              <div className="button-row">
+                <button className="icon-button" aria-label="Zoom out" disabled={zoom === 1} onClick={() => setZoom(Math.max(1, zoom - 0.5))}><ZoomOut size={17} /></button>
+                <output aria-label="Zoom level">{zoom * 100}%</output>
+                <button className="icon-button" aria-label="Zoom in" disabled={zoom === 3} onClick={() => setZoom(Math.min(3, zoom + 0.5))}><ZoomIn size={17} /></button>
+                <button className="button compact quiet" onClick={() => setZoom(1)}>Fit room</button>
+              </div>
+            </div>
+            <div className="scene-scroll" tabIndex={0} role="region" aria-label="Floor plan canvas. Scroll to pan when zoomed.">
+              <div className="scene" style={{ width: `${zoom * 100}%` }}>
+                <FloorPlan layout={layout} zoom={zoom} unit={unit} selectedId={selectedId} placing={placing} snap={snap} overlaps={overlaps} onSelect={setSelectedId}
+                  onPlace={(x, y) => { if (placing) addObject(newObject(placing), x, y); }} onMove={moveObject} />
+              </div>
             </div>
             {placing && <div className="placement">
               <p role="status">Click the floor to place: {furniture[placing].label}.</p>
@@ -316,8 +436,9 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
               <label className="checkbox"><input type="checkbox" checked={snap} onChange={(event) => setSnap(event.target.checked)} /> Snap to grid</label>
               <div className="button-row">
                 <button className="button quiet compact" disabled={!history.length} onClick={undo}><Undo2 size={15} /> Undo</button>
+                <button className="button quiet compact" disabled={!future.length} onClick={redo}><Redo2 size={15} /> Redo</button>
                 <button className="button quiet compact" disabled={!isDirty} onClick={() => changeLayout(checkpoint, checkpoint)}><RotateCcw size={14} /> Reset draft</button>
-                <button className="button primary compact" disabled={!loaded} onClick={saveLayout}><Save size={15} /> Save draft</button>
+                <button className="button primary compact" onClick={saveLayout}><Save size={15} /> Save draft</button>
               </div>
             </div>
             {overlaps.size > 0 && <p className="warning-message floor-notice" role="status">Overlapping objects are outlined. Move them apart to preview the scenario.</p>}
@@ -330,7 +451,17 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
               <h2 id="mission-title">{fixture.mission.title}</h2>
               <p>{fixture.mission.summary}</p>
               <button className="text-button" onClick={() => evidenceDialog.current?.showModal()}>Read {evidence.length} cited reviews <ArrowRight size={15} /></button>
-              <button className="button primary mission-action" onClick={() => { setPlacing("table_2"); editorTitle.current?.focus(); }}>{fixture.mission.action} <ArrowRight size={16} /></button>
+              <button className="button primary mission-action" onClick={trySeating}>{fixture.mission.action} <ArrowRight size={16} /></button>
+              <button className="button secondary mission-action" onClick={tryTurnover}>Try faster turnover <ArrowRight size={16} /></button>
+              <details className="mission-details">
+                <summary>Why this mission?</summary>
+                {fixture.mission.priority && <p>Demo priority · {fixture.mission.priority}</p>}
+                {fixture.mission.applicability && <p>{fixture.mission.applicability}</p>}
+                {fixture.mission.missingData?.length ? <>
+                  <h3>Still needed</h3>
+                  <ul>{fixture.mission.missingData.map((item) => <li key={item}>{item}</li>)}</ul>
+                </> : <p>Customer demand and usable space need verification.</p>}
+              </details>
             </section>
 
             <section className="panel furniture-panel" aria-labelledby="furniture-title">
@@ -364,6 +495,8 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
                   }}><Trash2 size={16} /></button>
                 </div>
               </div>}
+              <LayoutInspector layout={layout} selected={selected} unit={unit} onUpdate={moveObject}
+                onNotice={(text) => setNotice({ text, warning: true })} />
               <details className="room-details">
                 <summary>Room dimensions</summary>
                 <div className="room-unit">
@@ -372,6 +505,7 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
                   </select></label>
                 </div>
                 <form key={`${roomFormVersion}-${unit}`} onSubmit={resizeRoom}>
+                  <label className="layout-name">Layout name<input name="name" maxLength={120} required defaultValue={layout.name} /></label>
                   <div className="room-fields">
                     <label>Width ({unit})<input type="number" name="width" step="any" min="0.01" required defaultValue={Number(displayLength(layout.room.width, unit).toFixed(4))} /></label>
                     <label>Depth ({unit})<input type="number" name="depth" step="any" min="0.01" required defaultValue={Number(displayLength(layout.room.depth, unit).toFixed(4))} /></label>
@@ -383,11 +517,22 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
           </div>
         </div>
 
-        <ScenarioPanel defaults={formDefaults.inputs} baselineSeats={formDefaults.baselineSeats} draftSeats={counts.seats}
-          scenario={scenario} saved={savedScenarios} isSaved={savedScenarios.some(({ id }) => scenario?.id === id)} overlaps={overlaps.size > 0}
-          layoutChanged={Boolean(scenario && scenario.layout.updatedAt !== layout.updatedAt)} notice={scenarioNotice}
-          onSimulate={previewScenario} onSave={saveScenario} onOpen={openScenario} onLoadLayout={loadScenarioLayout}
-          onReset={resetScenario} formVersion={formVersion} />
+        <Link className="button primary" href="/tactical/scenarios">Simulate this layout <ArrowRight size={16} /></Link>
+        </div>
+        <div hidden={section !== "scenarios" && section !== "decisions"} className={section === "decisions" ? "decisions-page" : "scenarios-page"} ref={scenarioSection} tabIndex={-1}>
+          <ScenarioPanel key={formVersion} defaultAction={formDefaults.action} defaultTargetTurnsPerDay={formDefaults.targetTurnsPerDay}
+            defaults={formDefaults.inputs} baselineSeats={formDefaults.baselineSeats} draftSeats={counts.seats}
+            scenario={scenario} saved={savedScenarios} isSaved={savedScenarios.some(({ id }) => scenario?.id === id)} overlaps={overlaps.size > 0}
+            layoutChanged={Boolean(scenario && scenario.layout.updatedAt !== layout.updatedAt)} notice={scenarioNotice}
+            onSimulate={previewScenario} onDelete={deleteScenario} onSave={saveScenario} onOpen={openScenario} onLoadLayout={loadScenarioLayout}
+            onReset={resetScenario} formVersion={formVersion} />
+        </div>
+        <div hidden={section !== "reviews"}>
+        <ReviewInsights reviews={fixture.reviews} mission={fixture.mission} onTrySeating={trySeating} />
+        </div>
+        <div hidden={section !== "analyze"}>
+          <AnalyzePlan />
+        </div>
         <footer className="workspace-footer"><Armchair size={16} /> Demo layouts and scenarios are saved in this browser.</footer>
       </main>
       <AnalysisDialog dialogRef={evidenceDialog} title="Mission evidence"><ReviewEvidence reviews={evidence} /></AnalysisDialog>

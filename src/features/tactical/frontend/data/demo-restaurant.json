@@ -37,6 +37,13 @@
     "title": "The Seating Problem",
     "summary": "Weekend guests mention long waits and trouble finding a table. Explore how a few more seats could change monthly contribution.",
     "action": "Try adding seats",
+    "priority": "medium",
+    "applicability": "Explore capacity changes during busy service periods after checking the available space and customer demand.",
+    "missingData": [
+      "Peak-period arrivals and actual wait times",
+      "Measured furniture clearance and usable floor space",
+      "Extra staffing or other fixed operating costs"
+    ],
     "evidenceIds": ["juniper-review-01", "juniper-review-02"]
   },
   "assumptions": {

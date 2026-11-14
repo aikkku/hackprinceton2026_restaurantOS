@@ -1,0 +1,298 @@
+.tactical-workspace .analyze-root {
+  position: relative;
+  margin-top: var(--ros-space-5);
+}
+
+.tactical-workspace .analyze-header-actions {
+  display: flex;
+  gap: var(--ros-space-2);
+  margin-bottom: var(--ros-space-4);
+  flex-wrap: wrap;
+}
+
+/* 3-column layout */
+.tactical-workspace .analyze-layout {
+  display: grid;
+  grid-template-columns: 270px 1fr 268px;
+  gap: var(--ros-space-4);
+  align-items: start;
+}
+
+/* Cards */
+.tactical-workspace .analyze-card {
+  background: white;
+  border: 1px solid #e4dfd5;
+  border-radius: 12px;
+  padding: var(--ros-space-4);
+  margin-bottom: var(--ros-space-3);
+}
+.tactical-workspace .analyze-card-title {
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: #6f685d;
+  margin: 0 0 var(--ros-space-3) 0;
+  display: flex;
+  align-items: center;
+  gap: var(--ros-space-2);
+}
+.tactical-workspace .analyze-card-title small { font-weight: 400; text-transform: none; letter-spacing: 0; }
+.tactical-workspace .analyze-card-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+}
+
+/* Photo upload */
+.tactical-workspace .photo-drop-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ros-space-2);
+  padding: var(--ros-space-4);
+  border: 2px dashed #d6cfc5;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #6f685d;
+  font-size: .84rem;
+  text-align: center;
+  transition: border-color 140ms, background 140ms;
+}
+.tactical-workspace .photo-drop-zone:hover, .tactical-workspace .photo-drop-zone.is-dragging {
+  border-color: #b4532a;
+  background: #fdf4ef;
+}
+.tactical-workspace .photo-drop-zone small { font-size: .74rem; color: #9e9589; }
+.tactical-workspace .photo-thumbnails {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: var(--ros-space-3);
+}
+.tactical-workspace .photo-thumb {
+  position: relative;
+  width: 80px;
+}
+.tactical-workspace .photo-thumb img {
+  width: 80px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #e4dfd5;
+  display: block;
+}
+.tactical-workspace .photo-tag {
+  width: 100%;
+  font-size: .68rem;
+  border: 1px solid #e4dfd5;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin-top: 3px;
+  background: #fafafa;
+}
+.tactical-workspace .photo-remove {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #c0392b;
+  color: white;
+  border: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Facts grid */
+.tactical-workspace .facts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ros-space-2);
+}
+.tactical-workspace .facts-label {
+  display: grid;
+  gap: 4px;
+  font-size: .8rem;
+  font-weight: 560;
+  color: #231f1a;
+}
+.tactical-workspace .facts-label input,
+.tactical-workspace .facts-label select,
+.tactical-workspace .facts-label textarea {
+  min-height: 36px;
+  border: 1px solid #d6cfc5;
+  border-radius: 7px;
+  padding: 5px 8px;
+  font: inherit;
+  font-size: .82rem;
+  background: white;
+  color: #231f1a;
+  resize: vertical;
+}
+.tactical-workspace .facts-full { grid-column: 1 / -1; }
+
+/* Accuracy */
+.tactical-workspace .accuracy-picker { display: flex; gap: var(--ros-space-3); }
+.tactical-workspace .accuracy-opt { display: flex; align-items: center; gap: var(--ros-space-2); font-size: .84rem; cursor: pointer; }
+.tactical-workspace .accuracy-opt small { color: #6f685d; }
+
+/* Analyze button */
+.tactical-workspace .analyze-btn { width: 100%; justify-content: center; min-height: 42px; background: #b4532a; border-color: #b4532a; }
+.tactical-workspace .analyze-btn:hover:enabled { background: #8f3f1d; border-color: #8f3f1d; }
+.tactical-workspace .analyze-status { font-size: .82rem; color: #6f685d; margin-top: var(--ros-space-2); }
+.tactical-workspace .analyze-status-error { color: #c0392b; }
+.tactical-workspace .analyze-status-info { color: #2f7d4f; }
+
+/* Toolbar */
+.tactical-workspace .analyze-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 8px;
+  background: white;
+  border: 1px solid #e4dfd5;
+  border-radius: 10px 10px 0 0;
+}
+.tactical-workspace .toolbar-sep { width: 1px; height: 22px; background: #e4dfd5; margin-inline: 2px; }
+
+/* Canvas */
+.tactical-workspace .analyze-canvas-wrap {
+  background: #fffdf8;
+  border: 1px solid #e4dfd5;
+  border-top: 0;
+  border-radius: 0 0 10px 10px;
+  overflow: auto;
+  min-height: 340px;
+}
+.tactical-workspace .analyze-empty-canvas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ros-space-3);
+  min-height: 340px;
+  color: #9e9589;
+  text-align: center;
+  padding: var(--ros-space-5);
+}
+.tactical-workspace .analyze-empty-canvas p { max-width: 280px; font-size: .88rem; line-height: 1.5; }
+.tactical-workspace .draft-svg { display: block; width: 100%; min-height: 300px; }
+
+/* Questions */
+.tactical-workspace .analyze-questions {
+  margin-top: var(--ros-space-3);
+  padding: var(--ros-space-3) var(--ros-space-4);
+  background: #fdf4ef;
+  border: 1px solid #f0d9cc;
+  border-radius: 8px;
+  font-size: .84rem;
+}
+.tactical-workspace .analyze-questions h4 { margin: 0 0 6px; font-size: .8rem; color: #6f685d; font-weight: 650; }
+.tactical-workspace .analyze-questions ul { margin: 0; padding-left: 18px; }
+.tactical-workspace .analyze-questions li + li { margin-top: 4px; }
+
+/* Right panel */
+.tactical-workspace .capacity-dl {
+  display: grid;
+  gap: 4px;
+}
+.tactical-workspace .capacity-dl div { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid #f0ece6; font-size: .86rem; }
+.tactical-workspace .capacity-dl dt { color: #6f685d; }
+.tactical-workspace .capacity-dl dd { font-weight: 650; }
+.tactical-workspace .capacity-total dt, .tactical-workspace .capacity-total dd { font-weight: 700; color: #231f1a; }
+
+/* Checks */
+.tactical-workspace .check-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: .68rem;
+  font-weight: 650;
+  padding: 2px 7px;
+  margin-left: 6px;
+}
+.tactical-workspace .check-badge-error { background: #fde8e8; color: #c0392b; }
+.tactical-workspace .check-badge-warn { background: #fef3c7; color: #92400e; }
+.tactical-workspace .check-badge-ok { background: #d1fae5; color: #065f46; }
+.tactical-workspace .checks-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+.tactical-workspace .check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: .81rem;
+  padding: 5px 6px;
+  border-radius: 6px;
+  line-height: 1.4;
+}
+.tactical-workspace .check-item[role="button"] { cursor: pointer; }
+.tactical-workspace .check-item[role="button"]:hover { opacity: .8; }
+.tactical-workspace .check-error { background: #fef2f2; color: #c0392b; }
+.tactical-workspace .check-warning { background: #fffbeb; color: #92400e; }
+.tactical-workspace .checks-ok { font-size: .84rem; color: #2f7d4f; }
+
+/* Selected editor */
+.tactical-workspace .selected-fields { display: grid; grid-template-columns: 1fr 1fr; gap: var(--ros-space-2); }
+.tactical-workspace .seat-stepper { display: flex; align-items: center; gap: 8px; border: 1px solid #d6cfc5; border-radius: 7px; padding: 4px 8px; min-height: 36px; }
+.tactical-workspace .seat-stepper .icon-button { width: 24px; min-height: 24px; font-size: 1rem; border: 0; background: none; padding: 0; color: #231f1a; }
+.tactical-workspace .seat-stepper span { flex: 1; text-align: center; font-weight: 650; }
+.tactical-workspace .verified-note { grid-column: 1 / -1; display: flex; align-items: center; gap: 5px; font-size: .78rem; color: #2f7d4f; margin: 0; }
+
+/* Entrance fields */
+.tactical-workspace .entrance-fields { display: grid; gap: var(--ros-space-2); }
+
+/* Teach-it */
+.tactical-workspace .teach-it-body { padding-top: var(--ros-space-3); }
+.tactical-workspace .teach-it-note { font-size: .82rem; color: #6f685d; margin: 0 0 var(--ros-space-3); line-height: 1.5; }
+.tactical-workspace .teach-it-saved { display: flex; align-items: center; gap: 6px; font-size: .84rem; color: #2f7d4f; margin: 0; }
+.tactical-workspace .lessons-list { list-style: none; padding: 0; margin: var(--ros-space-2) 0 0; display: grid; gap: 4px; }
+.tactical-workspace .lesson-item { display: flex; align-items: center; gap: 6px; font-size: .78rem; padding: 4px 6px; background: #f9f7f4; border-radius: 5px; }
+.tactical-workspace .lesson-text { flex: 1; color: #231f1a; overflow-wrap: anywhere; }
+.tactical-workspace .lesson-count { color: #9e9589; white-space: nowrap; font-weight: 650; }
+.tactical-workspace .lesson-delete { border: 0; background: none; padding: 2px; color: #9e9589; cursor: pointer; display: grid; place-items: center; }
+.tactical-workspace .lesson-empty { color: #9e9589; font-size: .82rem; }
+
+/* Toast */
+.tactical-workspace .analyze-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: .86rem;
+  font-weight: 580;
+  box-shadow: 0 4px 16px #00000022;
+  max-width: 360px;
+}
+.tactical-workspace .analyze-toast-error { background: #fde8e8; color: #c0392b; border: 1px solid #fca5a5; }
+.tactical-workspace .analyze-toast-success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.tactical-workspace .analyze-toast-info { background: white; color: #231f1a; border: 1px solid #e4dfd5; }
+.tactical-workspace .analyze-toast-close { margin-left: auto; border: 0; background: none; cursor: pointer; color: inherit; padding: 0; display: grid; place-items: center; }
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .tactical-workspace .analyze-layout {
+    grid-template-columns: 240px 1fr 240px;
+  }
+}
+@media (max-width: 860px) {
+  .tactical-workspace .analyze-layout {
+    grid-template-columns: 1fr;
+  }
+  .tactical-workspace .analyze-canvas-wrap { border-top: 1px solid #e4dfd5; border-radius: 10px; }
+  .tactical-workspace .analyze-toolbar { border-radius: 10px; }
+}

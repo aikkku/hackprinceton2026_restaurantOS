@@ -72,6 +72,9 @@ export const fixtureSchema = z.object({
     title: z.string().min(1),
     summary: z.string().min(1),
     action: z.string().min(1),
+    priority: z.enum(["low", "medium", "high"]).optional(),
+    applicability: z.string().min(1).optional(),
+    missingData: z.array(z.string().min(1)).optional(),
     evidenceIds: z.array(id).min(1),
   }),
   assumptions: assumptionsSchema,
@@ -91,9 +94,23 @@ export const fixtureSchema = z.object({
 });
 
 export const modelVersion = "seating-v1";
+export const turnoverModelVersion = "turnover-v1";
+export const scenarioActionSchema = z.enum(["seating", "turnover"]);
+export const scenarioSettingsSchema = z.object({
+  label: z.string().trim().min(1, "Give this scenario a name.").max(80),
+  action: scenarioActionSchema,
+  targetTurnsPerDay: z.number().min(0).max(24).optional(),
+}).refine((settings) => settings.action !== "turnover" || settings.targetTurnsPerDay !== undefined, {
+  path: ["targetTurnsPerDay"],
+  message: "Set target turns for a turnover scenario.",
+});
+
 export const scenarioSchema = z.object({
   schemaVersion: z.literal(1),
-  modelVersion: z.literal(modelVersion),
+  modelVersion: z.enum([modelVersion, turnoverModelVersion]),
+  label: z.string().trim().min(1).max(80).optional(),
+  action: scenarioActionSchema.optional(),
+  targetTurnsPerDay: z.number().min(0).max(24).optional(),
   id,
   missionTitle: z.string(),
   evidence: z.array(reviewSchema).min(1),
@@ -107,10 +124,20 @@ export const scenarioSchema = z.object({
     additionalCoversPerDay: z.number(),
     incrementalRevenuePerMonth: z.number(),
     incrementalContributionPerMonth: z.number(),
-    simplePaybackMonths: z.number().nullable(),
+    simplePaybackMonths: z.number().min(0).nullable(),
   }),
+}).superRefine((scenario, ctx) => {
+  const action = scenario.action ?? "seating";
+  if (action === "turnover" && (scenario.modelVersion !== turnoverModelVersion || scenario.targetTurnsPerDay === undefined)) {
+    ctx.addIssue({ code: "custom", path: ["action"], message: "A turnover scenario needs its target turns and model version." });
+  }
+  if (action === "seating" && scenario.modelVersion !== modelVersion) {
+    ctx.addIssue({ code: "custom", path: ["modelVersion"], message: "Use the seating model for a seating scenario." });
+  }
 });
 
+export type ScenarioAction = z.infer<typeof scenarioActionSchema>;
+export type ScenarioSettings = z.infer<typeof scenarioSettingsSchema>;
 export type Room = z.infer<typeof roomSchema>;
 export type ObjectKind = (typeof kinds)[number];
 export type LayoutObject = z.infer<typeof objectSchema>;

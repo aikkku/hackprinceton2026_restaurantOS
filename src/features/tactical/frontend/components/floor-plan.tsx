@@ -6,6 +6,7 @@ import type { Layout, LayoutObject, ObjectKind } from "../../domain/schemas";
 
 type Props = {
   layout: Layout;
+  zoom?: number;
   unit: "m" | "ft";
   selectedId: string | null;
   placing: ObjectKind | null;
@@ -80,7 +81,7 @@ function FurnitureArt({ object }: { object: LayoutObject }) {
   );
 }
 
-export function FloorPlan({ layout, unit, selectedId, placing, snap, overlaps, onSelect, onPlace, onMove }: Props) {
+export function FloorPlan({ layout, zoom = 1, unit, selectedId, placing, snap, overlaps, onSelect, onPlace, onMove }: Props) {
   const svg = useRef<SVGSVGElement>(null);
   const drag = useRef<Drag | null>(null);
   const [preview, setPreview] = useState<LayoutObject | null>(null);
@@ -140,6 +141,7 @@ export function FloorPlan({ layout, unit, selectedId, placing, snap, overlaps, o
       role="img"
       aria-label="Top-down restaurant floor plan. Use the furniture list for keyboard selection."
       className={`floor-svg ${placing ? "is-placing" : ""}`}
+      style={{ height: `calc(var(--floor-height) * ${zoom})` }}
       viewBox={`${-pad * 1.3} ${-pad * 1.2} ${width + pad * 2} ${depth + pad * 2.1}`}
       onPointerDown={pointerDown}
       onPointerMove={(event) => {

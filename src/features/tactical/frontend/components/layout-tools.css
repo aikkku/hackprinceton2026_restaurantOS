@@ -1,0 +1,9 @@
+.tactical-workspace {
+  .layout-transfer { display: flex; align-items: center; gap: var(--ros-space-1); flex-wrap: wrap; }
+  .layout-inspector { border-top: 1px solid var(--ros-border); padding-top: var(--ros-space-3); margin-top: var(--ros-space-3); }
+  .layout-inspector > p { color: var(--ros-muted); font-size: .79rem; margin-top: 6px; }
+  .inspector-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--ros-space-2); margin-block: var(--ros-space-3); }
+  .inspector-fields label { display: grid; gap: 4px; font-size: .8rem; font-weight: 560; min-width: 0; }
+  .layout-inspector .inspector-warning { color: var(--ros-danger); margin-bottom: var(--ros-space-2); }
+  .inspector-saved { color: var(--ros-forest); font-size: .79rem; }
+}
