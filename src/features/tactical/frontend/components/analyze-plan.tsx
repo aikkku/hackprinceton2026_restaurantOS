@@ -1,12 +1,14 @@
 "use client";
 
+import { StateButton } from "./state-button";
+
 import { useEffect, useRef, useState } from "react";
 import {
   Camera, ChevronDown, ChevronUp, Download, FileJson, FlipHorizontal2,
   Plus, RotateCw, Trash2, Undo2, Redo2, X, AlertCircle, CheckCircle2,
 } from "lucide-react";
 import {
-  rotatePlan, validateDraft,
+  rotatePlan, validateDraft, floorPlanDraftSchema,
   type AnalyzeFacts, type DraftWall, type FloorPlanDraft, type DraftTable, type DraftFixture, type ValidationCheck,
 } from "../../domain/analyze";
 import { DraftCanvas } from "./draft-canvas";
@@ -78,10 +80,11 @@ export function AnalyzePlan() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const jsonInputRef = useRef<HTMLInputElement>(null);
-  const dragOverRef = useRef(false);
+  const [dragOver, setDragOver] = useState(false);
 
   useEffect(() => {
-    setLessons(loadLessons());
+    const frame = requestAnimationFrame(() => setLessons(loadLessons()));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   function showToast(text: string, kind: "error" | "success" | "info" = "info") {
@@ -132,11 +135,11 @@ export function AnalyzePlan() {
   }
 
   async function addFiles(files: FileList | File[]) {
-    const arr = Array.from(files).filter((f) => f.type.startsWith("image/")).slice(0, 10);
+    const arr = Array.from(files).filter((f) => f.type.startsWith("image/")).slice(0, Math.max(0, 10 - photos.length));
     for (const file of arr) {
       try {
         const dataUrl = await resizePhoto(file);
-        setPhotos((prev) => [...prev, { id: makeId(), dataUrl, tag: "" }]);
+        setPhotos((prev) => [...prev, { id: makeId(), dataUrl, tag: "" }].slice(0, 10));
       } catch { showToast(`Could not read ${file.name}`, "error"); }
     }
   }
@@ -159,14 +162,14 @@ export function AnalyzePlan() {
       });
       const data = await res.json();
       if (!data.ok) throw new Error(data.error ?? "Analysis failed.");
-      const incoming: FloorPlanDraft = data.draft;
+      const incoming = floorPlanDraftSchema.parse(data.draft);
       setDraft(incoming);
       setOriginalDraft(incoming);
       setHistory([]);
       setFuture([]);
       setSelectedId(null);
       setStatus("done");
-      setStatusMsg(`Done — ${incoming.tables.length} tables, ${incoming.fixtures.length} fixture(s) found.`);
+      setStatusMsg(data.source === "demo" ? "Demo sample — no AI key configured. Your photos were not analyzed." : `AI estimate — ${incoming.tables.length} tables. Verify counts and measurements.`);
       if (data.fixupApplied) setFixupMsg("A second pass corrected some issues.");
     } catch (err) {
       setStatus("error");
@@ -194,11 +197,11 @@ export function AnalyzePlan() {
     const file = e.currentTarget.files?.[0];
     e.currentTarget.value = "";
     if (!file) return;
+    if (file.size > 1_048_576) { showToast("Choose a plan under 1 MB.", "error"); return; }
     const reader = new FileReader();
     reader.onload = () => {
       try {
-        const plan = JSON.parse(reader.result as string) as FloorPlanDraft;
-        if (!plan.room || !plan.tables) throw new Error("Invalid plan JSON.");
+        const plan = floorPlanDraftSchema.parse(JSON.parse(reader.result as string));
         resetEditor(plan);
         showToast("Plan loaded.", "success");
       } catch { showToast("Could not read plan file.", "error"); }
@@ -259,10 +262,10 @@ export function AnalyzePlan() {
 
   function addTable() {
     if (!draft) return;
-    const id = `T${draft.tables.length + 1}`;
+    const id = makeId();
     const newTable: DraftTable = {
       id, x: 2, y: 2, shape: "rect", width: 4, depth: 3,
-      seats: 4, chairs_visible: 4, is_joined_group: false, confidence: 1, label: id, verified: true,
+      seats: 4, chairs_visible: 4, is_joined_group: false, confidence: 1, label: "New table", verified: true,
     };
     commitDraft({ ...draft, tables: [...draft.tables, newTable] });
     setSelectedId(id);
@@ -355,10 +358,10 @@ export function AnalyzePlan() {
           <div className="analyze-card">
             <h3 className="analyze-card-title">Photos</h3>
             <div
-              className={`photo-drop-zone ${dragOverRef.current ? "is-dragging" : ""}`}
-              onDragOver={(e) => { e.preventDefault(); dragOverRef.current = true; }}
-              onDragLeave={() => { dragOverRef.current = false; }}
-              onDrop={(e) => { e.preventDefault(); dragOverRef.current = false; void addFiles(e.dataTransfer.files); }}
+              className={`photo-drop-zone ${dragOver ? "is-dragging" : ""}`}
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => { setDragOver(false); }}
+              onDrop={(e) => { e.preventDefault(); setDragOver(false); void addFiles(e.dataTransfer.files); }}
               onClick={() => fileInputRef.current?.click()}
             >
               <Camera size={22} />
@@ -370,6 +373,8 @@ export function AnalyzePlan() {
               <div className="photo-thumbnails">
                 {photos.map((p) => (
                   <div key={p.id} className="photo-thumb">
+                    {/* Local resized previews; no remote image optimization needed. */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={p.dataUrl} alt="Restaurant photo" />
                     <input
                       className="photo-tag"
@@ -424,9 +429,9 @@ export function AnalyzePlan() {
             </div>
           </div>
 
-          <button className="button primary analyze-btn" onClick={() => void analyze()} disabled={analyzeDisabled} title={analyzeTitle}>
+          <StateButton className="button primary analyze-btn" onClick={() => void analyze()} disabled={analyzeDisabled} title={analyzeTitle}>
             {status === "analyzing" ? "Analyzing…" : "Analyze photos"}
-          </button>
+          </StateButton>
           {statusMsg && <p className={`analyze-status ${status === "error" ? "analyze-status-error" : ""}`}>{statusMsg}</p>}
           {fixupMsg && <p className="analyze-status analyze-status-info">{fixupMsg}</p>}
         </aside>
@@ -435,23 +440,23 @@ export function AnalyzePlan() {
         <div className="analyze-center">
           {/* Toolbar */}
           <div className="analyze-toolbar" role="toolbar" aria-label="Plan editor toolbar">
-            <button className="button quiet compact" onClick={undo} disabled={!history.length} title="Undo (Ctrl+Z)"><Undo2 size={15} /></button>
-            <button className="button quiet compact" onClick={redo} disabled={!future.length} title="Redo (Ctrl+Y)"><Redo2 size={15} /></button>
+            <StateButton className="button quiet compact" onClick={undo} disabled={!history.length} title="Undo"><Undo2 size={15} /></StateButton>
+            <StateButton className="button quiet compact" onClick={redo} disabled={!future.length} title="Redo"><Redo2 size={15} /></StateButton>
             <span className="toolbar-sep" />
-            <button className="button quiet compact" onClick={addTable} disabled={!draft}><Plus size={14} /> Table</button>
-            <button className="button quiet compact" onClick={() => addFixture("bar")} disabled={!draft}><Plus size={14} /> Bar</button>
-            <button className="button quiet compact" onClick={() => addFixture("cashier")} disabled={!draft}><Plus size={14} /> Cashier</button>
+            <StateButton className="button quiet compact" onClick={addTable} disabled={!draft}><Plus size={14} /> Table</StateButton>
+            <StateButton className="button quiet compact" onClick={() => addFixture("bar")} disabled={!draft}><Plus size={14} /> Bar</StateButton>
+            <StateButton className="button quiet compact" onClick={() => addFixture("cashier")} disabled={!draft}><Plus size={14} /> Cashier</StateButton>
             <span className="toolbar-sep" />
-            <button className="button quiet compact" onClick={duplicateSelected} disabled={!selectedId}>Duplicate</button>
-            <button className="button quiet compact" onClick={rotateWholePlan} disabled={!draft} title="Rotate whole plan 90°"><RotateCw size={14} /> Rotate plan</button>
+            <StateButton className="button quiet compact" onClick={duplicateSelected} disabled={!selectedId}>Duplicate</StateButton>
+            <StateButton className="button quiet compact" onClick={rotateWholePlan} disabled={!draft} title="Rotate whole plan 90°"><RotateCw size={14} /> Rotate plan</StateButton>
             <span className="toolbar-sep" />
-            <button className={`button compact ${deleteConfirm === selectedId ? "primary" : "quiet"}`} onClick={deleteSelected} disabled={!selectedId}>
+            <StateButton className={`button compact ${deleteConfirm === selectedId ? "primary" : "quiet"}`} onClick={deleteSelected} disabled={!selectedId}>
               <Trash2 size={14} /> {deleteConfirm === selectedId ? "Confirm delete" : "Delete"}
-            </button>
+            </StateButton>
             <span className="toolbar-sep" />
-            <button className="button quiet compact" onClick={exportSvg} disabled={!draft}><Download size={14} /> SVG</button>
-            <button className="button quiet compact" onClick={exportPng} disabled={!draft}><Download size={14} /> PNG</button>
-            <button className="button quiet compact" onClick={exportJson} disabled={!draft}><FileJson size={14} /> JSON</button>
+            <StateButton className="button quiet compact" onClick={exportSvg} disabled={!draft}><Download size={14} /> SVG</StateButton>
+            <StateButton className="button quiet compact" onClick={exportPng} disabled={!draft}><Download size={14} /> PNG</StateButton>
+            <StateButton className="button quiet compact" onClick={exportJson} disabled={!draft}><FileJson size={14} /> JSON</StateButton>
           </div>
 
           <div className="analyze-canvas-wrap">

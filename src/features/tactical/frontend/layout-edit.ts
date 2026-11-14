@@ -2,6 +2,8 @@ import { displayLength, furniture, toMeters } from "../domain/layout.ts";
 import { layoutSchema, type Layout, type LayoutObject } from "../domain/schemas.ts";
 
 export type ObjectMeasurements = {
+  name?: string;
+  description?: string;
   x: number;
   y: number;
   width: number;
@@ -28,6 +30,8 @@ export function applyObjectMeasurements(
 
   const updated = {
     ...selected,
+    ...(measurements.name !== undefined ? { name: measurements.name } : {}),
+    ...(measurements.description !== undefined ? { description: measurements.description } : {}),
     x: convert(measurements.x, selected.x),
     y: convert(measurements.y, selected.y),
     width: convert(measurements.width, selected.width),

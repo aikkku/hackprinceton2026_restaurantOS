@@ -1,6 +1,13 @@
 import type { Layout, LayoutObject, ObjectKind, Room } from "./schemas.ts";
 
 export const furniture = {
+  chair: { label: "Chair", width: 0.5, depth: 0.5, seats: 1 },
+  wall: { label: "Wall", width: 2, depth: 0.2, seats: 0 },
+  window: { label: "Window", width: 1.5, depth: 0.2, seats: 0 },
+  light: { label: "Lighting", width: 0.35, depth: 0.35, seats: 0 },
+  decoration: { label: "Decoration", width: 0.5, depth: 0.5, seats: 0 },
+  ac: { label: "AC unit", width: 1, depth: 0.35, seats: 0 },
+  custom: { label: "Custom object", width: 1, depth: 1, seats: 0 },
   table_2: { label: "Table for 2", width: 1.4, depth: 0.9, seats: 2 },
   table_4: { label: "Table for 4", width: 1.7, depth: 1.7, seats: 4 },
   booth: { label: "Booth", width: 2, depth: 1.35, seats: 4 },

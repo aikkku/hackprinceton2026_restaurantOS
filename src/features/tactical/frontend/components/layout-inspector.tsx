@@ -25,6 +25,8 @@ function ObjectForm({ layout, selected, unit, onUpdate, onNotice }: Props & { se
     const data = new FormData(event.currentTarget);
     try {
       const object = applyObjectMeasurements(layout, selected, {
+        name: String(data.get("objectName") ?? "").trim() || furniture[selected.type].label,
+        description: String(data.get("description") ?? ""),
         x: Number(data.get("x")),
         y: Number(data.get("y")),
         width: Number(data.get("width")),
@@ -47,6 +49,8 @@ function ObjectForm({ layout, selected, unit, onUpdate, onNotice }: Props & { se
     <form className="layout-inspector" onSubmit={submit} onChange={() => setSaved(false)}>
       <h3>{furniture[selected.type].label} details</h3>
       <p>Enter the furniture footprint and its position from the room’s top-left corner.</p>
+      <label>Object name<input name="objectName" maxLength={120} defaultValue={selected.name ?? furniture[selected.type].label} required /></label>
+      <label>Description<textarea name="description" maxLength={2000} defaultValue={selected.description ?? ""} placeholder="Purpose, material, airflow, or other context" /></label>
       <div className="inspector-fields">
         <label>Across ({unit})<input name="x" type="number" min={0} step="any" required defaultValue={displayedMeasurement(selected.x, unit)} /></label>
         <label>Down ({unit})<input name="y" type="number" min={0} step="any" required defaultValue={displayedMeasurement(selected.y, unit)} /></label>

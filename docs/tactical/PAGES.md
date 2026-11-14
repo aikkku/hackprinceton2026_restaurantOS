@@ -1,14 +1,26 @@
 # Tactical pages
 
-The persistent Tactical layout holds editor and scenario state while Next.js routes select the visible workspace. Internal navigation preserves unsaved edits and scenario inputs. Reload restores explicitly saved browser data.
+[Documentation index](README.md) · [Detailed inventory and backlog](IMPLEMENTATION_STATUS.md)
 
-| Page | Implemented | Future work |
+All six sections share the persistent Tactical shell. The core editor/reviews use the restaurant fixture; HR/Supply/Finance still contain hardcoded demo records and labels, so complete selected-restaurant propagation remains unfinished. Internal links preserve open editor state. Browser reload restores explicitly saved layouts and scenarios.
+
+| Page | Implemented | Next work |
 | --- | --- | --- |
-| Floor plan — /tactical | Template, blank and saved layouts, editable room size, feet/meters, furniture placement and precise measurements, rotation, seats, undo/redo, overlap warnings, zoom, JSON import/export, mission evidence and scenario entry points | Custom art direction, optional scaled floor-plan background, broader room shapes, backend layout storage |
-| Scenarios — /tactical/scenarios | Seating and turnover models, editable financial assumptions, named previews, stale-input detection, analyst drawer, evidence, occupancy sensitivity, save snapshots | Additional validated operational models, live inputs, stronger demand assumptions, backend persistence |
-| Saved decisions — /tactical/decisions | Saved snapshot list, reopen/delete, compare two alternatives with inputs, outputs and evidence, legacy compatibility and damaged-entry recovery | Server-backed history, account access, decision status and realized-outcome tracking |
-| Customer signals — /tactical/reviews | Demo review list, search, theme filters, cited-only filter, rating distribution, deterministic counts, seating mission link | Permissioned review upload, AI classification, more evidence-backed missions, live refresh |
+| Floor Plan — `/tactical` | Existing SVG editor; named persistent configurations; duplicate/rename/open/delete; explicit baseline; AC, chair, wall, window, light, decoration and custom objects; editable names/descriptions; geometry comparison; heuristic insights; seating/turnover scenarios and saved comparisons inline | More expressive art, measured operational data, AI interpretation with evidence, photo-to-layout conversion |
+| Customer Reviews & Social Media — `/tactical/reviews` | Fixture review search, rating distribution, supplied theme filters and mission citations | Authorized CSV/JSON imports, source/sentiment/date/dish filters, trends, evidence-linked AI findings and editable response drafts; observed social network analysis only when data exists |
+| HR — `/tactical/hr` | Fictional directory, schedule and expandable profiles | Consolidate fixtures; synthetic contacts, pay, availability, labor estimates and job-description preview |
+| Supply Management — `/tactical/supply` | Fictional inventory, category filters, suppliers and stock indicators | Consolidate fixtures; costs, displayed thresholds and derived restock summary |
+| Financial Intelligence — `/tactical/finance` | Existing demo revenue/transaction/pricing views and capacity what-if | Validated financial records, accounting filters, explicit channel costs, pricing and volume scenarios, persistence and shared calculation reuse |
+| AI Assistant — `/tactical/ai` | Explicit inactive placeholder | Intentionally deferred |
 
-Backend and integrations remain future phases. All business inputs currently come from the editable demo JSON and user-entered scenario assumptions. Expansion is available through the workspace navigation and remains Rain's feature.
+Legacy `/tactical/scenarios`, `/tactical/decisions`, and `/tactical/analyze` redirect to Floor Plan. Photo analysis is an expandable separate editor inside Floor Plan. It does not update the measured floor plan or financial model.
 
-For review, start with each page's layout and controls, then evaluate the labels and information shown. The main product decisions still needed are the visual direction, first real restaurant dataset, next operational scenario, and which integrations to prioritize. Engineering can then add the backend and validated data adapters against those choices.
+## Named layouts
+
+`restaurant-os:tactical:<restaurantId>:layouts:v1` stores a validated library with active and baseline IDs. On first load, the old single-layout draft is copied into the library in memory; the old key remains intact. The next explicit library save writes the new format. Corrupt libraries are preserved and library writes disabled rather than silently overwriting saved work.
+
+Save draft updates the active configuration. Duplicate copies the selected saved configuration. Unsaved edits require confirmation before switching, renaming, duplicating or deleting. Save first to keep them. Baseline selection initializes new scenario assumptions; saved scenario snapshots retain their original inputs. Room area per seat is a density heuristic, not a comfort, accessibility or aesthetics score.
+
+## Verification
+
+Use Node >=22.18. Run `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build`. After building, run `PLAYWRIGHT_CHANNEL=chrome npx playwright test --config playwright.tactical.config.ts` for the named-layout and photo-editor regression journeys. The tests run Chrome/Chromium and Firefox on port 3057. Install Firefox with `npx playwright install firefox`; use installed Chrome with the channel variable, or omit it with Playwright Chromium installed. Reload tests check that Firefox does not restore stale disabled button states before hydration.

@@ -7,10 +7,12 @@ export const roomSchema = z.object({
   depth: z.number().min(1).max(50),
 });
 
-const kinds = ["table_2", "table_4", "booth", "counter", "kitchen_zone", "door", "divider", "plant"] as const;
+const kinds = ["table_2", "table_4", "booth", "counter", "kitchen_zone", "door", "divider", "plant", "chair", "wall", "window", "light", "decoration", "ac", "custom"] as const;
 const objectSchema = z.object({
   id,
   type: z.enum(kinds),
+  name: z.string().trim().min(1).max(120).optional(),
+  description: z.string().trim().max(2000).optional(),
   x: z.number().min(0),
   y: z.number().min(0),
   width: z.number().positive(),

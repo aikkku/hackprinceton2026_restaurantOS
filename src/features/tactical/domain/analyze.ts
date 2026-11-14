@@ -1,3 +1,4 @@
+import { z } from "zod";
 export type DraftWall = "N" | "E" | "S" | "W" | "unknown";
 export type TableShape = "round" | "square" | "rect";
 
@@ -80,12 +81,26 @@ export type AnalyzeApiRequest = {
 };
 
 export type AnalyzeApiResponse =
-  | { ok: true; draft: FloorPlanDraft; fixupApplied: boolean }
+  | { ok: true; draft: FloorPlanDraft; fixupApplied: boolean; source: "demo" | "ai" }
   | { ok: false; error: string };
 
-const WALL_ROTATION: Record<DraftWall, number> = {
-  N: 0, E: 90, S: 180, W: 270, unknown: 0,
-};
+const wallSchema = z.enum(["N", "E", "S", "W", "unknown"]);
+const dimension = z.number().positive().max(200);
+const coordinate = z.number().min(0).max(200);
+const confidence = z.number().min(0).max(1);
+export const floorPlanDraftSchema = z.object({
+  room: z.object({ width: dimension, depth: dimension, confidence }),
+  door: z.object({ wall: wallSchema, position: z.number().min(0).max(1), label: z.string().max(120) }),
+  fixtures: z.array(z.object({ id: z.string().min(1), type: z.enum(["bar", "cashier"]), x: coordinate, y: coordinate, width: dimension, depth: dimension, stool_count: z.number().int().min(0).max(100).optional(), wall: wallSchema.optional() })).max(150),
+  tables: z.array(z.object({ id: z.string().min(1), x: coordinate, y: coordinate, shape: z.enum(["round", "square", "rect"]), width: dimension, depth: dimension, seats: z.number().int().min(1).max(100), chairs_visible: z.number().int().min(0).max(100), is_joined_group: z.boolean(), confidence, label: z.string().max(120), note: z.string().max(2000).optional(), verified: z.boolean().optional() })).max(150),
+  questions: z.array(z.string().max(2000)).max(3),
+}).refine(plan => new Set([...plan.tables, ...plan.fixtures].map(item => item.id)).size === plan.tables.length + plan.fixtures.length, "Object IDs must be unique.");
+export const analyzeRequestSchema = z.object({
+  photos: z.array(z.string().max(3_000_000).regex(/^data:image\/(jpeg|png);base64,[A-Za-z0-9+/=]+$/)).min(1).max(10),
+  facts: z.object({ entranceWall: wallSchema, cashierWall: wallSchema, barWall: wallSchema, tableCounts: z.string().max(500), tableSpacing: z.string().max(500), notes: z.string().max(4000) }),
+  accuracy: z.enum(["standard", "high"]),
+  lessons: z.array(z.object({ id: z.string(), text: z.string().max(2000), count: z.number().int().positive(), createdAt: z.string() })).max(50),
+});
 
 export function rotatePlan(plan: FloorPlanDraft, degrees: 90 | 180 | 270): FloorPlanDraft {
   const steps = degrees / 90;
@@ -119,7 +134,7 @@ function rotatePlan90(plan: FloorPlanDraft): FloorPlanDraft {
   const door: DraftDoor = {
     ...plan.door,
     wall: plan.door.wall === "unknown" ? "unknown" : rotateWall(plan.door.wall),
-    position: plan.door.wall === "W" ? doorPos : plan.door.wall === "N" ? doorPos : plan.door.wall === "E" ? doorPos : doorPos,
+    position: plan.door.wall === "E" || plan.door.wall === "W" ? 1 - doorPos : doorPos,
   };
 
   return {

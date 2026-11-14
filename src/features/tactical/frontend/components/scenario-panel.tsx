@@ -1,5 +1,7 @@
 "use client";
 
+import { StateButton } from "./state-button";
+
 import { useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { ArrowRight, Calculator, X } from "lucide-react";
 import { assumptionsSchema, seatCountSchema, type Assumptions, type Fixture, type Scenario, type ScenarioAction, type ScenarioSettings, scenarioSettingsSchema } from "../../domain/schemas";
@@ -141,7 +143,7 @@ export function ScenarioPanel({
           {blocked && <p className="warning-message">Resolve furniture overlaps before previewing.</p>}
           {error && <p className="warning-message" role="alert">{error}</p>}
           <div className="button-row">
-            <button className="button primary" type="submit" disabled={blocked}>Preview outcome <ArrowRight size={16} /></button>
+            <StateButton className="button primary" type="submit" disabled={blocked}>Preview outcome <ArrowRight size={16} /></StateButton>
             <button className="button quiet" type="button" onClick={onReset}>Reset scenario</button>
           </div>
         </form>
@@ -162,7 +164,7 @@ export function ScenarioPanel({
               </dl>
               <p className="muted">Additional covers need enough demand to reach the assumed occupancy.</p>
               <div className="button-row">
-                <button className="button primary" type="button" onClick={onSave} disabled={isSaved || snapshotStale}>{isSaved ? "Scenario saved" : "Save scenario"}</button>
+                <StateButton className="button primary" type="button" onClick={onSave} disabled={isSaved || snapshotStale}>{isSaved ? "Scenario saved" : "Save scenario"}</StateButton>
                 <button className="button secondary" type="button" onClick={() => analysis.current?.showModal()}>View analysis</button>
                 {layoutChanged && !snapshotTurnover && <button className="button quiet" type="button" onClick={() => onLoadLayout(scenario)}>Load scenario layout</button>}
               </div>
