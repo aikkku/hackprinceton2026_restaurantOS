@@ -11,6 +11,7 @@ import type {
   ExpansionProperty,
   Weights,
 } from "../../../domain/schemas.ts";
+import type { Viewport } from "../../data/local-market.ts";
 
 export type Selection =
   { kind: "area"; id: string } | { kind: "property"; id: string };
@@ -22,6 +23,7 @@ type Props = {
   budget: number;
   selection: Selection;
   onSelect: (selection: Selection) => void;
+  onViewportChange?: (bounds: Viewport) => void;
 };
 
 function palette(element: Element) {
@@ -39,13 +41,16 @@ export function ScoutMap({
   budget,
   selection,
   onSelect,
+  onViewportChange,
 }: Props) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LibreMap | null>(null);
   const selectRef = useRef(onSelect);
+  const viewportRef = useRef(onViewportChange);
   useEffect(() => {
     selectRef.current = onSelect;
-  }, [onSelect]);
+    viewportRef.current = onViewportChange;
+  }, [onSelect, onViewportChange]);
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
   const [attempt, setAttempt] = useState(0);
   const city = dataset.cities.find((c) => c.id === cityId)!;
@@ -74,13 +79,13 @@ export function ScoutMap({
             selected:
               selection.kind === "area"
                 ? selection.id === area.h3Index
-                : dataset.properties.find((p) => p.id === selection.id)
+                : properties.find((p) => p.id === selection.id)
                     ?.h3Index === area.h3Index,
           },
         };
       }),
     }),
-    [areas, weights, budget, selection, dataset],
+    [areas, weights, budget, selection, properties],
   );
   const latest = useRef({ features, properties, selection });
   useEffect(() => {
@@ -227,6 +232,14 @@ export function ScoutMap({
                 ? "pointer"
                 : "";
           });
+          const queryViewport = () => {
+            if (!map || disposed || !viewportRef.current) return;
+            const bounds = map.getBounds();
+            const next: Viewport = [Math.max(city.bounds[0], bounds.getWest()), Math.max(city.bounds[1], bounds.getSouth()), Math.min(city.bounds[2], bounds.getEast()), Math.min(city.bounds[3], bounds.getNorth())];
+            if (next[0] < next[2] && next[1] < next[3]) viewportRef.current(next);
+          };
+          map.on("moveend", queryViewport);
+          queryViewport();
           setState("ready");
         });
       } catch {
@@ -255,17 +268,17 @@ export function ScoutMap({
   const boundaries = areas.map((a) => cellToBoundary(a.h3Index, true));
   const xs = boundaries.flat().map((p) => p[0]);
   const ys = boundaries.flat().map((p) => p[1]);
-  const west = Math.min(...xs) - 0.003;
-  const east = Math.max(...xs) + 0.003;
-  const south = Math.min(...ys) - 0.003;
-  const north = Math.max(...ys) + 0.003;
+  const west = xs.length ? Math.min(...xs) - 0.003 : city.bounds[0];
+  const east = xs.length ? Math.max(...xs) + 0.003 : city.bounds[2];
+  const south = ys.length ? Math.min(...ys) - 0.003 : city.bounds[1];
+  const north = ys.length ? Math.max(...ys) + 0.003 : city.bounds[3];
   const project = (lng: number, lat: number) => [
     ((lng - west) / (east - west)) * 800,
     ((north - lat) / (north - south)) * 600,
   ];
 
   return (
-    <div className="scout-map" aria-label="Houston geographic scouting map">
+    <div className="scout-map" aria-label={`${city.name} geographic scouting map`}>
       <div
         className="map-canvas"
         ref={container}
@@ -275,7 +288,7 @@ export function ScoutMap({
         <div className="map-preview">
           <svg
             viewBox="0 0 800 600"
-            aria-label="Geographic preview of demo hexes; use the area and property lists for keyboard selection"
+            aria-label="Geographic preview of H3 areas; use the area and property lists for keyboard selection"
             role="img"
           >
             {areas.map((area, i) => {
@@ -318,7 +331,7 @@ export function ScoutMap({
                   <text x={x} y={y + 4} textAnchor="middle">
                     {i + 1}
                   </text>
-                  <title>{p.name} · fictional property</title>
+                  <title>{p.name} · {p.isDemo ? "fictional property" : "local dataset record"}</title>
                 </g>
               );
             })}
@@ -342,9 +355,9 @@ export function ScoutMap({
       )}
       <div className="map-topline">
         <span className="map-tag">
-          <span className="status-dot" /> HOUSTON · H3 / 08
+          <span className="status-dot" /> {city.name.toUpperCase()} · H3 / 08
         </span>
-        <span className="map-tag">Fictional data</span>
+        <span className="map-tag">{city.isDemo ? "Fictional data" : "Local snapshot · unscored"}</span>
       </div>
       {state === "ready" && (
         <button

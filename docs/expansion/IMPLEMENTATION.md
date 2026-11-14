@@ -1,51 +1,89 @@
-# Expansion MVP — implementation notes
+# Expansion — local dataset implementation
 
-## Implemented flow
+## User journey
 
-Open `/expansion` directly; the shared `/` redirect remains `/tactical`. Choose the Houston demo market, scout 19 resolution-8 H3 areas, inspect four fictional spaces, edit an opening scenario, compare two snapshots, save, reload, and restore. Analyst Details exposes sources, units, formulas, missing factors and model versions. The drawer supports Escape and focus return; list controls support keyboard use. Narrow layouts and reduced motion are supported.
+`/expansion` retains the existing scouting workspace. Choose **Demo** or **Local dataset**, choose a supported city, inspect an H3 area and a property/lease space, edit a financial scenario, compare two plans, save, reload and restore. Mode selection is remembered in this browser. Demo remains explicitly fictional and works without the private kit.
 
-The real 2D basemap uses MapLibre with the [OpenFreeMap Positron style](https://openfreemap.org/quick_start/); provider/OSM attribution is retained by MapLibre. It needs network access. On failure or WebGL unavailability, a labeled geographic preview and the area/property lists remain functional. The preview plots genuine H3 geometry but contains no street data. It is not a substitute sponsor integration.
+Local mode reads only normalized data from Next.js Node route handlers. It has cancellable, debounced viewport/filter requests, bounded pagination, selected-record details, loading/retry/empty/error states, an accessible area/property list, mobile layout and reduced motion. The network/WebGL map failure fallback remains a labeled geographic preview. OpenFreeMap/OSM attribution remains visible; street tiles require network access. No private files or credentials are imported by frontend modules.
 
-## Data and numerical defaults
+The source banner, city selector, map, inspectors and analysis use returned metadata. Coverage distinguishes unique properties, offered spaces and returned map records. Query counts describe matching records within the requested bounds; displayed cells accompany the returned page. They are not complete-city inventory, vacancy or demand counts. Unknown rent and suite area remain visible in local mode, and starting a scenario with unknown base rent requires an explicit user assumption.
 
-- `domain/schemas.ts`: Expansion-local Zod contracts for cities, cells, properties, evidence, scenario inputs/results and snapshots. Coordinates, H3 membership, rent units, unique identifiers, references and consistent demo provenance are validated.
-- `domain/scoring.ts` owns area scoring; `domain/scenario.ts` owns rent normalization and financial calculations. Neither imports frontend or backend code.
-- `domain/provider.ts`: `ExpansionProvider.load(signal)` boundary. `frontend/data/demo-market.ts` validates the committed fictional `demo-market.json`. Its `authorized` mode is reserved for a future server-backed adapter; the current UI is explicitly a demo. No CoStar, ACS, Places, Matterport, Vexcel, AI or finance API is connected.
-- Private incoming datasets remain separate in `data/`, governed by the existing `data/README.md` manifest and ignore rules. They are not imported into frontend bundles. No private records are loaded, published, copied, or modified by this refactor.
-- All fixture properties, availability, previous use, rent and market indices are fictional. Markers are placed at H3 cell centers, not verified listing addresses. Evidence dates and unsupported attributes remain unavailable.
-- Area model `expansion-area-demo-v1`: weights 30 demand / 25 similarity / 20 competition / 25 cost, editable 0–100. Synthetic favorable indices use identity normalization. Cost fit = clamp(100 × (1 − fictional average area base rent / (2 × monthly budget)), 0, 100). Budget equals a score of 50; twice budget equals 0. This is a disclosed planning convention, not an empirically calibrated model.
-- Coverage = available intended weight / total intended weight. Minimum 70%; lower coverage and zero total weight are unscored. Weighted means use available factors only; omitted factors and contributions are disclosed. Different factor sets are not equivalent comparisons. Fictional area rent aggregates are independent demonstration inputs, not derived from the four listing records.
-- Default filters: monthly base-rent budget $8,000 and minimum floor area 0. Missing rent/size are excluded; unknown availability remains labeled. No property fit score or permitted-use verification is asserted.
-- Finance model `expansion-finance-v1`: annual rent per sq ft × area / 12; occupancy = base rent + pass-throughs; fixed costs = occupancy + other fixed costs; required sales = fixed costs / positive contribution margin. No expected sales are invented.
-- Illustrative editable assumptions: $750 monthly pass-throughs, $6,000 other fixed monthly costs, 35% contribution margin, $90,000 initial investment and $25,000 working capital. Source base rent initializes the scenario; edited rent is an assumption. No automatic build-out discount is inferred from previous use.
-- Contribution after fixed costs = explicit assumed sales × contribution margin − fixed costs. Investment payback requires positive contribution. Reserves are added to initial cash and excluded from monthly costs and investment payback. Financing, taxes, timing and unmodeled costs are excluded. These are thresholds and scenarios, not demand forecasts or net-profit guarantees.
+## Inspected data and actual import
 
-## Save, compare and failure behavior
+The source is the local restricted CoStar hackathon kit, with a Matterport-capture sample for Houston and Los Angeles. Its index, model/concept documentation, enum tables, schemas, file metadata and bounded record samples establish the mapping. The legacy schema-2 SQLite cache has only a filtered space subset and inferred restaurant attributes; it remains untouched. The new dedicated cache is rebuildable from the authoritative commercial property and listing JSONL files.
 
-Browser key: `restaurantos.expansion.demo.scenarios.v1`. Up to 50 version-1 snapshots preserve restaurant/property identity, inputs, exact results, evidence references, weights, budget, assumptions and model versions. Comparison holds two immutable snapshots and does not modify a listing or baseline.
+| City | Properties | Linked offered spaces | Mappable records |
+|---|---:|---:|---:|
+| Houston | 1,758 | 2,431 | 4,189 |
+| Los Angeles | 1,581 | 1,288 | 2,869 |
+| Total | 3,339 | 3,719 | 7,058 |
 
-Reads validate schema/model versions and recompute results before accepting saved data. Invalid storage is preserved and saving is disabled until the user explicitly clears it. Storage write failures preserve the draft and previous in-memory saved state. Saves are browser-local, with no account backup. Loading, source failures with retry, empty filters, unknown fields, invalid assumptions and map errors have explicit UI states. A failed real source must never silently become fixtures.
+The kit also contains 1,022 marketing listings and 3,955 nested spaces. Import rejects 236 spaces whose own property relationship is outside the supplied property sample. It does not substitute a shopping-center listing's parent property. Rebuilding twice produced identical accepted/rejected counts and no duplicate rows. The current import reports 1,634 missing-rent warnings and 14 unknown-period warnings. A warning preserves an unknown field; it does not reject an otherwise valid record.
 
-## Shared setup coordination for Asilbek
+This is not a restaurant-space inventory: most source properties are multifamily; other classes include office, industrial and retail. No previous restaurant use, suitability, kitchen, parking or permitted use is inferred. Contacts, free text notes, residential data, photographs, tours, tenancy analysis and inferred attributes from the old cache are excluded.
 
-Aligned with the committed `STRUCTURE.md` and shared setup from main. Expansion uses the existing Next.js/React/Zod/Lucide versions, Geist font, TypeScript/ESLint configuration, root layout and global tokens. Only H3, MapLibre, GeoJSON types and Playwright are added to the existing manifest/lockfile. Exact resolved versions are in `package-lock.json`; use `npm ci`. Unit tests use the repository's Node test runner for both domains; there is no separate Vitest configuration.
+No kit-wide dataset release date is documented. General property dates remain null; listing research recency stays listing-specific. Import time is separate. Active marketing is a dated source status, not verified current physical availability. The inspected documentation does not establish a public redistribution license; this is authorized local evaluation, with restricted files and generated caches kept out of Git. No sponsor eligibility certification is asserted.
 
-`src/app/expansion/page.tsx` only mounts `frontend/expansion-page.tsx` and supplies route metadata. The page loads/validates demo data, restores browser state and mounts `frontend/components/expansion-workspace.tsx`. Browser storage lives in `frontend/storage.ts`, map rendering in `frontend/components/map/scout-map.tsx`, pure calculations in `domain/`, and future server adapters in `backend/`. These match the documented ownership boundaries.
+## Architecture and commands
 
-The shared root route/layout/global stylesheet, Next/TypeScript/ESLint configuration, root guidance, Tactical files and private-data manifest are unchanged from main. Every Expansion CSS selector is scoped to `.expansion-app`, including media rules and generic button/field/card classes. Map-only palette tokens are scoped there and inherited from the same host by MapLibre. The feature header links to `/tactical` without importing Tactical code. Snapshot keys, schema/model versions, demo inputs and calculations are preserved.
+- `domain/schemas.ts`: additive local metadata, property provenance, H3 metrics and version-2 snapshot schemas; version-1 demo snapshots remain readable.
+- `domain/local-data.ts`: normalized ingestion schema, strict bounded query parser, response schemas and limits.
+- `domain/scoring.ts`: fictional demo scoring remains unchanged; real composite scores always remain null, including after weight changes.
+- `domain/scenario.ts`: existing deterministic rent and financial calculations are reused unchanged.
+- `backend/record-stream.ts`: incremental JSONL, quoted CSV and top-level JSON-array reader; 64 KB reads, 8 MB record limit.
+- `backend/local-dataset.ts`: separate indexed property/listing/space tables, validation, H3 membership, atomic rebuild, parameterized queries and permitted projections.
+- `backend/import-local.ts`: aggregate-only CLI import/rebuild report.
+- `backend/http.ts`: sanitized private/no-store JSON response/error helpers.
+- `src/app/api/expansion/markets/route.ts`: supported-city coverage and source metadata.
+- `src/app/api/expansion/query/route.ts`: validated city, bounds, filters and pagination; at most 200 records/cells and offset 10,000, viewport at most five degrees per axis.
+- `src/app/api/expansion/properties/[id]/route.ts`: selected normalized property or lease-space detail and relevant evidence.
+- `frontend/data/local-market.ts`: schema-validated HTTP access with AbortSignal support.
+- `frontend/components/expansion-workspace.tsx`: existing workspace adapted for async data, selection, scenarios and comparisons.
+- `frontend/storage.ts`: separate browser-local snapshot keys and reproducibility validation.
 
-Future coordination: a finalized shared `GameShell`, restaurant identity/evidence/scenario contracts, production persistence, map hosting and user-approved domain handoff. No shared API is frozen by this refactor. The previous local implementation is preserved in a Git safety stash labeled `codex: preserve Expansion MVP before STRUCTURE alignment`.
+Configure the ignored `.env.local` as described in the [data manifest](../../src/features/expansion/data/README.md). Use Node 22.18 or later; this computer uses Node 24.14.1. No production dependency was added: SQLite uses `node:sqlite`, and parsing uses Node streams.
 
-## Validation and demo walkthrough
+```powershell
+npm ci
+npm run expansion:import -- --help
+npm run expansion:import
+npm run dev
+```
 
-Automated unit tests cover scoring/coverage and invalid weights, budget-sensitive normalization, rent units, missing/invalid data, margins, payback, reserves, deterministic outputs, fixture mapping/references, cancellation, snapshot round trips, incompatible/corrupt records, tampered results, and write failures. Playwright covers the full user journey, persisted restore, Analyst Details, keyboard area selection, map failure, empty filters, zero weights, corrupt storage, mobile sizing and reduced motion.
+The same import command rebuilds; a failed rebuild preserves the previous cache. Server-only settings are `EXPANSION_COSTAR_ROOT`, `EXPANSION_DB_PATH`, optional `EXPANSION_DATASET_ID` and an optional **documented** `EXPANSION_DATASET_DATE`. No `NEXT_PUBLIC_` data configuration is used. See [backend details](../../src/features/expansion/backend/README.md).
 
-Demo: inspect Canopy Corner → Try opening here → see approximately $30,714 required monthly sales → change pass-throughs to $1,000 → enter assumed sales of $50,000 → compare and save → inspect Garden Arcade → try and compare → open Analyst Details → reload and Restore the saved plan. No manual source edits are necessary.
+## Numerical and provenance rules
 
-Validation after structural alignment includes both domains' unit tests, lint, typechecking, production build, the complete Expansion browser flow and a client-navigation check for CSS leakage into Tactical. The prior live-map browser check verified street tiles, hex clicks, property-pin clicks and synchronized inspectors; this refactor keeps that behavior and the existing snapshot format.
+Source USD/SF/year rents normalize with exact suite area / 12. USD/SF/month quotes convert to annual rates while preserving original period, measurement, currency and service codes and original low/high values. Zero rates mean missing. Unsupported units, ranged asking rents and divisible suite areas do not silently become exact financial inputs. Building GBA/RBA does not become rentable-suite area. Base rent excludes pass-throughs.
 
-Verified after reorganization: `npm run lint`, `npm run typecheck`, `npm test` (31 tests: 23 Expansion + 8 Tactical), `npm run build` (both `/tactical` and `/expansion`), and `PLAYWRIGHT_CHANNEL=chrome npm run test:e2e` (5 tests) passed. Git reports no unresolved merge paths; Tactical and the existing shared root configuration have no diff against the fetched main baseline.
+H3 resolution 8 is computed server-side. Areas show unique source-property counts and offered-space counts, independently of frontend filters/page size. Mean asking rent uses only exact annual USD/SF quotes with one known service basis; mixed/unknown service types remain unaggregated. No ACS/Places inputs exist, so demographic, similarity, competition and composite suitability stay unavailable. Coverage requirements are unchanged.
 
-## Deferred Stage 2
+Every editable financial field is an assumption, including rent overrides. Existing illustrative defaults are labeled: pass-throughs $750/month, other fixed costs $6,000/month, contribution margin 35%, investment $90,000 and reserves $25,000. Missing base rent starts blank. Required sales = fixed monthly costs / positive contribution margin. Assumed sales are optional; no expected demand is invented. Payback requires positive contribution and excludes working capital, financing, taxes and unmodeled costs.
 
-Inspect incoming data schemas, rights, source dates and geographic coverage before building an authorized server-side provider. Determine defensible real-data normalizations before enabling real area rankings. Add ACS/Places factors and top-ten-cell searches only with working inputs. Matterport/Vexcel-derived measurements require confidence/estimate labels and visible rejection reasons. Up-to-three finalists, grounded explanations, and scheduled daily search/text alerts follow only after their integrations and permissions are established. Shared contracts/persistence and cross-domain navigation remain coordinated work.
+## Snapshots and failures
+
+Legacy demo key: `restaurantos.expansion.demo.scenarios.v1`. Local key: `restaurantos.expansion.local.scenarios.v2`. Local snapshots retain dataset identity/date, embedded normalized property evidence, source IDs, inputs, exact deterministic results, assumptions and model versions. A restored planning scenario uses its recorded evidence; a refreshed inspector may show the current imported record separately. If a selected source cannot be reached, the embedded evidence is explicitly labeled as dated saved evidence. It is not silently refreshed or replaced by a fixture.
+
+Reads validate provenance, schema/model versions and recomputed results. Corrupt/mixed storage is preserved and saving stays disabled until explicitly cleared. Failed writes preserve drafts. Storage is browser-local with no account backup. Initial local mode still requires supported-market metadata from its configured cache; complete offline access to snapshots before metadata loads is not implemented.
+
+API states distinguish invalid queries (400), absent/unmappable records (404), missing configuration (503) and source/cache failures (503 with a distinct code). Empty results return success with zero counts. Error messages expose no local paths or source payloads. A failed real source never becomes Demo automatically.
+
+## Verification
+
+Synthetic Node tests cover ingestion mapping/relations, deduplication and reruns, invalid/missing fields, geography, unsupported units, streaming formats, query limits/filter semantics, service-compatible aggregates, corrupt/missing caches, atomic failure preservation, finance, unscored real areas, legacy/local snapshot compatibility and storage errors. Existing Tactical tests remain included.
+
+```powershell
+npm run lint
+npm run typecheck
+npm test
+npm run build
+$env:PLAYWRIGHT_CHANNEL='chrome'
+$env:EXPANSION_E2E_LOCAL='1'
+npm run test:e2e
+```
+
+Browser coverage includes the real configured API journey through supported-city selection, keyboard area inspection, two property scenarios, comparison, save, reload and restore; synthetic tests cover unknown rent, query/source failure with retry, saved evidence fallback and mobile/reduced-motion behavior. Existing demo flows, map-failure fallback, corruption handling and Tactical style/navigation isolation remain covered. The optional real-data test skips unless `EXPANSION_E2E_LOCAL=1`; it uses the ignored local database, never a committed private fixture.
+
+Verified on this computer: lint, typecheck, all 51 Node tests (including 8 Tactical tests), the production build and all 11 Chrome browser tests pass. Direct HTTP checks confirmed bounded 200-record responses, invalid query/city/viewport rejection, empty availability results, detail 404 and private/no-store headers. A live-map check confirmed source pins, synchronized pin/list/inspector selection and a new bounded request after panning. Desktop/mobile screenshots showed no horizontal overflow. Private dataset/cache/env/screenshot files are ignored; no restricted data is tracked. Concurrent `.gitignore` changes were preserved.
+
+AI, Matterport/Vexcel analysis, alerts, live availability and production/account persistence remain deferred. The root redirect, root styling, Tactical modules and shared contract proposal are untouched.

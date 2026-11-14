@@ -7,6 +7,10 @@ playwright-report/
 test-results/
 *.tsbuildinfo
 .env*
+.venv/
+__pycache__/
+/cache/
+/output/
 
 # ---- Expansion data (large / restricted / derived) ----
 # Documented in src/features/expansion/data/README.md - sync out of band, never commit.

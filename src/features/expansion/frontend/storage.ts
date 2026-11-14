@@ -2,6 +2,11 @@ import { calculateScenario } from "../domain/scenario.ts";
 import { savedScenariosSchema, type Scenario } from "../domain/schemas.ts";
 
 export const STORAGE_KEY = "restaurantos.expansion.demo.scenarios.v1";
+export const LOCAL_STORAGE_KEY = "restaurantos.expansion.local.scenarios.v2";
+export const MODE_STORAGE_KEY = "restaurantos.expansion.mode";
+
+export const storageKeyFor = (mode: "demo" | "local") =>
+  mode === "local" ? LOCAL_STORAGE_KEY : STORAGE_KEY;
 
 export function decodeScenarios(raw: string | null): Scenario[] {
   if (raw === null) return [];
@@ -21,7 +26,10 @@ export function decodeScenarios(raw: string | null): Scenario[] {
 export function persistScenarios(
   storage: Pick<Storage, "setItem">,
   scenarios: Scenario[],
+  mode: "demo" | "local" = "demo",
 ) {
   const validated = decodeScenarios(JSON.stringify(scenarios));
-  storage.setItem(STORAGE_KEY, JSON.stringify(validated));
+  if (validated.some((scenario) => scenario.isDemo !== (mode === "demo")))
+    throw new Error("Snapshot data mode does not match its storage key");
+  storage.setItem(storageKeyFor(mode), JSON.stringify(validated));
 }

@@ -48,6 +48,18 @@ export const evidenceSchema = z.object({
   rights: id,
   notes: id,
 });
+export const datasetMetadataSchema = z.object({
+  mode: z.literal("local"),
+  datasetId: id,
+  provider: id,
+  datasetDate: z.string().nullable(),
+  importedAt: z.iso.datetime(),
+  rights: id,
+  notes: z.array(z.string()),
+  propertyCount: nonnegative.int(),
+  listingCount: nonnegative.int(),
+  mappableCount: nonnegative.int(),
+});
 export const citySchema = z.object({
   id,
   name: id,
@@ -64,6 +76,11 @@ export const citySchema = z.object({
       "Invalid bounds",
     ),
   isDemo: z.boolean(),
+  coverage: z.object({
+    propertyCount: nonnegative.int(),
+    listingCount: nonnegative.int(),
+    mappableCount: nonnegative.int(),
+  }).optional(),
 });
 export const areaSchema = z.object({
   h3Index: h3Schema,
@@ -74,10 +91,29 @@ export const areaSchema = z.object({
   sourceIds: z.array(id).min(1),
   isDemo: z.boolean(),
   averageBaseRentMonthly: nonnegative.nullable(),
+  metrics: z.object({
+    propertyCount: nonnegative.int(),
+    listingCount: nonnegative.int(),
+    rentSampleCount: nonnegative.int(),
+    averageAskingRentPerSfYear: nonnegative.nullable(),
+  }).optional(),
 });
 export const rentSchema = z.object({
   amount: nonnegative,
   unit: z.enum(["USD_PER_SF_YEAR", "USD_PER_MONTH"]),
+});
+export const sourceRentSchema = z.object({
+  low: nonnegative.nullable(),
+  high: nonnegative.nullable(),
+  rateBasisCode: nonnegative.int().nullable(),
+  measurementCode: nonnegative.int().nullable(),
+  currencyCode: nonnegative.int().nullable(),
+  serviceTypeCode: nonnegative.int().nullable(),
+  availabilityTypeCode: nonnegative.int().nullable(),
+  availableOnDate: z.string().nullable(),
+  listingStatusCode: nonnegative.int().nullable(),
+  certifiedFreshDate: z.string().nullable(),
+  dateOnMarket: z.string().nullable(),
 });
 export const propertySchema = z
   .object({
@@ -94,6 +130,17 @@ export const propertySchema = z
     parkingSpaces: nonnegative.int().nullable(),
     sourceIds: z.array(id).min(1),
     isDemo: z.boolean(),
+    recordKind: z.enum(["property", "listing"]).optional(),
+    sourcePropertyId: id.optional(),
+    sourceListingId: id.nullable().optional(),
+    sourceSpaceId: id.nullable().optional(),
+    sourceRent: sourceRentSchema.optional(),
+    address: z.string().nullable().optional(),
+    propertyType: z.string().nullable().optional(),
+    recordDate: z.string().nullable().optional(),
+    datasetDate: z.string().nullable().optional(),
+    rentBasis: z.string().nullable().optional(),
+    originalRentUnit: z.string().nullable().optional(),
   })
   .refine(
     (p) => latLngToCell(p.latitude, p.longitude, 8) === p.h3Index,
@@ -106,6 +153,7 @@ export const datasetSchema = z
     areas: z.array(areaSchema).max(200),
     properties: z.array(propertySchema),
     evidence: z.array(evidenceSchema),
+    metadata: datasetMetadataSchema.optional(),
   })
   .superRefine((data, ctx) => {
     for (const [name, values] of Object.entries({
@@ -178,7 +226,7 @@ export const scenarioResultsSchema = z.object({
   paybackMonths: nonnegative.nullable(),
   initialCashRequired: nonnegative,
 });
-export const scenarioSchema = z.object({
+const legacyScenarioSchema = z.object({
   schemaVersion: z.literal(1),
   modelVersion: z.literal("expansion-finance-v1"),
   scoreModelVersion: z.literal("expansion-area-demo-v1"),
@@ -197,9 +245,36 @@ export const scenarioSchema = z.object({
   assumptionNotes: z.array(z.string()),
   monthlyBudget: finite.positive(),
 });
+export const scenarioSchema = z.union([
+  legacyScenarioSchema,
+  legacyScenarioSchema.extend({
+    schemaVersion: z.literal(2),
+    restaurantId: id,
+    isDemo: z.boolean(),
+    scoreModelVersion: z.enum(["expansion-area-demo-v1", "expansion-area-local-v1"]),
+    dataMode: z.enum(["demo", "local"]),
+    datasetId: id,
+    datasetDate: z.string().nullable(),
+    propertySnapshot: propertySchema,
+    evidenceSnapshot: z.array(evidenceSchema).min(1),
+  }).superRefine((snapshot, ctx) => {
+    const p = snapshot.propertySnapshot;
+    if (snapshot.isDemo !== (snapshot.dataMode === "demo") ||
+      p.isDemo !== snapshot.isDemo || p.id !== snapshot.propertyId ||
+      p.cityId !== snapshot.cityId ||
+      snapshot.scoreModelVersion !== (snapshot.isDemo ? "expansion-area-demo-v1" : "expansion-area-local-v1") ||
+      snapshot.evidenceSnapshot.some(e => e.isDemo !== snapshot.isDemo) ||
+      [...snapshot.sourceIds, ...p.sourceIds].some(source => !snapshot.evidenceSnapshot.some(e => e.id === source))) {
+      ctx.addIssue({code: "custom", message: "Inconsistent snapshot provenance"});
+    }
+  }),
+]);
 export const savedScenariosSchema = z.array(scenarioSchema).max(50);
 
 export type Dataset = z.infer<typeof datasetSchema>;
+export type DatasetMetadata = z.infer<typeof datasetMetadataSchema>;
+export type City = z.infer<typeof citySchema>;
+export type Evidence = z.infer<typeof evidenceSchema>;
 export type ExpansionArea = z.infer<typeof areaSchema>;
 export type ExpansionProperty = z.infer<typeof propertySchema>;
 export type ScenarioInputs = z.infer<typeof scenarioInputsSchema>;

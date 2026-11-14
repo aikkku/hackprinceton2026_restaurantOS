@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { Compass, FlaskConical, Sprout } from "lucide-react";
 
-export function ExpansionHeader() {
+export function ExpansionHeader({ mode = "demo", onModeChange }: {
+  mode?: "demo" | "local";
+  onModeChange?: (mode: "demo" | "local") => void;
+}) {
   return (
     <header className="app-header">
       <a
@@ -22,9 +25,13 @@ export function ExpansionHeader() {
           <Compass size={16} /> Explore expansion
         </a>
       </nav>
-      <span className="demo-pill">
-        <FlaskConical size={13} /> Demo workspace
-      </span>
+      {onModeChange ? <label className="mode-choice">
+        Data mode
+        <select aria-label="Data mode" value={mode} onChange={(event) => onModeChange(event.target.value as "demo" | "local")}>
+          <option value="demo">Demo</option>
+          <option value="local">Local dataset</option>
+        </select>
+      </label> : <span className="demo-pill"><FlaskConical size={13} />{mode === "demo" ? "Demo workspace" : "Local dataset"}</span>}
     </header>
   );
 }

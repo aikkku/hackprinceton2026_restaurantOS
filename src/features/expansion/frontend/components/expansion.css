@@ -12,6 +12,12 @@
 .expansion-app button:disabled {
   opacity: 0.5;
 }
+.expansion-app .mode-choice { display: grid; gap: 3px; font-size: 10px; color: var(--ros-muted); }
+.expansion-app .mode-choice select { max-width: 145px; border: 1px solid var(--ros-border); border-radius: 6px; background: var(--ros-surface); color: var(--ros-ink); padding: 4px 8px; font-size: 12px; }
+.expansion-app .query-status { padding: 10px 14px; background: var(--ros-surface); border-bottom: 1px solid var(--ros-border); font-size: 12px; }
+.expansion-app .query-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 5px; }
+.expansion-app .property-details dd { overflow-wrap: anywhere; }
+@media (max-width: 600px) { .expansion-app .app-header .mode-choice { grid-column: 2; } }
 .expansion-app a {
   color: var(--ros-forest);
 }

@@ -7,6 +7,7 @@ import {
 } from "./schemas.ts";
 
 export const SCORE_VERSION = "expansion-area-demo-v1";
+export const LOCAL_SCORE_VERSION = "expansion-area-local-v1";
 export const DEFAULT_WEIGHTS: Weights = {
   demand: 30,
   similarity: 25,
@@ -66,6 +67,12 @@ export function scoreArea(
 ) {
   if (!Number.isFinite(monthlyBudget) || monthlyBudget <= 0)
     throw new Error("Budget must be greater than zero");
+  // A property snapshot provides no validated demographic/competition model.
+  // Editing weights must never turn an unsupported composite into a ranking.
+  if (!area.isDemo) {
+    const factors = { demand: null, similarity: null, competition: null, cost: null };
+    return { ...weightedScore(factors, weights), factors, modelVersion: LOCAL_SCORE_VERSION };
+  }
   // Versioned planning normalization: zero rent = 100, budget = 50, twice budget = 0.
   const factors = {
     ...area.factors,

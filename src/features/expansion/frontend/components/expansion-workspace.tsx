@@ -35,6 +35,7 @@ import {
   FACTOR_LABELS,
   scoreArea,
   SCORE_VERSION,
+  LOCAL_SCORE_VERSION,
 } from "../../domain/scoring.ts";
 import {
   factorKeys,
@@ -42,11 +43,15 @@ import {
   scenarioSchema,
   type Dataset,
   type ExpansionProperty,
+  type ExpansionArea,
+  type Evidence,
   type Scenario,
   type ScenarioInputs,
   type Weights,
 } from "../../domain/schemas.ts";
-import { persistScenarios, STORAGE_KEY } from "../storage.ts";
+import { persistScenarios, storageKeyFor } from "../storage.ts";
+import { loadLocalArea, loadLocalProperty, type Viewport } from "../data/local-market.ts";
+import type { QueryCoverage } from "../../domain/local-data.ts";
 import { ScoutMap, type Selection } from "./map/scout-map";
 
 const money = (value: number | null) =>
@@ -66,17 +71,39 @@ const toDraft = (inputs: ScenarioInputs) =>
       value === null ? "" : String(value),
     ]),
   ) as Draft;
+const planningDraft = (property: ExpansionProperty): Draft => {
+  const rent = baseRentMonthly(property.askingRent, property.floorAreaSqFt);
+  return rent === null ? { ...toDraft({ baseRentMonthly: 0, passThroughMonthly: 750, otherFixedMonthly: 6000, contributionMargin: 0.35, initialInvestment: 90000, workingCapital: 25000, assumedSalesMonthly: null }), baseRentMonthly: "" } : toDraft(baselineFor(property));
+};
 
 export function ExpansionWorkspace({
-  dataset,
+  dataset: initialDataset,
   initialSaved,
   initialStorageError,
+  mode = "demo",
+  onModeChange,
 }: {
   dataset: Dataset;
   initialSaved: Scenario[];
   initialStorageError: string | null;
+  mode?: "demo" | "local";
+  onModeChange?: (mode: "demo" | "local") => void;
 }) {
-  const [cityId, setCityId] = useState(dataset.cities[0].id);
+  const [dataset, setDataset] = useState(initialDataset);
+  const [cityId, setCityId] = useState(initialDataset.cities[0].id);
+  const city = initialDataset.cities.find((value) => value.id === cityId)!;
+  const [bounds, setBounds] = useState<Viewport>(initialDataset.cities[0].bounds);
+  const [offset, setOffset] = useState(0);
+  const [coverage, setCoverage] = useState<QueryCoverage | null>(null);
+  const [queryState, setQueryState] = useState<"loading" | "ready" | "error">(mode === "local" ? "loading" : "ready");
+  const [queryError, setQueryError] = useState("");
+  const [queryAttempt, setQueryAttempt] = useState(0);
+  const [detailProperty, setDetailProperty] = useState<ExpansionProperty | null>(null);
+  const [detailArea, setDetailArea] = useState<ExpansionArea | null>(null);
+  const [detailEvidence, setDetailEvidence] = useState<Evidence[]>([]);
+  const [detailState, setDetailState] = useState<"loading" | "ready" | "error">("ready");
+  const [detailAttempt, setDetailAttempt] = useState(0);
+  const [snapshotFallback, setSnapshotFallback] = useState(false);
   const [selection, setSelection] = useState<Selection>({
     kind: "area",
     id: dataset.properties[0]?.h3Index ?? dataset.areas[0]?.h3Index ?? "",
@@ -87,6 +114,8 @@ export function ExpansionWorkspace({
   const [areaFilter, setAreaFilter] = useState<string | null>(null);
   const [activeProperty, setActiveProperty] =
     useState<ExpansionProperty | null>(null);
+  const [activeEvidence, setActiveEvidence] = useState<Evidence[]>([]);
+  const [activeSource, setActiveSource] = useState<{datasetId: string; datasetDate: string | null} | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [scenarioLabel, setScenarioLabel] = useState("Opening plan");
   const [saved, setSaved] = useState(initialSaved);
@@ -96,6 +125,7 @@ export function ExpansionWorkspace({
   const [analystOpen, setAnalystOpen] = useState(false);
   const analystRef = useRef<HTMLDialogElement>(null);
   const analystTrigger = useRef<HTMLButtonElement>(null);
+  const restoreRequest = useRef<AbortController | null>(null);
   const budget = Number(budgetInput);
   const minimumArea = Number(minimumInput);
   const filtersValid =
@@ -113,22 +143,24 @@ export function ExpansionWorkspace({
         (p) =>
           p.cityId === cityId &&
           filtersValid &&
-          propertyMatches(p, budget, minimumArea),
+          (mode === "local" || propertyMatches(p, budget, minimumArea)),
       ),
-    [dataset, cityId, filtersValid, budget, minimumArea],
+    [dataset, cityId, filtersValid, budget, minimumArea, mode],
   );
   const properties = filteredProperties.filter(
     (p) => !areaFilter || p.h3Index === areaFilter,
   );
   const selectedProperty =
     selection.kind === "property"
-      ? dataset.properties.find((p) => p.id === selection.id)
+      ? detailProperty?.id === selection.id ? detailProperty : dataset.properties.find((p) => p.id === selection.id)
       : undefined;
   const selectedArea = areas.find(
     (a) =>
       a.h3Index ===
       (selection.kind === "area" ? selection.id : selectedProperty?.h3Index),
-  );
+  ) ?? (detailArea?.h3Index === selectedProperty?.h3Index ? detailArea : undefined);
+  const relevantEvidence = [...new Map([...dataset.evidence, ...detailEvidence].map((item) => [item.id, item])).values()];
+  const metadata = dataset.metadata ?? initialDataset.metadata;
   const areaResult = selectedArea
     ? scoreArea(selectedArea, weights, scoringBudget)
     : null;
@@ -162,15 +194,62 @@ export function ExpansionWorkspace({
     if (analystOpen) analystRef.current?.showModal();
     else if (analystRef.current?.open) analystRef.current.close();
   }, [analystOpen]);
+  useEffect(() => () => restoreRequest.current?.abort(), []);
+
+  useEffect(() => {
+    if (mode !== "local" || !filtersValid) return;
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      setQueryState("loading");
+      loadLocalArea({ cityId, bounds, budget, minimumArea, offset, signal: controller.signal }).then((response) => {
+        if (controller.signal.aborted) return;
+        setDataset({ ...response.dataset, cities: initialDataset.cities });
+        setCoverage(response.coverage);
+        setQueryState("ready");
+        setQueryError("");
+        setSelection((current) => {
+          if (current.kind === "property") return current;
+          return response.dataset.areas.some((area) => area.h3Index === current.id) ? current : { kind: "area", id: response.dataset.areas[0]?.h3Index ?? "" };
+        });
+      }).catch((failure: unknown) => {
+        if (controller.signal.aborted) return;
+        setQueryState("error");
+        setQueryError(failure instanceof Error ? failure.message : "The local data source failed.");
+      });
+    }, 200);
+    return () => { clearTimeout(timer); controller.abort(); };
+  }, [mode, cityId, bounds, budget, minimumArea, offset, filtersValid, initialDataset.cities, queryAttempt]);
+
+  useEffect(() => {
+    if (mode !== "local" || selection.kind !== "property") return;
+    const controller = new AbortController();
+    loadLocalProperty(selection.id, controller.signal).then((detail) => {
+      if (controller.signal.aborted) return;
+      setDetailProperty(detail.property);
+      setDetailArea(detail.area);
+      setDetailEvidence(detail.evidence);
+      setDetailState("ready");
+      setSnapshotFallback(false);
+    }).catch(() => {
+      if (!controller.signal.aborted) setDetailState("error");
+    });
+    return () => controller.abort();
+  }, [mode, selection, detailAttempt]);
 
   function select(next: Selection) {
+    restoreRequest.current?.abort();
+    if (mode === "local" && next.kind === "property") setDetailState("loading");
+    setSnapshotFallback(false);
+    setDetailProperty(null);
     setSelection(next);
     setNotice("");
   }
   function tryProperty(property: ExpansionProperty) {
     setActiveProperty(property);
-    setDraft(toDraft(baselineFor(property)));
-    setScenarioLabel(`${property.name} plan`);
+    setActiveEvidence(relevantEvidence.filter((source) => property.sourceIds.includes(source.id)));
+    setActiveSource(metadata ? { datasetId: metadata.datasetId, datasetDate: metadata.datasetDate } : null);
+    setDraft(planningDraft(property));
+    setScenarioLabel(`${property.name} plan`.slice(0, 100));
     setNotice("");
     requestAnimationFrame(() =>
       document.getElementById("scenario-workbench")?.scrollIntoView({
@@ -190,32 +269,38 @@ export function ExpansionWorkspace({
       !scenarioLabel.trim()
     )
       return null;
-    return scenarioSchema.parse({
-      schemaVersion: 1,
+    const candidate = scenarioSchema.safeParse({
+      schemaVersion: mode === "local" ? 2 : 1,
       modelVersion: FINANCE_VERSION,
-      scoreModelVersion: SCORE_VERSION,
+      scoreModelVersion: mode === "local" ? LOCAL_SCORE_VERSION : SCORE_VERSION,
       id: crypto.randomUUID(),
-      restaurantId: "demo-restaurant",
+      restaurantId: mode === "local" ? "local-planning-workspace" : "demo-restaurant",
       propertyId: activeProperty.id,
       propertyName: activeProperty.name,
-      cityId,
+      cityId: activeProperty.cityId,
       label: scenarioLabel.trim(),
       createdAt: new Date().toISOString(),
-      isDemo: true,
+      isDemo: activeProperty.isDemo,
+      ...(mode === "local" ? { dataMode: "local", datasetId: activeSource?.datasetId ?? metadata!.datasetId, datasetDate: activeSource ? activeSource.datasetDate : metadata!.datasetDate, propertySnapshot: activeProperty, evidenceSnapshot: activeEvidence } : {}),
       inputs: parsedInputs.data,
       results,
       weights,
       monthlyBudget: budget,
       sourceIds: [
-        ...new Set([...activeProperty.sourceIds, "demo-area-indices"]),
+        ...new Set([...activeProperty.sourceIds, ...(mode === "demo" ? ["demo-area-indices"] : [])]),
       ],
       assumptionNotes: [
-        "All property and area data is fictional.",
+        mode === "demo" ? "All property and area data is fictional." : "Property data comes from a dated local dataset snapshot; current availability and restaurant suitability are unknown.",
         "All editable financial fields are planning assumptions, including any rent override.",
         "Pass-throughs, other fixed costs, contribution margin, investment and working capital start with illustrative assumptions.",
         "Demand is unknown. Required sales is a threshold; contribution excludes financing, taxes and unmodeled costs. Payback excludes working capital.",
       ],
     });
+    if (!candidate.success) {
+      setNotice("This scenario could not be saved: its source evidence is incomplete or inconsistent. Inspect the property again before saving.");
+      return null;
+    }
+    return candidate.data;
   }
   function addComparison(value: Scenario) {
     if (comparison.length >= 2) {
@@ -232,13 +317,13 @@ export function ExpansionWorkspace({
     if (!value) return;
     if (saved.length >= 50) {
       setNotice(
-        "The demo stores up to 50 snapshots. Remove one before saving.",
+        "This data mode stores up to 50 snapshots. Remove one before saving.",
       );
       return;
     }
     const next = [value, ...saved];
     try {
-      persistScenarios(localStorage, next);
+      persistScenarios(localStorage, next, mode);
       setSaved(next);
       setNotice(
         "Scenario saved on this browser. No property commitment was made.",
@@ -252,7 +337,7 @@ export function ExpansionWorkspace({
   function removeSaved(id: string) {
     const next = saved.filter((s) => s.id !== id);
     try {
-      persistScenarios(localStorage, next);
+      persistScenarios(localStorage, next, mode);
       setSaved(next);
       setNotice("Saved snapshot removed.");
     } catch {
@@ -261,30 +346,59 @@ export function ExpansionWorkspace({
       );
     }
   }
-  function restore(value: Scenario) {
-    const property = dataset.properties.find((p) => p.id === value.propertyId);
+  async function restore(value: Scenario) {
+    restoreRequest.current?.abort();
+    const restoredCity = initialDataset.cities.find((item) => item.id === value.cityId);
+    if (!restoredCity) { setNotice("This snapshot's market is no longer supported. Its saved comparison is still readable."); return; }
+    const controller = new AbortController();
+    restoreRequest.current = controller;
+    let property = dataset.properties.find((p) => p.id === value.propertyId);
+    let fromSnapshot = false;
+    if (mode === "local" && value.schemaVersion === 2) {
+      try {
+        const detail = await loadLocalProperty(value.propertyId, controller.signal);
+        if (controller.signal.aborted) return;
+        property = detail.property;
+        setDetailArea(detail.area);
+        setDetailEvidence(detail.evidence);
+      } catch {
+        if (controller.signal.aborted) return;
+        property = value.propertySnapshot;
+        setDetailEvidence(value.evidenceSnapshot);
+        fromSnapshot = true;
+      }
+    }
     if (!property) {
       setNotice("The original property is unavailable.");
       return;
     }
     setCityId(value.cityId);
+    setBounds(restoredCity.bounds);
+    setOffset(0);
+    setDetailProperty(property);
+    setSnapshotFallback(fromSnapshot);
     setSelection({ kind: "property", id: property.id });
+    if (mode === "local") setDetailState("loading");
     setAreaFilter(null);
     setBudgetInput(String(value.monthlyBudget));
     setWeights(value.weights);
-    setActiveProperty(property);
+    setActiveProperty(value.schemaVersion === 2 ? value.propertySnapshot : property);
+    if (value.schemaVersion === 2) {
+      setActiveEvidence(value.evidenceSnapshot);
+      setActiveSource({ datasetId: value.datasetId, datasetDate: value.datasetDate });
+    }
     setDraft(toDraft(value.inputs));
     setScenarioLabel(value.label);
     setNotice(
-      "Saved inputs restored. Snapshot results are reproducible under the recorded model.",
+      fromSnapshot ? "Saved inputs restored from a dated embedded property snapshot. The source could not be reached; this is saved evidence, not refreshed data." : "Saved inputs restored. Snapshot results are reproducible under the recorded model.",
     );
   }
   function clearStorage() {
     try {
-      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(storageKeyFor(mode));
       setSaved([]);
       setStorageError(null);
-      setNotice("Saved demo data cleared.");
+      setNotice(`Saved ${mode === "demo" ? "demo" : "local"} data cleared.`);
     } catch {
       setNotice(
         "Browser storage is still unavailable. You can continue comparing without saving.",
@@ -294,7 +408,7 @@ export function ExpansionWorkspace({
 
   return (
     <div className="expansion-app">
-      <ExpansionHeader />
+      <ExpansionHeader mode={mode} onModeChange={onModeChange} />
       <main className="workspace-main">
         <div className="page-heading">
           <div>
@@ -333,9 +447,7 @@ export function ExpansionWorkspace({
         <div className="source-banner">
           <FlaskConical size={15} />
           <span>
-            <strong>Fictional Houston demo.</strong> All listings and area
-            indicators are simulated. No CoStar integration or live
-            availability.
+            {mode === "demo" ? <><strong>Fictional {city.name} demo.</strong> All listings and area indicators are simulated. No live availability.</> : <><strong>{metadata?.provider} · Local dataset snapshot.</strong> Dataset date: {metadata?.datasetDate ?? "not supplied"}. Imported {metadata?.importedAt ? new Date(metadata.importedAt).toLocaleDateString() : "date unavailable"}. Current availability and restaurant suitability are unverified.</>}
           </span>
         </div>
         <section className="explorer" aria-label="Expansion explorer">
@@ -351,7 +463,13 @@ export function ExpansionWorkspace({
                 value={cityId}
                 onChange={(e) => {
                   const id = e.target.value;
+                  restoreRequest.current?.abort();
                   setCityId(id);
+                  setBounds(initialDataset.cities.find((item) => item.id === id)!.bounds);
+                  setOffset(0);
+                  setDetailProperty(null);
+                  setDetailArea(null);
+                  setSnapshotFallback(false);
                   setAreaFilter(null);
                   setActiveProperty(null);
                   setDraft(null);
@@ -364,7 +482,7 @@ export function ExpansionWorkspace({
               >
                 {dataset.cities.map((city) => (
                   <option key={city.id} value={city.id}>
-                    {city.name} · Demo
+                    {city.name} · {city.isDemo ? "Demo" : "Local snapshot"}
                   </option>
                 ))}
               </select>
@@ -372,33 +490,33 @@ export function ExpansionWorkspace({
             <NumericField
               label="Monthly base-rent budget"
               value={budgetInput}
-              onChange={setBudgetInput}
+              onChange={(value) => { setBudgetInput(value); setOffset(0); }}
               suffix="USD / month"
               min={1}
             />
             <NumericField
               label="Minimum space"
               value={minimumInput}
-              onChange={setMinimumInput}
+              onChange={(value) => { setMinimumInput(value); setOffset(0); }}
               suffix="sq ft"
             />
             {!filtersValid && (
               <p role="alert" className="field-error">
                 Enter a positive budget and a nonnegative minimum area. Scores
-                retain the $8,000 demo budget until corrected.
+                retain the $8,000 planning budget until corrected.
               </p>
             )}
             <p className="small-note">
-              Budget filters base rent only. Unknown rent or size is excluded;
-              availability may be unknown.
+              Budget filters base rent only. {mode === "local" ? "Unknown rent or size is included and must be verified." : "Unknown rent or size is excluded; availability may be unknown."}
             </p>
+            {mode === "local" && city.coverage && <p className="small-note">Market coverage: {number(city.coverage.propertyCount)} properties · {number(city.coverage.listingCount)} space/listing records · {number(city.coverage.mappableCount)} mappable records. Coverage describes this dataset, not all commercial space.</p>}
             <div className="rail-divider" />
             <div className="section-caption">
               <Layers size={15} />
               <h2>Area priorities</h2>
             </div>
             <p className="small-note">
-              Editable weights · fictional indicators
+              {mode === "demo" ? "Editable weights · fictional indicators" : "Composite area suitability is unsupported. All real areas remain unscored."}
             </p>
             {factorKeys.map((key) => (
               <label key={key} className="weight-field">
@@ -412,6 +530,7 @@ export function ExpansionWorkspace({
                   max="100"
                   step="5"
                   value={weights[key]}
+                  disabled={mode === "local"}
                   aria-label={`${FACTOR_LABELS[key]} weight`}
                   onChange={(e) =>
                     setWeights({ ...weights, [key]: Number(e.target.value) })
@@ -437,23 +556,31 @@ export function ExpansionWorkspace({
           <div className="map-column">
             <div className="map-heading">
               <div>
-                <h2>Houston scouting grounds</h2>
+                <h2>{city.name} scouting grounds</h2>
                 <span>
                   {areas.length} analysis cells · {filteredProperties.length}{" "}
-                  matching demo spaces
+                  {mode === "demo" ? "matching demo spaces" : "returned property/space records"}
                 </span>
               </div>
               <span className="live-label">2D EXPLORER</span>
             </div>
-            {areas.length ? (
+            {mode === "local" && <div className="query-status" role={queryState === "error" ? "alert" : "status"}>
+              {queryState === "loading" ? "Loading this map area… Previous results remain visible until the query finishes." : queryState === "error" ? <>{queryError} Previous results may be stale. <button className="text-button" onClick={() => setQueryAttempt((value) => value + 1)}>Retry area query</button></> : coverage ? <>Showing {coverage.returned ? coverage.offset + 1 : 0}–{coverage.offset + coverage.returned} of {number(coverage.totalMatching)} matching records in the queried bounds; maximum {coverage.limit} per page. {coverage.areasReturned} H3 cells for returned records{coverage.areasLimited ? " (additional matching cells are outside this page)" : ""}.</> : "Choose a supported market."}
+              <div className="query-actions">
+                <button className="text-button" onClick={() => { setBounds(city.bounds); setOffset(0); setQueryAttempt((value) => value + 1); }}>Search whole supported market</button>
+                {coverage && <><button className="text-button" disabled={queryState === "loading" || offset === 0} onClick={() => setOffset(Math.max(0, offset - coverage.limit))}>Previous results</button><button className="text-button" disabled={queryState === "loading" || offset + coverage.returned >= coverage.totalMatching || offset + coverage.limit > 10000} onClick={() => setOffset(offset + coverage.limit)}>Next results</button></>}
+              </div>
+            </div>}
+            {areas.length || mode === "local" ? (
               <ScoutMap
                 dataset={dataset}
                 cityId={cityId}
-                properties={filteredProperties}
+                properties={selectedProperty && !filteredProperties.some((property) => property.id === selectedProperty.id) ? [...filteredProperties, selectedProperty] : filteredProperties}
                 weights={weights}
                 budget={scoringBudget}
                 selection={selection}
                 onSelect={select}
+                onViewportChange={mode === "local" ? (next) => { setBounds(next); setOffset(0); } : undefined}
               />
             ) : (
               <div className="empty-state">
@@ -476,8 +603,7 @@ export function ExpansionWorkspace({
               </span>
             </div>
             <p className="map-footnote">
-              Coverage below 70% stays unscored. Partial coverage uses a lighter
-              fill. H3 cells are analysis regions, not neighborhood boundaries.
+              {mode === "local" ? "Real areas have no supported composite score. Counts and rents are individual snapshot metrics; they do not measure demand or competition." : "Coverage below 70% stays unscored. Partial coverage uses a lighter fill."} H3 cells are analysis regions, not neighborhood boundaries.
             </p>
           </div>
           <aside
@@ -493,21 +619,21 @@ export function ExpansionWorkspace({
                 )}
               </span>
               {selectedProperty ? "PROPERTY SCOUT" : "AREA SCOUT"}
-              <span className="tiny-badge">Demo</span>
+              <span className="tiny-badge">{mode === "demo" ? "Demo" : "Local snapshot"}</span>
             </div>
             {selectedProperty ? (
               <>
                 <h2>{selectedProperty.name}</h2>
                 <p className="inspector-subtitle">
-                  Fictional test space · Houston
+                  {selectedProperty.isDemo ? "Fictional test space" : selectedProperty.recordKind === "listing" ? "Space / listing record" : "Property record · no rentable space verified"} · {city.name}
                 </p>
                 <div className="property-art" aria-hidden="true">
                   <Building2 size={58} strokeWidth={1} />
-                  <span>DEMO SPACE</span>
+                  <span>{selectedProperty.isDemo ? "DEMO SPACE" : "SOURCE RECORD"}</span>
                 </div>
                 <div className="metric-grid">
                   <Metric
-                    label="Floor area · simulated"
+                    label={`Space area · ${selectedProperty.isDemo ? "simulated" : "observed / unknown"}`}
                     value={
                       selectedProperty.floorAreaSqFt === null
                         ? "Unavailable"
@@ -521,23 +647,31 @@ export function ExpansionWorkspace({
                 </div>
                 <dl className="property-details">
                   <div>
-                    <dt>Asking basis · simulated</dt>
+                    <dt>Asking basis · {selectedProperty.isDemo ? "simulated" : "sourced"}</dt>
                     <dd>
                       {selectedProperty.askingRent
-                        ? `${money(selectedProperty.askingRent.amount)}${selectedProperty.askingRent.unit === "USD_PER_SF_YEAR" ? " / SF / year" : " / month"}`
+                        ? `${new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 4 }).format(selectedProperty.askingRent.amount)}${selectedProperty.askingRent.unit === "USD_PER_SF_YEAR" ? " / SF / year" : " / month"}`
                         : "Unavailable"}
                     </dd>
                   </div>
+                  {!selectedProperty.isDemo && <>
+                    <div><dt>Address · sourced</dt><dd>{selectedProperty.address ?? "Unavailable"}</dd></div>
+                    <div><dt>Property type · sourced</dt><dd>{selectedProperty.propertyType ?? "Unavailable"}</dd></div>
+                    <div><dt>Original rent units / service basis</dt><dd>{selectedProperty.originalRentUnit ?? "Unknown"} · {selectedProperty.rentBasis ?? "Unknown"}</dd></div>
+                    {selectedProperty.sourceRent && <div><dt>Source asking range</dt><dd>{selectedProperty.sourceRent.low === null ? "Unavailable" : number(selectedProperty.sourceRent.low)}–{selectedProperty.sourceRent.high === null ? "Unavailable" : number(selectedProperty.sourceRent.high)} · {selectedProperty.originalRentUnit ?? "units unknown"} · currency {selectedProperty.sourceRent.currencyCode === 1 ? "USD" : selectedProperty.sourceRent.currencyCode === null ? "unknown" : `source code ${selectedProperty.sourceRent.currencyCode} (not normalized)`}. A range is not treated as an exact rent.</dd></div>}
+                    <div><dt>Property / listing / space identifiers</dt><dd>{selectedProperty.sourcePropertyId ?? "Unknown"} / {selectedProperty.sourceListingId ?? "Unknown"} / {selectedProperty.sourceSpaceId ?? "Unknown"}</dd></div>
+                    <div><dt>Record date / dataset date</dt><dd>{selectedProperty.recordDate ?? "Not supplied"} / {selectedProperty.datasetDate ?? "Not supplied"}</dd></div>
+                  </>}
                   <div>
-                    <dt>Previous use · simulated</dt>
+                    <dt>Previous use · {selectedProperty.isDemo ? "simulated" : "sourced / unknown"}</dt>
                     <dd>{selectedProperty.previousUse ?? "Unavailable"}</dd>
                   </div>
                   <div>
-                    <dt>Parking · simulated</dt>
+                    <dt>Parking · {selectedProperty.isDemo ? "simulated" : "sourced / unknown"}</dt>
                     <dd>{selectedProperty.parkingSpaces ?? "Unavailable"}</dd>
                   </div>
                   <div>
-                    <dt>Availability · simulated</dt>
+                    <dt>Availability · {selectedProperty.isDemo ? "simulated" : "snapshot / unknown"}</dt>
                     <dd>
                       {selectedProperty.availability === "unknown"
                         ? "Unknown — verify first"
@@ -545,11 +679,14 @@ export function ExpansionWorkspace({
                     </dd>
                   </div>
                 </dl>
+                {mode === "local" && detailState === "loading" && <p role="status" className="small-note">Loading selected-record evidence…</p>}
+                {mode === "local" && detailState === "error" && <p role="alert" className="warning">Selected-record refresh failed. Displayed query or saved snapshot evidence has not been refreshed. <button className="text-button" onClick={() => { setDetailState("loading"); setDetailAttempt((value) => value + 1); }}>Retry property</button></p>}
+                {snapshotFallback && <p className="warning">Dated saved property snapshot. The local source is unavailable.</p>}
                 {!filteredProperties.some(
                   (p) => p.id === selectedProperty.id,
                 ) && (
                   <p className="warning">
-                    This selection is outside your current filters.
+                    This selection is outside the returned page, map bounds or filters. Its selected pin is retained; it may be outside the visible map.
                   </p>
                 )}
                 <p className="small-note">
@@ -559,25 +696,19 @@ export function ExpansionWorkspace({
                 <button
                   className="primary full"
                   onClick={() => tryProperty(selectedProperty)}
-                  disabled={
-                    baseRentMonthly(
-                      selectedProperty.askingRent,
-                      selectedProperty.floorAreaSqFt,
-                    ) === null
-                  }
                 >
                   Try opening here <ArrowRight size={15} />
                 </button>
                 <button
                   className="text-button full"
                   onClick={() =>
-                    setSelection({ kind: "area", id: selectedProperty.h3Index })
+                    select({ kind: "area", id: selectedProperty.h3Index })
                   }
                 >
                   <ArrowLeft size={13} /> Inspect this area
                 </button>
                 <p className="source-line">
-                  Source: RestaurantOS fixtures · date unavailable
+                  Source: {selectedProperty.isDemo ? "RestaurantOS fixtures" : metadata?.provider ?? "Local dataset"} · record date {selectedProperty.recordDate ?? "unavailable"}
                 </p>
               </>
             ) : selectedArea && areaResult ? (
@@ -596,9 +727,15 @@ export function ExpansionWorkspace({
                     {areaResult.score === null
                       ? "Insufficient data"
                       : "Area suitability / 100"}
-                    <small>Derived from fictional inputs</small>
+                    <small>{mode === "demo" ? "Derived from fictional inputs" : "Demand, similarity and competition unavailable"}</small>
                   </div>
                 </div>
+                {mode === "local" && selectedArea.metrics && <div className="outcome-lines">
+                  <Metric label="Unique properties · snapshot" value={selectedArea.metrics.propertyCount} />
+                  <Metric label="Space/listing records · snapshot" value={selectedArea.metrics.listingCount} />
+                  <Metric label="Average exact asking rent · USD / SF / year" value={money(selectedArea.metrics.averageAskingRentPerSfYear)} />
+                  <p className="small-note">Rent sample: {selectedArea.metrics.rentSampleCount} eligible records. Ranges and unknown units are excluded; unknown or mixed service types remain unavailable. Counts describe the full snapshot cell, independently of the returned page and filters. This is a source sample, not a complete market average.</p>
+                </div>}
                 <div className="coverage-row">
                   <span>Weighted data coverage</span>
                   <strong>{Math.round(areaResult.coverage * 100)}%</strong>
@@ -619,8 +756,7 @@ export function ExpansionWorkspace({
                   ))}
                 </div>
                 <p className="warning">
-                  Demo indices are illustrative. Missing factors are omitted,
-                  never assigned a neutral value.
+                  {mode === "demo" ? "Demo indices are illustrative. Missing factors are omitted, never assigned a neutral value." : "The snapshot does not support a composite area score. Listing density is not demand, competition or restaurant suitability."}
                 </p>
                 <div className="area-count">
                   <Building2 size={17} />
@@ -631,7 +767,7 @@ export function ExpansionWorkspace({
                       ).length
                     }
                   </strong>{" "}
-                  matching spaces in this area
+                  returned records in this area
                 </div>
                 <button
                   className="primary full"
@@ -645,7 +781,7 @@ export function ExpansionWorkspace({
                   View properties in this area <ArrowDown size={15} />
                 </button>
                 <p className="source-line">
-                  Source: RestaurantOS fixtures · date unavailable
+                  Source: {mode === "demo" ? "RestaurantOS fixtures" : metadata?.provider ?? "Local dataset"} · dataset date {metadata?.datasetDate ?? "unavailable"}
                 </p>
               </>
             ) : (
@@ -686,16 +822,16 @@ export function ExpansionWorkspace({
                         (p) => p.id === property.id,
                       ) + 1}
                     </span>
-                    <span className="tiny-badge">Fictional</span>
+                    <span className="tiny-badge">{property.isDemo ? "Fictional" : property.recordKind === "listing" ? "Space / listing" : "Property"}</span>
                     <ArrowRight size={16} />
                   </div>
                   <Building2 size={28} strokeWidth={1.3} />
                   <h3>{property.name}</h3>
                   <p>
-                    {number(property.floorAreaSqFt!)} sq ft <span>·</span>{" "}
+                    {property.floorAreaSqFt === null ? "Space area unknown" : `${number(property.floorAreaSqFt)} sq ft`} <span>·</span>{" "}
                     {property.availability === "unknown"
                       ? "Status unknown"
-                      : "Demo availability"}
+                      : property.isDemo ? "Demo availability" : `${property.availability} in snapshot`}
                   </p>
                   <strong>
                     {money(
@@ -715,11 +851,8 @@ export function ExpansionWorkspace({
             {!properties.length && (
               <div className="empty-state">
                 <Building2 size={25} />
-                <h3>No spaces match these filters.</h3>
-                <p>
-                  Try another area, a higher base-rent budget, or a smaller
-                  minimum size.
-                </p>
+                <h3>{mode === "local" && queryState === "loading" ? "Loading property records…" : mode === "local" && queryState === "error" ? "Property records could not be refreshed." : "No spaces match these filters."}</h3>
+                <p>{mode === "local" && queryState === "error" ? "The source query failed. Retry to determine whether this area has matching records." : "Try another area, a higher base-rent budget, or a smaller minimum size."}</p>
                 <button
                   className="secondary"
                   onClick={() => {
@@ -810,11 +943,12 @@ export function ExpansionWorkspace({
                     )}{" "}
                     / mo.
                   </p>
+                  {mode === "local" && <p className="small-note">Scenario source: {activeSource?.datasetId} · dataset date {activeSource?.datasetDate ?? "not supplied"} · record date {activeProperty.recordDate ?? "not supplied"}. These captured inputs remain unchanged when you scout other properties.</p>}
                 </div>
                 <button
                   className="text-button"
                   onClick={() => {
-                    setDraft(toDraft(baselineFor(activeProperty)));
+                    setDraft(planningDraft(activeProperty));
                     setNotice(
                       "Scenario reset to illustrative baseline assumptions.",
                     );
@@ -1042,7 +1176,7 @@ export function ExpansionWorkspace({
                       >
                         <X size={15} />
                       </button>
-                      <span className="tiny-badge">Demo snapshot</span>
+                      <span className="tiny-badge">{s.isDemo ? "Demo snapshot" : "Local dataset snapshot"}</span>
                       <h3>{s.label}</h3>
                       <p>{s.propertyName}</p>
                       <Metric
@@ -1092,14 +1226,14 @@ export function ExpansionWorkspace({
               <Bookmark size={19} />
             </div>
             <p className="small-note">
-              Demo snapshots stored only in this browser · up to 50 ·{" "}
+              {mode === "demo" ? "Demo" : "Local dataset"} snapshots stored only in this browser · up to 50 ·{" "}
               {saved.length} saved
             </p>
             {storageError && (
               <div role="alert" className="warning">
                 {storageError}
                 <button className="text-button" onClick={clearStorage}>
-                  Clear saved demo data
+                  Clear saved {mode === "demo" ? "demo" : "local"} data
                 </button>
               </div>
             )}
@@ -1115,6 +1249,7 @@ export function ExpansionWorkspace({
                   <div>
                     <strong>{s.label}</strong>
                     <p>
+                      {s.isDemo ? "Demo" : "Local snapshot"} ·{" "}
                       {s.propertyName} · {money(s.results.requiredSalesMonthly)}{" "}
                       required sales / mo
                     </p>
@@ -1154,7 +1289,7 @@ export function ExpansionWorkspace({
           <span>
             <Sprout size={14} /> Make room for an informed next step.
           </span>
-          <span>RestaurantOS · Expansion MVP · Demo data only</span>
+          <span>RestaurantOS · Expansion · {mode === "demo" ? "Demo data" : "Dated local dataset"}</span>
         </footer>
       </main>
       <dialog
@@ -1182,27 +1317,29 @@ export function ExpansionWorkspace({
           </button>
         </div>
         <div className="drawer-body">
-          <span className="demo-pill">Demo · fictional data</span>
+          <span className="demo-pill">{mode === "demo" ? "Demo · fictional data" : "Local dataset · dated snapshot"}</span>
           <h3>Area scoring</h3>
           <p>
-            Model: <code>{SCORE_VERSION}</code>. H3 resolution 8. Weighted mean
+            Model: <code>{mode === "demo" ? SCORE_VERSION : LOCAL_SCORE_VERSION}</code>. H3 resolution 8. {mode === "local" ? "Composite scoring is unavailable for this dataset. Supported counts and exact-rent samples are descriptive metrics only." : "Weighted mean"}
+            {mode === "demo" && <>
             of available factors; minimum weighted coverage 70%. Zero total
             weight is unscored. Missing factors are excluded from the mean and
             included in the coverage denominator.
+            </>}
           </p>
-          <p>
+          {mode === "demo" ? <p>
             Demand, similarity and competition are synthetic 0–100 favorable
             indices with identity normalization; they are not measurements or
             empirical predictions. Base-rent fit = clamp(100 × (1 − fictional
             area monthly rent ÷ (2 × budget)), 0, 100). Higher is favorable for
             every normalized factor. Budget: {money(scoringBudget)} / month.
-          </p>
+          </p> : <p>Demand, demographic similarity and competition observations are unavailable. No fictional indices are used. Coverage requirements have not been lowered. Area counts deduplicate verified source IDs and do not imply rentable or restaurant-suitable space.</p>}
           {selectedArea && areaResult && (
             <>
               <h3>{selectedArea.label}</h3>
               <p className="mono">{selectedArea.h3Index}</p>
               <p>
-                Fictional area base rent:{" "}
+                {mode === "demo" ? "Fictional" : "Eligible snapshot sample"} area base rent:{" "}
                 {money(selectedArea.averageBaseRentMonthly)} / month. Coverage:{" "}
                 {Math.round(areaResult.coverage * 100)}%. Missing:{" "}
                 {areaResult.missing.map((k) => FACTOR_LABELS[k]).join(", ") ||
@@ -1211,7 +1348,7 @@ export function ExpansionWorkspace({
               </p>
               <table>
                 <caption>
-                  Current factor decomposition · derived from simulated inputs
+                  Current factor decomposition · {mode === "demo" ? "derived from simulated inputs" : "unsupported factors remain unavailable"}
                 </caption>
                 <thead>
                   <tr>
@@ -1297,16 +1434,12 @@ export function ExpansionWorkspace({
             </>
           )}
           <h3>Evidence and provenance</h3>
-          <p>
-            No incoming property dataset has been integrated. No sponsor API or
-            AI model is called. Source observation dates are unavailable.
-            Fictional area rent aggregates do not represent the average of these
-            four demo property records.
-          </p>
-          {dataset.evidence
+          {mode === "demo" ? <p>Fictional area rent aggregates do not represent the average of the demo property records. Source observation dates are unavailable.</p> : <><p>{metadata?.provider} · dataset {metadata?.datasetId} · release date {metadata?.datasetDate ?? "not supplied"}. Imported {metadata?.importedAt}. A local file snapshot is not a live API or verified current availability.</p><p>{metadata?.rights}</p>{metadata?.notes.map((note) => <p key={note}>{note}</p>)}</>}
+          {relevantEvidence
             .filter(
               (source) =>
                 source.id === "demo-area-indices" ||
+                selectedArea?.sourceIds.includes(source.id) ||
                 selectedProperty?.sourceIds.includes(source.id) ||
                 activeProperty?.sourceIds.includes(source.id),
             )
@@ -1314,17 +1447,24 @@ export function ExpansionWorkspace({
               <article className="evidence-item" key={source.id}>
                 <strong>{source.label}</strong>
                 <p>
-                  {source.provider} · {source.origin} · Demo
+                  {source.provider} · {source.origin} · {source.isDemo ? "Demo" : "Local dataset"}
                 </p>
                 <code>
                   {source.id} / {source.recordId}
                 </code>
                 <p>{source.notes}</p>
-                <p>{source.rights} Observation date: unavailable.</p>
+                <p>{source.rights} Observation date: {source.observedAt ?? "unavailable"}.</p>
               </article>
             ))}
+          {mode === "local" && activeEvidence.length > 0 && <>
+            <h3>Active scenario evidence</h3>
+            <p>Captured with the scenario property. Refreshing the map or inspecting another property does not replace this planning evidence.</p>
+            {activeEvidence.map((source) => <article className="evidence-item" key={`scenario-${source.id}`}>
+              <strong>{source.label}</strong><p>{source.provider} · {source.origin} · local snapshot</p><code>{source.id} / {source.recordId}</code><p>{source.notes}</p><p>{source.rights} Observation date: {source.observedAt ?? "unavailable"}.</p>
+            </article>)}
+          </>}
           <p>
-            Snapshot schema version 1. Snapshots store inputs, exact results,
+            Snapshot schema {mode === "demo" ? "version 1 (legacy compatible)" : "version 2"}. Snapshots store inputs, exact results,
             score weights/budget, evidence IDs and model versions. Browser
             storage is not a backed-up account or a lease commitment.
           </p>

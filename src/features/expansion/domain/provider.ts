@@ -1,6 +1,6 @@
 import type { Dataset } from "./schemas.ts";
 
-/** Boundary shared by the frontend fixture and future server-backed adapters. */
+/** Injectable fixture boundary. Local mode uses the HTTP contracts in local-data.ts. */
 export interface ExpansionProvider {
   readonly mode: "fixture" | "authorized";
   load(signal?: AbortSignal): Promise<Dataset>;
