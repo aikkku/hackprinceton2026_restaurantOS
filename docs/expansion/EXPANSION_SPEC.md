@@ -56,7 +56,51 @@ A sparse, **clearly labeled demo fixture** should permit a complete evaluation e
 - Expand a drawer with inputs, units, formulas, factor weights, data coverage, original source references, assumed-versus-observed values, caveats, and calculation version.
 - Game Mode can be simplified, **not deceptive**. Important caveats (mock, estimated, stale, insufficient data) remain visible in both modes.
 
-## 4. Screen concepts (shared style with Tactical)
+## Stage 2 — Where should we open?
+
+*The deterministic engine the game-mode screens surface; the AI narrates but never scores.*
+
+Stage 2 narrows a whole city to three specific spaces with a break-even estimate each. It uses all three CoStar track layers, and each layer removes candidates the others can't.
+
+### 2a. Neighborhood scoring (H3 hexagons, resolution 8, about 0.7 km²)
+
+| Factor | Weight | Source |
+|---|---|---|
+| Demand: population, income matched to the price level | 30 | Census ACS |
+| Looks like home: similarity to the current trade area | 25 | Census ACS (cosine similarity of the demographic vector) |
+| Competition: same-cuisine places nearby (bad) vs. restaurant density (good) | 20 | Google Places API (New) |
+| Cost: average asking retail rent | 25 | CoStar |
+
+Weights shift with the owner's priorities from the interview (e.g. parking-critical owners).
+
+### 2b. Space search (CoStar)
+
+- Pull available retail spaces in the top 10 hexagons, filtered by budget and size (e.g. 1,800–2,500 sq ft).
+- Fields used: address, available sq ft, asking rent, previous tenant or use, nearby tenants.
+- Boost second-generation restaurant spaces (a former restaurant): an existing kitchen and hood cut build-out cost.
+
+### 2c. Space inspection
+
+- **Matterport:** floor area of dining vs. back-of-house, storefront width. Estimate seats at about 15 sq ft per seat of dining area; reject spaces that can't fit the owner's seat target.
+- **Vexcel:** count parking spaces near the storefront with a vision model, check patio room, nearby storefronts and street visibility. Reject spaces below the owner's parking minimum.
+- Every rejected space keeps a one-line reason that the UI shows.
+
+### 2d. Financial projection, per finalist
+
+```
+Monthly revenue = seats × turns per day × avg check × 30 × demand factor
+```
+
+- Costs: rent from CoStar, food and labor at the owner's own percentages from Stage 1, other costs at the owner's rate.
+- Build-out: lower if second-generation space.
+- Outputs: monthly profit, months to break even, payback on build-out. A slider for a pessimistic / base / optimistic case.
+
+### 2e. Action
+
+- Rank the top 3 spaces: aerial thumbnail with parking highlighted, Matterport view with seat count, rent, break-even months, one-line reason and main risk.
+- Watch mode: re-run the search daily and text the owner when a new matching listing appears.
+
+## 5. Screen concepts (shared style with Tactical)
 
 | Screen / area | Game-first surface | Advanced detail |
 |---|---|---|
@@ -69,7 +113,7 @@ A sparse, **clearly labeled demo fixture** should permit a complete evaluation e
 
 Use the same app shell, typography, tokens, mission/status cards and analyst drawer patterns as Tactical. Different layout does not mean different visual identity.
 
-## 5. AI-native features, not chat-first
+## 6. AI-native features, not chat-first
 
 1. **Area explanations:** articulate actual scoring factors and missing data for an area selected by the player.
 2. **Smart constraints:** turn approved restaurant profile/Tactical findings into suggested **editable** filters (e.g., minimum seats or size), without converting a guess into a fact.
@@ -79,7 +123,7 @@ Use the same app shell, typography, tokens, mission/status cards and analyst dra
 
 AI is not the scorer. Scores, cash requirements and financial projections come from deterministic, tested code. Source metadata follows every analysis.
 
-## 6. MVP vertical slice (recommended)
+## 7. MVP vertical slice (recommended)
 
 **The mission: "Scout a new restaurant site."**
 
@@ -94,7 +138,7 @@ AI is not the scorer. Scores, cash requirements and financial projections come f
 
 **Acceptance:** one reproducible interactive path, no manual source-code edits between actions, no undisclosed dummy values, no fake data passed off as CoStar, all numerical results tested. A real-time AI explanation is optional to the first vertical slice.
 
-## 7. Incremental engineering plan
+## 8. Incremental engineering plan
 
 | Slice | Outcome | Proof |
 |---|---|---|
@@ -109,11 +153,11 @@ AI is not the scorer. Scores, cash requirements and financial projections come f
 
 These are priorities, not blanket implementation authorization.
 
-## 8. Out of scope for hackathon baseline
+## 9. Out of scope for hackathon baseline
 
 Nationwide accurate demand forecasts; true catchment/travel-time modeling without verified data; automated lease negotiation; physical space remodeling; regulatory/zoning determination; consumer demographic targeting; scraping restricted data; realistic city-builder economics; property valuation claims unsupported by data; immersive 3D city-building engine; autonomous property transactions.
 
-## 9. Track relevance (conditional)
+## 10. Track relevance (conditional)
 
 - **Business & Enterprise (main):** transparent site comparisons and financially informed business decisions.
 - **CoStar (primary Expansion sponsor target):** actual authorized sponsor property/dataset contribution to site selection; map plus evidence-backed comparisons.
@@ -124,7 +168,7 @@ Nationwide accurate demand forecasts; true catchment/travel-time modeling withou
 
 Do not claim track qualification before checking current sponsor challenge criteria.
 
-## 10. Decisions for future prompts
+## 11. Decisions for future prompts
 
 - CoStar data delivery method, usage permission, schema, and real city coverage.
 - Which map provider and whether a working API token exists.
