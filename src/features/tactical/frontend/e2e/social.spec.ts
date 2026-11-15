@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import sample from "../data/demo-social.json" with { type: "json" };
+import recorded from "../data/demo-social-semantics.json" with { type: "json" };
 
 function semanticResponse(data = sample) {
   return { model: "browser-test-model", generatedAt: "2026-11-14T13:00:00.000Z", datasetHash: "test-hash", pipelineVersion: "social-v1", semantics: {
@@ -30,6 +31,21 @@ test("semantic labels join to actor groups, explicit paths, source messages and 
   const download = page.waitForEvent("download"); await panel.getByRole("button", { name: "Download analysis report" }).click(); expect((await download).suggestedFilename()).toBe("tactical-social-analysis.json");
   await panel.getByText("Choose data, import or reopen", { exact: true }).click(); await panel.getByRole("button", { name: "Reset conversation" }).click();
   await expect(findings).toHaveCount(0); expect(errors).toEqual([]);
+});
+test("Fix first ranks spread-out issues above loud but contained ones and traces their messages", async ({ page }) => {
+  await page.route("**/api/tactical/integrations/social/analyze", route => route.fulfill({ json: { model: "browser-test-model", generatedAt: "2026-11-15T23:00:00.000Z", datasetHash: "test-hash", pipelineVersion: "social-v1", semantics: recorded } }));
+  const panel = page.getByRole("region", { name: "Content and connectivity pipeline" });
+  await panel.getByRole("button", { name: "Analyze message content with AI" }).click();
+  const fix = panel.getByRole("region", { name: "Fix first" });
+  await expect(fix).toContainText("Mentions alone point to Weekend table wait. Counting how far issues spread across customer groups puts Soggy takeaway packaging first.");
+  await expect(fix.locator("tbody tr").first()).toHaveAttribute("data-issue", "packaging");
+  await expect(fix.locator('tr[data-issue="packaging"]')).toContainText("reached 4 of 4 customer groups");
+  await expect(fix.locator('tr[data-issue="packaging"] .social-rank-shift')).toHaveText("↑1 vs. text only");
+  await fix.getByRole("button", { name: "Trace Soggy takeaway packaging" }).click();
+  await expect(panel.getByLabel("Theme filter")).toHaveValue("packaging");
+  await expect(panel.locator(".social-timeline li")).toHaveCount(recorded.annotations.filter(item => item.topicIds.includes("packaging")).length);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 });
 test("observed imports require permission, save/reopen and source failures preserve work", async ({ page }) => {
   const panel = page.getByRole("region", { name: "Content and connectivity pipeline" });

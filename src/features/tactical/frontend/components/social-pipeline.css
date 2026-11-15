@@ -19,3 +19,11 @@
 .social-annotation { padding: 12px; border-radius: 10px; margin: 12px 0; }
 .social-pipeline input[type=file] { max-width: 100%; }
 @media(max-width: 640px) { .social-steps { grid-template-columns: 1fr 1fr; } .social-chart text { font-size: 11px; } .social-pipeline .assumption-grid { grid-template-columns: 1fr; } }
+.social-fix-first { padding: 18px; border-radius: 14px; display: grid; gap: 12px; }
+.social-fix-first h3, .social-fix-headline { margin: 0; }
+.social-fix-headline { font-size: 17px; font-weight: 600; color: var(--ai-text, #6136a8); }
+.social-fix-first th[scope=row] { text-align: left; }
+.social-rank-shift { display: block; margin-top: 4px; width: fit-content; padding: 1px 7px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.social-rank-shift.up { background: #e6f1ec; color: #2f5d4e; }
+.social-rank-shift.down { background: #f6ebe3; color: #8a4f22; }
+.social-fix-first .social-rank { white-space: nowrap; }

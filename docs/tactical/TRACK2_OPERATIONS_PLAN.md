@@ -39,7 +39,9 @@ Result: 40 messages from 17 actors. The graph partition recovers four groups (`a
 
 ---
 
-## Step 1 — Rank issues by reach, not just mention count
+## Step 1 — Rank issues by reach, not just mention count · ✅ done
+
+Implemented in `domain/social-operations.ts` (`issueSignals`, `rankIssues`, `issueReason`, `rankingHeadline`) and the **Fix first** panel in `social-pipeline.tsx`. Covered by `social-operations.test.ts` and the "Fix first" browser test in `e2e/social.spec.ts`.
 
 **New pure module `domain/social-operations.ts`** (`social.ts` is already dense). It takes `analyzeSocial(dataset, semantics)` output plus the annotations and computes this for each topic:
 
