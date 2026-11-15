@@ -4,6 +4,8 @@ This is the shared implementation ledger for the [five-phase plan](phases/README
 
 ## Current snapshot
 
+Implementation guide for the Deep Agents system (parts, how each was built, verification, commands): [deep-agents-implementation.md](deep-agents-implementation.md).
+
 Last updated: 2026-11-15, Phase 5 **partial** — integrated owner-scoped journey (profile → live Deep Agents run → investigate → compare → save → reload/restore) verified locally on a production build with labeled synthetic data and a live Gemini model (H-006). MongoDB persistence is implemented but **unverified against Atlas** (TLS rejected from this machine); no hosted deployment exists. Phase 4 live-source gates remain open.
 
 Rent fix status (2026-11-15, branch `codex/expansion-rent-estimates`): the $0/mo rent bug is fixed (D-044) and unlisted rents now get labeled derived estimates (D-045) — verified on a live real-data run (2,431 examined / 190 candidates / **0 zero-rent** / 104 no-rent with 104 non-null estimates, median $20.02/sq ft/yr). The scan/source-network enablement remains deferred by the owner; Phase 4 live-source gates stay open.
