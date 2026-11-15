@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useCallback, useId, useState } from "react";
 import { ArrowRight, GitBranch, MessageSquareText, Network, RefreshCw, Search, Sparkles, Star } from "lucide-react";
 import { filterReviews, summarizeReviews, themeKey } from "../../domain/reviews";
 import { matchesReview } from "../../domain/review-analysis";
@@ -10,6 +10,7 @@ import { ReviewReply } from "./review-reply";
 import { StateButton } from "./state-button";
 import type { Fixture } from "../../domain/schemas";
 import "./review-insights.css";
+import { useAssistantLocation } from "../assistant-navigation";
 import { NetworkPanel } from "./network-panel";
 import { SocialPipeline } from "./social-pipeline";
 
@@ -28,6 +29,7 @@ export function ReviewInsights({ reviews, onTrySeating, restaurantId, active = t
   const [selectedTheme, setSelectedTheme] = useState("");
   const [priorityOnly, setPriorityOnly] = useState(false);
   const [sentiment, setSentiment] = useState("");
+  useAssistantLocation("review", useCallback(() => { setTab("reviews"); setQuery(""); setSelectedTheme(""); setPriorityOnly(false); setSentiment(""); }, []));
   const unlocked = useAiAccess();
   const analysis = useReviewAnalysis(restaurantId, JSON.stringify(reviews.map(({ id, text, rating, date }) => ({ id, text, rating, date }))), active && tab === "reviews", unlocked);
   const records = new Map(reviews.flatMap(review => {
@@ -138,7 +140,7 @@ export function ReviewInsights({ reviews, onTrySeating, restaurantId, active = t
             {visibleReviews.length ? (
               <ul className="review-list" tabIndex={0} aria-label="Customer review results">
                 {visibleReviews.map((review) => (
-                  <li key={`${review.id}-${review.text}`} data-review-id={review.id}>
+                  <li key={`${review.id}-${review.text}`} data-review-id={review.id} data-assistant-key={`review:${review.id}`}>
                     <div className="review-meta">
                       <span className="pill">Demo review</span>
                       {records.get(review.id)?.classification.highPriority && <span className="review-priority-badge"><Sparkles size={12} />High priority</span>}

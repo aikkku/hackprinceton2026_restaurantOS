@@ -1,5 +1,24 @@
 import { expect, test } from "@playwright/test";
 import demo from "../data/demo-restaurant.json" with { type: "json" };
+test("laptop inventory can clear a nonempty stock filter and inspect details by keyboard", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  const aiRequests: string[] = [];
+  page.on("request", request => { if (request.url().includes("/api/tactical/ai")) aiRequests.push(request.url()); });
+  await page.goto("/tactical/supply");
+  await page.getByLabel("Inventory stock status").selectOption("critical");
+  const expected = demo.operations.inventory.filter(item => item.current < item.threshold * .5).length;
+  expect(expected).toBeGreaterThan(0);
+  await expect(page.locator(".supply-item")).toHaveCount(expected);
+  await page.getByRole("button", { name: "Clear filters", exact: true }).press("Enter");
+  await expect(page.locator(".supply-item")).toHaveCount(demo.operations.inventory.length);
+  const first = page.locator(".supply-item").first();
+  await first.locator("summary").press("Enter");
+  await expect(first.getByText("Reorder point", { exact: true })).toBeVisible();
+  await expect(first.getByText("Next delivery", { exact: true })).toBeVisible();
+  await expect(first.getByText("Last ordered", { exact: true })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(aiRequests).toEqual([]);
+});
 test("inventory has dated cards, searchable filters and no suppliers section", async ({ page }) => {
   const aiRequests: string[] = [];
   page.on("request", request => { if (request.url().includes("/api/tactical/ai")) aiRequests.push(request.url()); });

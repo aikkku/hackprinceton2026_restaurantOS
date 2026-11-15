@@ -1,5 +1,7 @@
 # Tactical AI workflows
 
+**Connected assistant update (November 15):** `/tactical/ai` now supports saved multi-turn history, typed source/result tools, editable stock/menu previews and purple cross-page navigation. See [Assistant workflow](ASSISTANT_WORKFLOW.md) for current behavior and local-only verification. Other page-specific AI caches retain their existing contracts.
+
 The user’s latest request enables Tactical AI features, replacing the earlier advisor-placeholder restriction. AI features and results use purple. On failure, the interface and API return exactly **Something is wrong**. No generated demo result or rule-based fallback substitutes for a failed provider call.
 
 ## Features available
@@ -61,7 +63,7 @@ The context contains selected mock business records, not credentials or employee
 - Text results are cached for 10 minutes, up to 50 entries, keyed by model, prompt version, selected instructions and the complete provided evidence. Cache provenance is visible; failures are not cached.
 - Changed working layouts/questions mark displayed results stale and disable layout/object reuse until regenerated. UI cancellation abandons the request and clears loading state.
 
-These process-local limits/cache are not distributed deployment controls. Before a multi-user deployment, add proper accounts, a distributed limiter, account-scoped quotas and a durable analysis-retention policy. AI outputs are not currently stored as a Mongo history collection. Explicitly applied layout provenance persists with the browser library.
+These process-local limits/cache are not distributed deployment controls. Before a multi-user deployment, add proper accounts, a distributed limiter, account-scoped quotas and a durable analysis-retention policy. Assistant messages and typed results are stored in `tactical_conversations` in Mongo mode; other feature outputs are not migrated into a common history collection. Explicitly applied layout provenance persists with the browser library.
 
 ## Code map
 
@@ -80,7 +82,7 @@ Provider references: [Gemini structured output](https://ai.google.dev/gemini-api
 
 ## Remaining product boundaries
 
-Review CSV/JSON imports, production social-provider ingestion and verified sponsor eligibility, real operational records, multi-turn memory, durable analysis history and end-user cloud synchronization remain separate work. Photo calibration and conversion to the main editor remain deferred. Adding Gemini does not constitute Nessie, Arlequin, Amazon or CoStar integration.
+Review CSV/JSON imports, production social-provider ingestion and verified sponsor eligibility, real operational records, common durable analysis artifacts and end-user cloud synchronization remain separate work. Photo calibration and conversion to the main editor remain deferred. Adding Gemini does not constitute Nessie, Arlequin, Amazon or CoStar integration.
 
 ## Verification in this implementation
 

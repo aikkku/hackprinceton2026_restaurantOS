@@ -73,3 +73,7 @@ Real bank/POS/payroll integrations, verified settlement timing, complete purchas
 - A live authenticated browser refresh loaded the configured Nessie sandbox snapshot, saved `Nessie cash plan` to MongoDB, and reopened it after reload with the original inputs and balance.
 - Desktop month view and mobile agenda were visually inspected. The narrow-screen day breakdown is a dismissible bottom panel with keyboard Escape support; daily financial details do not require scrolling past a whole month.
 - Rain's latest Expansion changes were fast-forwarded before final verification; no Expansion-owned implementation was edited by this task.
+
+## Sprout presentation update — November 15, 2026
+
+The calendar now shares Finance's sage/white summary cards, framed month/agenda view, sticky daily breakdown, rounded assumption editor and forecast-save strip. Both lowest cash and its reserve cushion use the canonical low-point status color. Date navigation, event evidence/source links, matching, local/cloud save/reopen and stale-snapshot handling retain their existing behavior. Existing narrow-screen day-sheet/Escape support is preserved; no new API, calculation or database migration was introduced.

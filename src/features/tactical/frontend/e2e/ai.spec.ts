@@ -64,19 +64,7 @@ test("AI object estimates require explicit use and placement and retain purple p
   await expect(page.locator(".svg-hit.is-ai-highlighted")).toHaveCount(1);
 });
 
-test("advisor workflows are reachable on narrow screens", async ({ page }) => {
-  await page.route("**/api/tactical/ai", async route => route.fulfill({ json: response(route.request().postDataJSON().task) }));
-  await page.setViewportSize({ width: 390, height: 844 });
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  for (const [route, title, task] of [["ai", "AI restaurant advisor", "advisor"]]) {
-    await page.goto(`/tactical/${route}`);
-    const panel = page.getByRole("region", { name: title, exact: true });
-    await panel.locator("textarea").first().fill("Explain this context");
-    await panel.getByRole("button", { name: "Generate with AI" }).click();
-    await expect(panel.getByText(`Test AI ${task} interpretation`)).toBeVisible();
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  }
-});
+// Connected advisor chat and narrow-screen coverage live in assistant.spec.ts.
 
 test("AI layout proposals stay separate until applied and stale context disables reuse", async ({ page }) => {
   await page.route("**/api/tactical/ai", async route => {

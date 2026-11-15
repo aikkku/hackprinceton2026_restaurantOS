@@ -144,7 +144,7 @@ export function FloorPlan({ layout, selectedId, placing, highlightedIds, aiPrevi
         const name = object.name ?? furniture[object.type].label;
         const handle = Math.min(.19, width / 3, depth / 3);
         return (
-          <g key={object.id} role="button" tabIndex={0} aria-pressed={selected} data-object={object.id}
+          <g key={object.id} role="button" tabIndex={0} aria-pressed={selected} data-object={object.id} data-assistant-key={`object:${object.id}`}
             transform={`translate(${object.x} ${object.y})`} className="svg-object"
             onPointerEnter={() => setHoveredId(object.id)}
             onPointerLeave={() => { if (!drag.current) setHoveredId(null); }}

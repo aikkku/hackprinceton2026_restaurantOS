@@ -1,6 +1,6 @@
 # Sprout design rollout
 
-Updated November 15, 2026. **Phases 1–4 are implemented; HR is next.** This is a presentation and navigation redesign, not a replacement of the product with the smaller reference prototype.
+Updated November 15, 2026. **Phases 1–7 and the connected AI Assistant are implemented; common cross-feature artifact migration remains separate.** This is a presentation and navigation redesign, not a replacement of the product with the smaller reference prototype.
 
 **Presentation target:** laptop screens. Per the latest user direction, dedicated mobile layout/navigation work is deferred. Existing narrow-screen fallbacks are retained, but new design reviews and new tests target laptop dimensions.
 
@@ -20,10 +20,10 @@ Rain's current `frontend/sprout/` already implements much of the supplied visual
 | 2 | Reuse Sprout tokens and redesign the persistent Tactical shell for laptops | Implemented; all six destinations and unsaved-work protection retained |
 | 3 | Floor Plan | Implemented; detailed room and furniture materials, larger laptop scene, existing editing behavior retained |
 | 4 | Customer Reviews and Social Media | Implemented; compact filters, rating/theme rail, review cards and consistent network/evidence surfaces |
-| 5 | HR | Review team, schedule, hiring and AI evidence |
-| 6 | Supply Management | Review stock/expiration filtering without adding AI |
-| 7 | Financial Intelligence | Review Report, Price playground, Cash calendar and Nessie independently |
-| 8 | AI Assistant and cross-page evidence presentation | Review failure behavior and purple differentiation |
+| 5 | HR | Implemented; compact assessments, calendar, roster and hiring workspace with retained view state |
+| 6 | Supply Management | Implemented; summary cards, compact filters, roomy dated inventory and expandable stock details; no AI |
+| 7 | Financial Intelligence | Implemented: report overview, pricing, cash calendar, Nessie and retained working state |
+| 8 | AI Assistant and cross-page evidence presentation | Connected chat, history, tools and purple source navigation implemented; common artifact migration remains separate |
 | 9 | Profile/data-source presentation and deferred photo page | Preserve existing routes and current capabilities; real ingestion is separate scope |
 | 10 | Coordinate Expansion consistency with Rain | Visual audit and proposed changes, then implementation by agreement |
 | 11 | Whole-platform laptop, accessibility and regression pass | Release only after every preserved workflow passes |
@@ -125,7 +125,7 @@ The relationship explorer places filters and metrics beside its graph, with impo
 
 Verification: the initial full regression run passed all 80 existing checks; the added laptop navigation/keyboard check had a test-selector mismatch, corrected to match the existing label. All 30 focused review, AI, social and sponsor checks then passed across Chromium/Firefox, including both new laptop cases. Unit tests: 272 passed, one existing skipped. Typecheck, lint and production build passed with existing Expansion warnings. Browser review loaded 30 saved MongoDB classifications and nine high-priority records and inspected all three views. HR is the next page to redesign.
 
-## 5. HR
+## 5. HR — implemented
 
 **Layout:** compact AI status row, Team / Schedule / Hire employees subnavigation. Team cards show essential details with expandable secondary fields. Keep the schedule a real dated calendar. Hiring uses a focused role/draft panel.
 
@@ -135,7 +135,11 @@ Verification: the initial full regression run passed all 80 existing checks; the
 
 **Gate:** every shift remains readable, status explanations work by keyboard/touch, the selected role drives suggestions, edits stay editable, and no mock employment action is represented as a real posting.
 
-## 6. Supply Management
+The assessment row now uses source-derived figures, explicit purple AI badges and green/yellow/red text statuses. The calendar has a quiet white frame, sticky sage date headers, station-colored expandable shifts and a bounded keyboard-scrollable region. The seven-person roster uses initial avatars with on-demand details. Hiring separates a lavender brief from a white draft panel with purple generated fields. All three views stay mounted so calendar week/filters, requirements and edited drafts survive navigation within Tactical; reload persistence remains future work. Textareas have stable accessible labels after editing. No data model, financial math, AI context or database migration changed.
+
+Validation: 299 unit tests passed with one existing skip. All 82 existing Tactical browser checks passed in the full run; the new laptop test exposed a textarea accessible-name issue that was fixed. All eight final HR browser checks then passed across Chromium/Firefox, including draft/filter retention and keyboard calendar scrolling. Typecheck, lint and build passed with existing Expansion warnings. Laptop visual review covered Schedule, Team and Hire employees. Supply Management is next and remains AI-free.
+
+## 6. Supply Management — implemented
 
 **Layout:** generous inventory cards or aligned rows, clear quantity and expiration, small filter bar, expandable cost/delivery details. Distinguish unknown expiration from expired stock.
 
@@ -145,7 +149,11 @@ Verification: the initial full regression run passed all 80 existing checks; the
 
 **Gate:** full inventory remains accessible; long names fit; quantities retain units; expiration states remain tied to their dates; hiding details does not remove data feeding cash forecasts.
 
-## 7. Financial Intelligence
+Implemented Sprout summary cards, a compact search/category/status bar, active-filter reset, category icons, explicit stock-status badges, quantity/date hierarchy and expandable stock details. Every existing item, cost, unit, threshold and delivery date remains available. The page makes no AI requests and exposes no AI access controls. Recorded dates and missing/null date labels are preserved; automatic expired/soon alerts and shelf-life predictions were not added. See [Supply workflow](SUPPLY_WORKFLOW.md).
+
+Validation: 299 unit tests passed with one existing skip; all 16 focused Supply/shell/cross-page checks passed across Chromium/Firefox. Typecheck, lint and build passed with existing Expansion warnings. Manual laptop review covered the configured 37-item inventory, search and expanded details. Financial Intelligence is next.
+
+## 7. Financial Intelligence — implemented
 
 Use the existing four-part structure, with a consistent header and subnavigation. Keep the report's narrative hierarchy while bringing its colors, borders and controls into Sprout.
 
@@ -169,13 +177,19 @@ Retain explicit sandbox versus local sample source, protected reads, deposits/wi
 
 **Gate for all four:** existing calculation tests remain unchanged and pass; column order/labels clarify periods and units; no currency/percentage truncation; errors leave existing results intact; source and assumptions are always reachable.
 
-## 8. AI Assistant and common evidence
+Implemented compact source/date context, period summary cards, icon navigation, white report sections, sage comparison tables, purple AI/evidence, editable pricing outcomes, framed cash calendar/day detail and consistent Nessie investment controls. Full assumptions are available on demand. All four views remain mounted so experiments, ledger filters and bank assumptions survive navigation. No arithmetic/schema/API changes. See [Finance workflow](FINANCE_WORKFLOW.md).
+
+Validation: 299 unit tests passed with one existing skip; all 26 focused Finance/cash/sponsor/workspace browser checks passed in Chromium and Firefox. Typecheck and production build passed; lint has no errors and one existing Expansion warning, with existing Expansion tracing warnings in the build. Laptop review covered all four views, price calculations, assumptions, cash-day details, reserve warnings and live Gemini evidence. Cash save/reopen, explicit bank refresh/failure and JSON export were verified with browser fixtures; no new live bank records or MongoDB writes were needed.
+
+## 8. AI Assistant — connected chat implemented; common evidence migration partial
 
 **Layout:** welcoming prompts and a focused conversation/results panel using purple AI accents. Keep evidence close to each finding. Reuse a common drawer pattern across Floor Plan, Reviews, HR and Finance.
 
-**Preserve:** protected server-side Gemini calls, current dataset/layout-version context, validated structured findings, source IDs, uncertainty and limitations, and exact generic failure copy. Do not imply durable chat history or multi-turn context while the assistant remains single-turn.
+**Preserve:** protected server-side Gemini calls, current dataset/layout-version context, validated structured findings, source IDs, uncertainty and limitations, and exact generic failure copy. The assistant now persists bounded multi-turn history and typed results; other feature-specific AI caches remain separate.
 
 **Gate:** output is visually distinct; evidence links resolve; no private provider error leaks; an unavailable model does not produce a fabricated answer. Empty, locked, generating, successful and failed states all receive a design.
+
+The requested assistant expansion now includes a ChatGPT-style Sprout chat, contextual prompt cards, saved Mongo history, code-rendered tables/charts/price sliders, bounded inventory/menu change previews with transactional Apply, and source navigation with purple highlights. Full behavior, limits and validation are documented in [Assistant workflow](ASSISTANT_WORKFLOW.md). This does not claim a common durable artifact system for all AI features.
 
 ## 9. Profile, information and photo compatibility
 

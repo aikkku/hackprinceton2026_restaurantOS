@@ -56,7 +56,7 @@ test("central mock records feed financial filters, pricing, HR and supply", asyn
   await page.getByText("Recorded ledger · separate sample", { exact: true }).click();
   await page.getByRole("combobox", { name: "Month", exact: true }).selectOption("2026-11");
   const november = demo.operations.transactions.filter(row => row.date.startsWith("2026-11"));
-  const ledgerRows = page.locator(".finance-page .transaction-table tbody tr");
+  const ledgerRows = page.locator(".finance-page .fin-ledger .transaction-table tbody tr");
   await expect(ledgerRows).toHaveCount(november.length);
   await page.getByRole("combobox", { name: "Record type", exact: true }).selectOption("expense");
   await expect(ledgerRows).toHaveCount(november.filter(row => row.kind === "expense").length);
@@ -71,6 +71,6 @@ test("central mock records feed financial filters, pricing, HR and supply", asyn
   await expect(page.getByText(/Estimated scheduled base labor/)).toBeVisible();
   await page.goto("/tactical/supply");
   await expect(page.locator(".supply-item")).toHaveCount(demo.operations.inventory.length);
-  await expect(page.getByText(/below reorder point/)).toBeVisible();
+  await expect(page.getByText(/below reorder point/i)).toBeVisible();
   expect(errors).toEqual([]);
 });

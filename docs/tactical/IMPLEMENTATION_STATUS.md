@@ -1,5 +1,22 @@
 # Tactical — current implementation and remaining work
 
+**Latest connected AI Assistant (2026-11-15):** Sprout chat now includes contextual prompts, recent multi-turn context, saved conversation history, exact source tables/charts, deterministic price sliders and editable inventory/menu change previews. Apply validates revisions and saves the dataset plus conversation audit atomically in MongoDB. Source links reveal Finance menu assumptions, HR staff, reviews and floor furniture; a single stock lookup can navigate to Supply and highlight the record purple for 4.5 seconds. Fixture mode shares a clearly labeled server-session store. See [Assistant workflow](ASSISTANT_WORKFLOW.md) for API, files, edit boundaries and remaining work.
+
+Assistant validation: 306 unit tests passed (one existing skip), typecheck/build passed, and lint has no errors with one existing Expansion warning. The full browser suite passed 95/96; after fixing route-readiness assertions in the remaining Firefox test, all ten focused assistant checks passed across Chromium/Firefox. Manual browser preview access was unavailable. The user chose local-only verification, so live Gemini/Mongo chat persistence and transactional writes remain unverified; tests used mocked providers and isolated data. Production accounts, broader mutation tools, chat retention/search, streaming and common AI artifact migration remain future work.
+
+
+**Latest Financial Intelligence redesign (2026-11-15):** Phase 7 adds Sprout period summary cards, icon navigation, distinct report chapters, on-demand assumptions, purple AI/evidence, clearer pricing outcomes, framed cash/calendar details and consistent Nessie investment controls. Price edits, ledger filters and bank assumptions now survive all four finance views. Ledger labels and table keyboard access were improved. Existing calculations, API contracts and storage are unchanged; saved price scenarios across reload remain future work. See [Finance workflow](FINANCE_WORKFLOW.md). The connected assistant is now implemented; common evidence migration remains separate.
+
+Validation: 299 unit tests passed with one existing skip; all 26 focused Finance/cash/sponsor/workspace browser checks passed in Chromium and Firefox. Typecheck and production build passed; lint has no errors and one existing Expansion warning, with existing Expansion tracing warnings in the build. Laptop review covered all four views, price calculations, assumptions, cash-day details, reserve warnings and live Gemini evidence. Cash save/reopen, explicit bank refresh/failure and JSON export were verified with browser fixtures; no new live bank records or MongoDB writes were needed.
+
+**Latest Supply redesign (2026-11-15):** Phase 6 introduces Sprout summary cards, a compact search/category/status bar, reset for any active filter, category icons and roomier dated inventory cards. Quantity units, stock thresholds, costs and delivery history remain unchanged and accessible. Supply stays AI-free; no schema, backend or database changes. Recorded expiration dates remain display values, with missing/null labels retained. See [Supply workflow](SUPPLY_WORKFLOW.md); Financial Intelligence is next.
+
+Supply validation: 299 unit tests passed (one existing skip); all 16 focused Supply/shell/cross-page browser checks passed in Chromium and Firefox. Lint/typecheck/build passed with existing Expansion warnings. The live laptop preview showed all 37 records and supported search and expanded cost/delivery details. Browser checks confirmed zero AI requests from Supply.
+
+**Latest HR redesign (2026-11-15):** Phase 5 aligns staffing assessments, the dated calendar, seven-person roster and AI hiring with Sprout. Purple AI identity and explicit status badges remain distinct. The calendar has sticky day headers and keyboard scrolling; staff details remain expandable. HR sections stay mounted, preserving edited job drafts and schedule week/filters during navigation within Tactical. Reloads still clear owner edits; Indeed posting and schedule editing remain unavailable. Backend contracts, AI context and MongoDB storage contracts are unchanged. See [HR workflow](HR_WORKFLOW.md); Supply Management is next.
+
+HR validation: 299 unit tests passed (one existing skip), all 82 existing Tactical browser checks passed, and all eight final focused HR checks passed after fixing a stable-label issue found by the new laptop test. Lint/typecheck/build passed with existing Expansion warnings. Manual laptop review covered the calendar, roster, hiring and cached AI assessment.
+
 **Latest Customer Reviews redesign (2026-11-15):** Phase 4 introduces a three-view navigation bar, compact laptop filters, sage rating summary, scrolling purple themes and wider review cards. The relationship graph now has adjacent filters/metrics; content analysis shares the Sprout cards, tables and evidence styling. AI replies, disabled posting, reason tooltips, imports, exports, network calculations and incremental MongoDB classifications are retained. Keyboard users can focus and scroll the review feed and source timeline. No data/schema/backend changes or Expansion edits. See [review workflow](REVIEW_WORKFLOW.md); HR is next.
 
 Review design validation: 272 unit tests passed with one existing skip; all 80 existing browser checks passed in the initial full run. After fixing a selector in the new laptop test and refining the layout, all 30 focused review/AI/social/sponsor checks passed, including both new laptop cases. Lint/typecheck/build passed with existing Expansion warnings. Visual review covered all three views, and the live preview loaded 30 cached MongoDB classifications with nine high-priority records.
@@ -104,7 +121,7 @@ RestaurantOS currently provides a **working browser-local restaurant layout and 
 | HR | Working demo + live AI | Seven-person roster, dated calendar, AI assessments and editable hiring drafts | Synthetic weekly demand, role-level analysis, disabled Indeed posting |
 | Supply Management | Demo | Inventory cards, expiration dates, stock filters | Derived stock status, estimated costs and consistent restock summary |
 | Financial Intelligence | Working mock ledger and simulations | Reconciled ledger totals, channel unit costs, price/volume experiments | Real-data imports, saved pricing scenarios and shared edited assumptions |
-| AI Assistant | Working contextual request UI | Single-turn Gemini advisor with evidence and purple results | Durable history, multi-turn context and real business data |
+| AI Assistant | Connected chat and typed tools | Saved history, source tables/charts, price sliders, editable stock/menu previews and purple navigation | Live integration verification, production identity, broader tools and real business data |
 
 **Do not currently claim:** production accounting, real customer sentiment analysis, automated space optimization, observed seating preference, legal/safety compliance assessment, live banking, CoStar interior geometry, Arlequin qualification or observed social-network findings, or a functioning restaurant-wide assistant.
 
@@ -120,7 +137,7 @@ RestaurantOS currently provides a **working browser-local restaurant layout and 
 | `/tactical/hr` | Fictional team directory and schedule. |
 | `/tactical/supply` | Fictional inventory with expiration dates. |
 | `/tactical/finance` | Report and Price playground; independent ledger and Nessie Sandbox. |
-| `/tactical/ai` | Single-turn evidence-linked Gemini advisor. |
+| `/tactical/ai` | Connected multi-turn chat, saved history, source-linked cards, sliders and validated edit previews. |
 | `/tactical/scenarios`, `/tactical/decisions`, `/tactical/analyze` | Compatibility redirects to `/tactical`; no additional top-level experience. |
 | `POST /api/tactical/analyze` | Server entry point for photo analysis. |
 | `/expansion` | Rain-owned module, reached through shared workspace navigation. |
@@ -436,7 +453,7 @@ Seven employees come from the central dataset. A dated calendar replaces the tab
 
 ## 11. AI Assistant and contextual AI
 
-**Current implementation supersedes the earlier placeholder restriction.** The user’s latest request enabled the advisor and contextual workflows. See [AI_FEATURES.md](AI_FEATURES.md) for the current feature map, purple treatment, access setup, validation, caching and limitations. The original brief’s no-chatbot-first approach is retained through contextual page actions; the advisor now supports a single grounded question at a time.
+**Current implementation supersedes the earlier placeholder restriction.** The user’s latest request enabled the advisor and contextual workflows. See [AI_FEATURES.md](AI_FEATURES.md) for the current feature map, purple treatment, access setup, validation, caching and limitations. The original brief’s no-chatbot-first approach is retained through contextual page actions; the connected assistant now supports saved multi-turn conversations and bounded restaurant tools; see [Assistant workflow](ASSISTANT_WORKFLOW.md).
 
 ### Implemented now
 
@@ -445,7 +462,7 @@ Seven employees come from the central dataset. A dated calendar replaces the tab
 - Evidence-cited floor/review/finance/supply findings; exact review-quote validation; complete classification of the bounded review sample.
 - Explicit preview/apply/reject for validated layout moves and editable object suggestions before manual placement.
 - Editable review replies and job drafts, copy actions and no publishing.
-- Single-turn advisor grounded in current Tactical context, with unavailable data declared.
+- Saved restaurant-bound conversations, source tools, price sliders, inventory/menu change previews and cross-page purple highlights.
 - Signed workspace access cookie, same-origin actions, bounded request streams, deadlines and local request budgets.
 - Ten-minute exact-context/model/prompt cache with visible provenance; changed layout/instructions disable stale reuse.
 
@@ -453,8 +470,8 @@ Seven employees come from the central dataset. A dated calendar replaces the tab
 - [x] **AI-02:** Existing evidence/object/menu IDs and verbatim review excerpt validation. This does not guarantee all generated prose is factually correct.
 - [x] **AI-03:** Shared Gemini adapter; canonical financial calculations remain TypeScript.
 - [x] **AI-04 · Workspace demo scope:** Visible data-sending explanation and user-triggered generation; exact generic errors with no fallback.
-- [x] **AI-05 · In-memory scope:** Model/prompt/context-keyed cache and stale-result controls. Durable/account-scoped history is still missing.
-- [x] **AI-06 · Updated user scope:** Advisor placeholder replaced by a usable single-turn workflow. No Expansion data or multi-turn memory.
+- [x] **AI-05 · In-memory scope:** Model/prompt/context-keyed cache and stale-result controls. Assistant conversations have Mongo storage; common analysis artifacts and production account scoping remain separate.
+- [x] **AI-06 · Updated user scope:** Connected multi-turn assistant with typed tools and history; no Expansion data access.
 
 Remaining: production user/role authentication, distributed limits and quotas, durable analysis history, imported review datasets, observed social graphs, and external integrations. The current shared access code is not a full account system.
 

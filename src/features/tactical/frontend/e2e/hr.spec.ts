@@ -35,6 +35,31 @@ test("hiring drafts can be edited and copied while Indeed posting is disabled", 
   await expect(page.getByText("Your brief changed. Update the draft to match.")).toBeVisible();
   await expect(page.getByRole("button", { name: "Copied", exact: true })).toBeDisabled();
 });
+test("laptop HR keeps schedule filters and edited hiring drafts across its views", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/tactical/hr");
+  const calendar = page.getByRole("region", { name: "Schedule calendar", exact: true });
+  await calendar.focus();
+  await calendar.press("End");
+  await expect.poll(() => calendar.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+  await page.getByLabel("Filter schedule by station").selectOption("Bar");
+  await page.getByRole("button", { name: "Hire employees", exact: true }).click();
+  await page.getByLabel("Your requirements", { exact: true }).fill("Weekend evenings");
+  await page.getByRole("button", { name: "Draft with AI", exact: true }).click();
+  await page.getByLabel("Job title", { exact: true }).fill("Weekend Server");
+  await page.getByRole("navigation", { name: "HR sections" }).getByRole("button", { name: "Team" }).click();
+  await page.locator(".hr-person").first().locator("summary").press("Enter");
+  await expect(page.locator(".hr-person").first()).toHaveAttribute("open", "");
+  await page.getByRole("button", { name: "Schedule", exact: true }).click();
+  await expect(page.getByLabel("Filter schedule by station")).toHaveValue("Bar");
+  await expect(page.locator(".hr-shift")).toHaveCount(5);
+  await page.getByRole("button", { name: "Hire employees", exact: true }).click();
+  await expect(page.getByLabel("Job title", { exact: true })).toHaveValue("Weekend Server");
+  await expect(page.getByLabel("Your requirements", { exact: true })).toHaveValue("Weekend evenings");
+  await expect(page.getByRole("button", { name: "Copy draft", exact: true })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Post to Indeed" })).toBeDisabled();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
 test("mobile calendar and failed AI never invents status colors", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 }); await page.emulateMedia({ reducedMotion: "reduce" });
   await page.unroute("**/api/tactical/hr**");

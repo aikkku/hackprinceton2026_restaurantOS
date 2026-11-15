@@ -7,6 +7,7 @@ Start with **[Current implementation and remaining work](IMPLEMENTATION_STATUS.m
 | Document | Purpose | Update when |
 | --- | --- | --- |
 | [SPROUT_SHELL.md](SPROUT_SHELL.md) | Laptop sidebar, shared Tactical design primitives, navigation guards and state-preservation review | Shell behavior or ownership changes |
+| [SUPPLY_WORKFLOW.md](SUPPLY_WORKFLOW.md) | AI-free inventory presentation, stock/date semantics, filters, files and verification | Supply behavior or presentation changes |
 | [DESIGN_REDESIGN_PLAN.md](DESIGN_REDESIGN_PLAN.md) | Sprout visual direction, implemented Demo onboarding and step-by-step redesign of every page without losing functionality | Each redesign phase ships or its review gate changes |
 | [CONNECTED_DATA_AND_AI_PLAN.md](CONNECTED_DATA_AND_AI_PLAN.md) | Proposed shared context, durable AI artifacts, decisions and database migration | Centralization scope is agreed or a phase ships |
 | [MONGODB_SETUP.md](MONGODB_SETUP.md) | Shared database, environment setup, seed/export, protected APIs and live verification | Database/API behavior changes |
@@ -51,3 +52,5 @@ The later user refinement brief extends the earlier MVP (including demo HR and S
 - [Financial Intelligence workflow](FINANCE_WORKFLOW.md): report, price playground, mock sales schema, AI evidence, formulas and remaining work.
 
 - [Cash calendar](CASH_CALENDAR.md): Nessie-connected cash planning, HR/Supply inputs, immutable forecasts, API and data limits.
+
+- [Connected AI Assistant](ASSISTANT_WORKFLOW.md) — saved chats, contextual prompts, typed tools, editable previews and cross-page highlights.

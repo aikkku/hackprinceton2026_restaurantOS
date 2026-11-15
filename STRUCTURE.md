@@ -21,7 +21,7 @@ Asilbek owns **Tactical**, which helps owners improve their existing restaurant.
 
 Start with the [Tactical documentation index](docs/tactical/README.md) and [detailed implementation inventory](docs/tactical/IMPLEMENTATION_STATUS.md).
 
-The [Sprout redesign plan](docs/tactical/DESIGN_REDESIGN_PLAN.md) maps every page's design changes and functionality-preservation gates. Onboarding, the laptop shell, the detailed Floor Plan scene and Customer Reviews/Social Media are implemented; HR is next. `src/features/tactical/frontend/components/sprout/` contains the shared Tactical tokens, brand and workspace shell. Onboarding reuses those primitives. Rain's existing Expansion design remains under his ownership; its contracts/styles are unchanged.
+The [Sprout redesign plan](docs/tactical/DESIGN_REDESIGN_PLAN.md) maps every page's design changes and functionality-preservation gates. Onboarding, the laptop shell, the detailed Floor Plan scene, Customer Reviews/Social Media, HR, Supply Management and Financial Intelligence and the connected AI Assistant are implemented; broader common evidence/artifact migration remains future work. `src/features/tactical/frontend/components/sprout/` contains the shared Tactical tokens, brand and workspace shell. Onboarding reuses those primitives. Rain's existing Expansion design remains under his ownership; its contracts/styles are unchanged.
 
 See [current page guide](docs/tactical/PAGES.md) and [refinement status / remaining work](docs/tactical/IMPLEMENTATION_STATUS.md). `layout-library.tsx` presents saved layout actions and comparisons; the workspace persists them under a restaurant-scoped library key while retaining the old single-draft key for migration.
 
@@ -151,7 +151,7 @@ The Arlequin Track 2 workflow lives in Tactical: `domain/social.ts` owns message
 
 ## Financial Intelligence report
 
-`domain/finance-report.ts` owns the optional dated item-sales schema and pure report/playground calculations. `frontend/components/finance-page.tsx` composes `finance-insights.tsx`, `price-playground.tsx`, `finance-ledger.tsx` and existing Nessie tools; `finance-report.css` scopes presentation. `operations.financeReport` in the central demo JSON supplies editable mock sales. `backend/ai-context.ts` exposes the same calculated report to Finance and the advisor. See [finance workflow](docs/tactical/FINANCE_WORKFLOW.md). No Expansion or shared contracts changed.
+`domain/finance-report.ts` owns the optional dated item-sales schema and pure report/playground calculations. `frontend/components/finance-page.tsx` composes `finance-insights.tsx`, `price-playground.tsx`, `finance-ledger.tsx` and existing Nessie tools; `finance-report.css` scopes Sprout presentation for the report, pricing, ledger and Nessie. All four finance views stay mounted to preserve working inputs; tables provide keyboard-focusable scroll regions. `operations.financeReport` in the central demo JSON supplies editable mock sales. `backend/ai-context.ts` exposes the same calculated report to Finance and the advisor. See [finance workflow](docs/tactical/FINANCE_WORKFLOW.md). No Expansion or shared contracts changed.
 
 ## Cash calendar
 
@@ -160,3 +160,15 @@ The Arlequin Track 2 workflow lives in Tactical: `domain/social.ts` owns message
 ### Customer Reviews presentation
 
 `frontend/components/review-insights.tsx` owns the three-view navigation and review layout. `review-insights.css` scopes Sprout cards, filters, AI treatments and network styling to this page. `network-panel.tsx` retains graph calculations/import/export and presents filters beside the graph; `social-pipeline.tsx` retains the content/connectivity workflow with a keyboard-focusable source timeline. `review-reply.tsx`, the review-analysis hook and backend remain the existing behavior layer. See [review workflow](docs/tactical/REVIEW_WORKFLOW.md).
+
+### HR presentation
+
+`frontend/components/hr-page.tsx` owns AI assessment cards and the three persistent HR views. `hr-calendar.tsx` renders the keyboard-scrollable dated schedule; `hr-hiring.tsx` keeps the editable AI brief/draft flow. `hr.css` maps these surfaces to Sprout tokens and retains explicit station/status colors. Hiding views preserves calendar filters and hiring edits within Tactical; there is no new browser or database store. See [HR workflow](docs/tactical/HR_WORKFLOW.md).
+
+### Supply presentation
+
+`frontend/components/supply-page.tsx` owns the read-only inventory summary, filters, category icons and stock disclosures. `supply.css` applies Sprout surfaces and explicit stock colors. Existing `domain/finance.ts` computes status; date labels retain the schema’s missing/null distinctions. No AI, backend or database changes are part of this redesign. See [Supply workflow](docs/tactical/SUPPLY_WORKFLOW.md).
+
+## Connected assistant
+
+`domain/assistant.ts` defines bounded chat/tool/result/change schemas. `backend/assistant/{service,tools,repository}.ts` separates protected orchestration, canonical tool execution and transactional Mongo persistence. `/api/tactical/assistant` is the thin route; `tactical_conversations` stores source-linked history. `backend/demo-store.ts` shares process-local demo edits with the ordinary dataset loader. `frontend/components/ai-assistant.tsx` and `components/assistant/` own the chat and interactive cards. `frontend/assistant-navigation.tsx` reveals and briefly highlights stable record targets; the workspace reconciles successful edits without resetting unrelated floor drafts. See [Assistant workflow](docs/tactical/ASSISTANT_WORKFLOW.md).

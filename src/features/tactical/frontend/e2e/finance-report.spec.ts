@@ -6,8 +6,10 @@ test.beforeEach(async({page})=>{
 });
 test("report is populated, assumptions dismiss/reopen, evidence and pricing details work",async({page})=>{
  await page.goto("/tactical/finance");
- await expect(page.getByRole("heading",{name:"A clearer picture of your menu."})).toBeVisible();
+ await expect(page.getByRole("heading",{name:"Your financial overview"})).toBeVisible();
  await expect(page.getByRole("region",{name:"Financial intelligence",exact:true}).locator('input[type=file]')).toHaveCount(0);
+ await expect(page.getByRole("complementary",{name:"Report assumptions"})).toHaveCount(0);
+ await page.getByRole("button",{name:"View assumptions",exact:true}).click();
  await page.getByRole("button",{name:"Got it",exact:true}).click();
  await expect(page.getByRole("complementary",{name:"Report assumptions"})).toHaveCount(0);
  await page.getByRole("button",{name:"View assumptions",exact:true}).click();
@@ -48,5 +50,31 @@ test("mobile report survives AI failure without fabricating observations",async(
  await expect(page.getByRole("heading",{name:"What the apps leave behind."})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
  await page.getByRole("button",{name:"Price playground",exact:true}).click();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});
+
+test("laptop finance keeps pricing, ledger and bank edits across every view",async({page})=>{
+ await page.setViewportSize({width:1280,height:720});
+ await page.goto("/tactical/finance");
+ const navigation=page.getByRole("navigation",{name:"Finance views"});
+ await expect(page.getByLabel("Report period totals")).toContainText("Before labor & fixed costs");
+ await page.getByText("Recorded ledger · separate sample",{exact:true}).click();
+ await page.getByLabel("Record type",{exact:true}).selectOption("expense");
+ await navigation.getByRole("button",{name:"Price playground",exact:true}).click();
+ const raise=page.locator('.playground-table input').first();await raise.fill("1.50");
+ await navigation.getByRole("button",{name:"Cash calendar",exact:true}).click();
+ const cash=page.getByRole("region",{name:"Cash calendar",exact:true});
+ await cash.getByRole("button",{name:"Next cash month",exact:true}).focus();await page.keyboard.press("Enter");
+ await expect(cash.locator(".cash-calendar-bar h4")).toHaveText("December 2026");
+ await expect(cash.getByRole("complementary",{name:"Selected cash day"})).toBeVisible();
+ await navigation.getByRole("button",{name:"Nessie Sandbox",exact:true}).click();
+ await page.getByLabel("Proposed investment (USD)").fill("6000");
+ await navigation.getByRole("button",{name:"Report",exact:true}).click();
+ await expect(page.getByLabel("Record type",{exact:true})).toHaveValue("expense");
+ await navigation.getByRole("button",{name:"Price playground",exact:true}).click();await expect(raise).toHaveValue("1.50");
+ await page.getByRole("region",{name:"Price experiment items"}).focus();
+ await expect(page.getByRole("region",{name:"Price experiment items"})).toBeFocused();
+ await navigation.getByRole("button",{name:"Nessie Sandbox",exact:true}).click();
+ await expect(page.getByLabel("Proposed investment (USD)")).toHaveValue("6000");
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });

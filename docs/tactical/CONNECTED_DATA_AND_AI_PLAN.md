@@ -4,6 +4,10 @@
 **Scope:** Tactical. This is a proposal, not a claim that the architecture below is implemented. No Expansion migration or shared-contract change is authorized by this document.
 **Product direction:** Keep the separate pages, but make them different views of the same restaurant, evidence and decisions. One database does not mean one giant document or one giant AI prompt.
 
+## Implementation update — November 15, 2026
+
+The [connected assistant](ASSISTANT_WORKFLOW.md) implements a bounded part of CEN-04: Mongo conversation/result snapshots, recent multi-turn context, shared active-workspace dataset reconciliation, validated inventory/menu changes with transactional audit, and source navigation. `tactical_conversations` now exists in code; the larger contexts/runs/artifacts/events architecture below remains a proposal. No legacy HR/review cache migration or Expansion change is included. Live integration verification for the new assistant is still pending approval.
+
 ## 1. The experience we want
 
 An owner should be able to start with a high-priority review, inspect the related seating concern, try a floor-plan change, and ask about its staffing or financial implications without re-entering context. Each page should know which restaurant, period, saved layout and pending change it is discussing.

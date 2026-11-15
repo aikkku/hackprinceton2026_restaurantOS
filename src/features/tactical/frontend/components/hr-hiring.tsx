@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Copy, Send, Sparkles } from "lucide-react";
+import { Copy, FileText, Send, Sparkles } from "lucide-react";
 import { hiringDraftSchema, type HiringDraft } from "../../domain/hr";
 import { hiringRoles } from "../../domain/workforce";
 import { aiError } from "../../domain/ai";
@@ -40,21 +40,21 @@ export function HrHiring({ restaurantId }: { restaurantId: string }) {
       <span className="hr-eyebrow"><Sparkles size={14} /> AI hiring assistant</span>
       <h3>Find your next teammate</h3><p>Build a role around your team, busiest shifts and customer feedback.</p>
       <label htmlFor="hr-hiring-position">Position<select id="hr-hiring-position" value={role} onChange={event => setRole(event.target.value as typeof role)}>{hiringRoles.map(value => <option key={value}>{value}</option>)}</select></label>
-      <label>Your requirements<textarea rows={4} maxLength={3000} value={requirements} onChange={event => setRequirements(event.target.value)} placeholder="Availability, experience, responsibilities…" /></label>
+      <label>Your requirements<textarea aria-label="Your requirements" rows={4} maxLength={3000} value={requirements} onChange={event => setRequirements(event.target.value)} placeholder="Availability, experience, responsibilities…" /></label>
       <button className="button ai-button" disabled={!unlocked || pending} title={!unlocked ? "Unlock the AI workspace first" : undefined} onClick={() => void generate()}><Sparkles size={15} />{pending ? "Drafting…" : draft ? "Update with AI" : "Draft with AI"}</button>
       {error && <p role="alert">{aiError}</p>}
     </div>
     <div className={`hr-job ${draft ? "has-draft" : ""}`}>
-      {!draft ? <div className="hr-job-empty"><Sparkles size={28} /><h3>A job description that fits</h3><p>Choose a position to get an editable AI draft.</p></div> : <>
+      {!draft ? <div className="hr-job-empty"><div className="hr-job-illustration" aria-hidden="true"><FileText size={64} strokeWidth={1} /><span><Sparkles size={20} /></span></div><h3>A job description that fits</h3><p>Choose a position to get an editable AI draft.</p></div> : <>
         <div className="hr-toolbar"><span className="hr-eyebrow"><Sparkles size={14} /> Editable AI draft</span><span className="pill">{draft.role}</span></div>
         {stale && <p role="status">Your brief changed. Update the draft to match.</p>}
         <label>Job title<input maxLength={160} value={draft.title} onChange={event => edit("title", event.target.value)} /></label>
         <div className="hr-form-row"><label>Employment<select value={draft.employmentType} onChange={event => edit("employmentType", event.target.value as HiringDraft["employmentType"])}><option>Part-time</option><option>Full-time</option></select></label><label>Hours / week<input type="number" min={1} max={40} value={draft.hoursPerWeek} onChange={event => edit("hoursPerWeek", Number(event.target.value))} /></label></div>
         <label>Pay estimate<input maxLength={160} value={draft.pay} onChange={event => edit("pay", event.target.value)} /></label>
         <label>Schedule<input maxLength={600} value={draft.schedule} onChange={event => edit("schedule", event.target.value)} /></label>
-        <label>About the role<textarea rows={3} maxLength={1200} value={draft.summary} onChange={event => edit("summary", event.target.value)} /></label>
-        <label>Responsibilities<textarea rows={4} value={draft.responsibilities.join("\n")} onChange={event => edit("responsibilities", event.target.value.split("\n"))} /></label>
-        <label>Requirements<textarea rows={3} value={draft.requirements.join("\n")} onChange={event => edit("requirements", event.target.value.split("\n"))} /></label>
+        <label>About the role<textarea aria-label="About the role" rows={3} maxLength={1200} value={draft.summary} onChange={event => edit("summary", event.target.value)} /></label>
+        <label>Responsibilities<textarea aria-label="Responsibilities" rows={4} value={draft.responsibilities.join("\n")} onChange={event => edit("responsibilities", event.target.value.split("\n"))} /></label>
+        <label>Requirements<textarea aria-label="Requirements" rows={3} value={draft.requirements.join("\n")} onChange={event => edit("requirements", event.target.value.split("\n"))} /></label>
         <details className="hr-job-reason"><summary>AI rationale</summary><p>{draft.reason}</p><p>{draft.limitation}</p><small>Evidence: {draft.evidenceIds.join(" · ")}</small></details>
       </>}
       <div className="hr-job-actions"><button className="button ai-button compact" disabled={!draft || stale || !hiringDraftSchema.safeParse(draft).success} onClick={async () => {
