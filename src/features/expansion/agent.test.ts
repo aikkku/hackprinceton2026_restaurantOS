@@ -11,6 +11,7 @@ import {
   agentRunRecordSchema,
   financeArtifactSchema,
   inspectionArtifactSchema,
+  inspectionToolOutputSchema,
   marketArtifactSchema,
   profileArtifactSchema,
   searchArtifactSchema,
@@ -588,4 +589,49 @@ test("agent rent-estimates route: owner-scoped, unlisted-rent candidates only", 
   const pendingBody = (await pending.json()) as { error: { code: string; message: string } };
   assert.equal(pendingBody.error.code, "conflict");
   assert.ok(pendingBody.error.message.length > 0);
+});
+
+
+test("inspection returns sourced resident/competition context to the worker and persists the same context", async () => {
+  for (const mode of ["available", "failure", "disabled"] as const) {
+    const runId = `context-${mode}`;
+    const config = { runsDir: testRunsDir, db: settings, spawn: false, sourceDependencies: {
+      network: mode !== "disabled", censusApiKey: "test-key",
+      probe: async () => ({ status: "unavailable" as const, reason: "Test imagery unavailable" }),
+      fetch: (async (url: string | URL | Request) => {
+        if (mode === "failure") throw new Error("Test source offline");
+        const address = String(url);
+        if (address.includes("geocoding.geo.census.gov")) return Response.json({ result: { geographies: { "Census Tracts": [{ STATE: "48", COUNTY: "201", TRACT: "510100" }] } } });
+        if (address.includes("api.census.gov")) return Response.json([
+          ["NAME", "B01003_001E", "B01003_001M", "B19013_001E", "B19013_001M", "state", "county", "tract"],
+          ["Test tract", "1000", "50", "50000", "2000", "48", "201", "510100"],
+        ]);
+        return Response.json({ osm3s: { timestamp_osm_base: "2026-11-01T00:00:00Z" }, elements: [{ type: "node", id: 123 }] });
+      }) as typeof fetch,
+    } };
+    await createAgentRun(config, createInput(runId));
+    await writeToken(runId, "context-token");
+    const scout = await invokeAgentTool(config, "local", runId, "scout.search_city", { cityId: "houston" }) as { candidateIds: string[] };
+    const result = inspectionToolOutputSchema.parse(await invokeAgentTool(config, "local", runId, "inspector.evidence", { candidateIds: scout.candidateIds }));
+    const context = result.inspected[0].marketContext!;
+    assert.ok(context);
+    if (mode === "available") {
+      assert.deepEqual(context.observations.map(o => o.provider).sort(), ["acs", "competition"]);
+      const ordered = [...context.observations].sort((a, b) => a.provider.localeCompare(b.provider));
+      assert.ok(ordered[0].details.some(line => line.includes("1000 persons")));
+      assert.ok(ordered[0].limitations.some(line => line.includes("NOT allocated or summed")));
+      assert.ok(ordered[1].details.some(line => line.includes("1 mapped restaurant objects within 500 m")));
+      assert.ok(context.observations.every(o => o.id && o.sourceRecordId && o.retrievedAt && o.referenceUrl));
+      assert.ok(ordered[1].limitations.some(line => line.includes("not a verified competitor census")));
+    } else {
+      assert.deepEqual(context.observations, []);
+      assert.ok(context.gaps.some(line => line.startsWith("acs:")));
+      assert.ok(context.gaps.some(line => line.startsWith("competition:")));
+    }
+    const stored = inspectionArtifactSchema.parse(JSON.parse(await readFile(join(testRunsDir, "local", `agent-${runId}`, "inspection.json"), "utf8")));
+    assert.deepEqual(stored.candidates.map(c => c.marketContext), result.inspected.map(c => c.marketContext));
+    // Context explains the existing matches; it cannot change their rank or assessments.
+    const candidates = searchArtifactSchema.parse(JSON.parse(await readFile(join(testRunsDir, "local", `agent-${runId}`, "candidates.json"), "utf8")));
+    assert.deepEqual(stored.candidates.map(c => c.assessments), candidates.candidates.map(c => c.assessments));
+  }
 });

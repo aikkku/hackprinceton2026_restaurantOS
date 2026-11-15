@@ -11,6 +11,10 @@ import {
 import { placeSubtitle } from "./places.tsx";
 import { AskButton, Back, Disclosure, Dot, FitPill, Tag, Thumb, type TagKind } from "./ui.tsx";
 import type { Workspace } from "./workspace.ts";
+import { calculatePropertyScore } from "../../domain/property-score.ts";
+import { ScoreBadge, ScoreBreakdown } from "./property-score.tsx";
+import { LocationContext } from "./location-context.tsx";
+import { NearbyRestaurants } from "./nearby-restaurants.tsx";
 
 type EvidenceRef = { label: string; date: string | null; origin: string; user: boolean };
 
@@ -36,6 +40,7 @@ export function factTag(assessment: RequirementAssessment, index: Map<string, Ev
   const refs = assessment.evidenceIds.map((id) => index.get(id)).filter((ref): ref is EvidenceRef => Boolean(ref));
   if (assessment.estimate) return { kind: "estimate", text: assessment.estimate.kind === "ai_estimate" ? "AI estimate" : "Space estimate" };
   if (refs.some((ref) => ref.user)) return { kind: "owner", text: "Your check" };
+  if (assessment.requirementId === "market.neighborhoodPreference" && ["neighborhood_member", "neighborhood_other"].includes(assessment.reasonCode)) return { kind: "listing", text: "Sourced neighborhood" };
   if (assessment.status === "unknown") return { kind: "unknown", text: "Not confirmed" };
   if (assessment.status === "not_applicable") return { kind: "unknown", text: "Not checked" };
   if (refs.some((ref) => ref.origin === "derived")) return { kind: "estimate", text: "Estimate" };
@@ -54,7 +59,7 @@ export function factorLine(key: FactorKey, assessment: RequirementAssessment, ch
   return friendlyReason(assessment.reasonCode, workspace.requirements);
 }
 
-export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, image, busy, notice, error, onBack, onToggleSave, onCompare, onAsk, onRefresh, onAddNote }: {
+export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, image, busy, notice, error, onBack, onToggleSave, onCompare, onAsk, onRefresh, onRefreshNeighborhood, onAddNote }: {
   workspace: Workspace;
   choice: BriefChoice;
   isSaved: boolean;
@@ -69,10 +74,12 @@ export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, 
   onCompare: () => void;
   onAsk: () => void;
   onRefresh: (mode: "live" | "synthetic") => void;
+  onRefreshNeighborhood: () => void;
   onAddNote: (note: InvestigationNote) => void;
 }) {
   const [noteOpen, setNoteOpen] = useState(false);
   const candidate = choice.assessment.candidate;
+  const score = calculatePropertyScore({ candidate, requirements: workspace.requirements, sources: choice.assessment.sources, notes: choice.assessment.notes });
   const assessments = choice.assessment.assessments;
   const index = evidenceIndex(choice, candidate);
   const byId = (id: RequirementAssessment["requirementId"]) => assessments.find((item) => item.requirementId === id);
@@ -110,6 +117,7 @@ export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, 
           <h1 className="sx-title-sm">{candidate.name}</h1>
           <span className="sx-muted">{placeSubtitle(candidate)}</span>
           <div className="sx-row" style={{ gap: 8 }}>
+            <ScoreBadge result={score} />
             <FitPill fit={fitForGroup(choice.assessment.group)} />
             {isSaved && <Tag kind="followup">Saved</Tag>}
             {candidate.isDemo && <Tag kind="example">Synthetic listing</Tag>}
@@ -141,6 +149,21 @@ export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, 
         })}
       </div>
 
+      <LocationContext
+        sources={choice.assessment.sources}
+        agentContext={workspace.bundle?.inspection?.candidates.find(item => item.candidateId === candidate.id)?.marketContext}
+        busy={busy}
+        frozen={workspace.source === "saved_plan"}
+        onRefresh={onRefreshNeighborhood}
+      />
+
+      <NearbyRestaurants
+        runId={workspace.runId}
+        candidateId={candidate.id}
+        cuisine={workspace.bundle?.profile.intake.restaurant.cuisine ?? null}
+        restaurantName={workspace.restaurantName || null}
+      />
+
       {busy && <p className="sx-small sx-muted" role="status">Checking property details…</p>}
 
       <div className="sx-row">
@@ -155,6 +178,7 @@ export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, 
       {error && <p className="sx-notice sx-notice-bad" role="alert">{error}</p>}
 
       <div>
+        <ScoreBreakdown result={score} />
         <Disclosure title="Things to check" hint={questions.length}>
           {questions.length === 0 ? <p className="sx-muted">Nothing open from the checks we ran.</p> : (
             <ul className="sx-check-list">

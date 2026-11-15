@@ -6,6 +6,7 @@ import { applyIllustrative, calculateDecisionFinance, decisionFinanceInputsSchem
 import { syntheticSourceSnapshot, syntheticSourcesAllowed, syntheticVariant } from "./backend/synthetic-sources.ts";
 import { createEvidenceProviderAdapters } from "./backend/evidence-providers.ts";
 import { PROVIDER_CONTRACT_VERSION } from "./domain/agent-providers.ts";
+import { neighborhoodDatasetSchema, NEIGHBORHOOD_SOURCE, NEIGHBORHOOD_VERSION } from "./domain/neighborhood.ts";
 
 // All inputs are labeled synthetic fixtures; no provider is contacted.
 const search = JSON.parse(readFileSync(new URL("./agent/fixtures/contracts/candidates.sample.json", import.meta.url), "utf8"));
@@ -65,12 +66,14 @@ test("occupancy breakdown separates base rent from additional charges without do
 
 test("provider hook inspect: live-only evidence with scope echo; failures/aborts stay explicit", async () => {
   const candidate = { ...search.candidates[0].candidate, isDemo: false };
-  const lookup = [{ candidateId: candidate.id, definitionVersion: "houston-sn15-lookup-v1", isMember: true, checkedAt: now, sourceDate: "2026-11-01", referenceUrl: "https://www.houstontx.gov/superneighborhoods/15.html" }];
-  const adapters = createEvidenceProviderAdapters({ network: false, now: () => now, neighborhoodLookup: lookup });
+  // Explicit synthetic geometry injected into the adapter for this unit test only.
+  const x = candidate.longitude, y = candidate.latitude;
+  const dataset = neighborhoodDatasetSchema.parse({ version: NEIGHBORHOOD_VERSION, sourceUrl: NEIGHBORHOOD_SOURCE, retrievedAt: now, sourceDate: null, collection: { type: "FeatureCollection", features: [{ type: "Feature", properties: { POLYID: 15, SNBNAME: "GREATER HEIGHTS", OBJECTID: 1 }, geometry: { type: "Polygon", coordinates: [[[x-.01,y-.01],[x+.01,y-.01],[x+.01,y+.01],[x-.01,y+.01],[x-.01,y-.01]]] } }] } });
+  const adapters = createEvidenceProviderAdapters({ network: false, now: () => now, neighborhoodDataset: dataset });
   const ok = await adapters.inspect!({ version: PROVIDER_CONTRACT_VERSION, scope, candidate, evidenceIds: [] }, new AbortController().signal);
   assert.equal(ok.status, "partial");
   assert.deepEqual(ok.scope, scope);
-  assert.equal(ok.evidence[0].observedAt, "2026-11-01T00:00:00.000Z");
+  assert.equal(ok.evidence[0].observedAt, null, "unknown publication date is not invented");
   assert.equal(ok.facts[0].field, "neighborhood");
   const none = await createEvidenceProviderAdapters({ network: false, now: () => now }).inspect!({ version: PROVIDER_CONTRACT_VERSION, scope, candidate, evidenceIds: [] }, new AbortController().signal);
   assert.equal(none.status, "unavailable"); assert.deepEqual(none.facts, []);

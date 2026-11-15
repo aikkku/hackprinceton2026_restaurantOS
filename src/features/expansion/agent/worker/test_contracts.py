@@ -44,6 +44,20 @@ class ContractTests(unittest.TestCase):
                 with open(FIXTURES / "contracts" / name, "r", encoding="utf-8") as handle:
                     model.model_validate_json(handle.read())
 
+    def test_inspection_context_extension_and_legacy_artifacts(self) -> None:
+        import json
+        payload = json.loads((FIXTURES / "contracts" / "inspection.sample.json").read_text())
+        artifact = InspectionArtifact.model_validate(payload)
+        context = artifact.candidates[0].marketContext
+        self.assertEqual([item.provider for item in context.observations], ["acs", "competition"])
+        self.assertEqual(context.observations[0].scope, "tract")
+        # Historical artifacts remain readable; unknown context versions fail closed.
+        payload["candidates"][0].pop("marketContext")
+        self.assertIsNone(InspectionArtifact.model_validate(payload).candidates[0].marketContext)
+        payload["candidates"][0]["marketContext"] = {**context.model_dump(), "version": "unknown"}
+        with self.assertRaises(pydantic.ValidationError):
+            InspectionArtifact.model_validate(payload)
+
     def test_event_fixture_parses_in_order(self) -> None:
         path = FIXTURES / "contracts" / "events.sample.jsonl"
         with open(path, "r", encoding="utf-8") as handle:

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { investigationTarget } from "../../../../../features/expansion/backend/investigation.ts";
-import { collectCandidateSources } from "../../../../../features/expansion/backend/investigation-sources.ts";
+import { collectCandidateSources, collectNeighborhoodSources } from "../../../../../features/expansion/backend/investigation-sources.ts";
 import { syntheticSourceSnapshot } from "../../../../../features/expansion/backend/synthetic-sources.ts";
 import { localResponse } from "../../../../../features/expansion/backend/http.ts";
 import { ownerRoute } from "../../../../../features/expansion/backend/api.ts";
@@ -8,7 +8,7 @@ import { getRepository } from "../../../../../features/expansion/backend/store.t
 import { recordEvidence } from "../../../../../features/expansion/backend/durable.ts";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-const querySchema = z.object({ candidateId: z.string().min(1).max(300), currentAddress: z.string().trim().min(1).max(300).optional(), priceLevel: z.coerce.number().finite().positive().max(10000).optional(), sourceMode: z.enum(["live", "synthetic"]).default("live") }).strict();
+const querySchema = z.object({ candidateId: z.string().min(1).max(300), currentAddress: z.string().trim().min(1).max(300).optional(), priceLevel: z.coerce.number().finite().positive().max(10000).optional(), scope: z.enum(["all", "neighborhood"]).default("all"), sourceMode: z.enum(["live", "synthetic"]).default("live") }).strict();
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   return ownerRoute(request, async ({ ownerId }) => {
     const params = new URL(request.url).searchParams;
@@ -21,7 +21,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     // Synthetic fixtures are an explicit request and only for synthetic candidates (409 otherwise).
     const snapshot = query.sourceMode === "synthetic"
       ? syntheticSourceSnapshot(candidate, datasetId, options, new Date().toISOString())
-      : await collectCandidateSources(candidate, options);
+      : query.scope === "neighborhood" ? await collectNeighborhoodSources(candidate) : await collectCandidateSources(candidate, options);
     if (query.sourceMode === "live") for (const observation of snapshot.observations) if (observation.provider === "vexcel") observation.imageUrl = `/api/expansion/investigations/${encodeURIComponent(id)}/imagery?candidateId=${encodeURIComponent(candidate.id)}`;
     // Durable evidence record (best effort; the response never depends on it).
     void getRepository().then(repo => repo ? recordEvidence(repo, ownerId, id, snapshot, query.sourceMode) : null).catch(() => {});

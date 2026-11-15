@@ -2,6 +2,7 @@ import { z } from "zod";
 import { applyRequirementPreferences, assessmentSchema, candidateSchema, evaluateCandidate, factSchema, groupFor, type AssessedCandidate, type CandidateFact } from "./matching.ts";
 import { searchRequirementsSchema, type SearchRequirements } from "./requirements.ts";
 import { applyPropertyInference, PROPERTY_INFERENCE_VERSION, propertyInferenceSchema } from "./property-inference.ts";
+import { isOfficialNeighborhoodFact } from "./neighborhood.ts";
 
 export const EVIDENCE_VERSION = "expansion-investigation-evidence-v1";
 export const providerNames = ["matterport", "vexcel", "neighborhood", "acs", "competition"] as const;
@@ -71,7 +72,7 @@ export function reassessCandidate(base: AssessedCandidate, rawRequirements: Sear
   const allFacts = [...sources.observations.flatMap(x => x.facts), ...notes.map(x => x.fact)];
   // The Phase 2 evaluator consumes trusted facts. This adapter enforces origin,
   // suite association, source date and conflict policy before invoking it.
-  const eligible = allFacts.filter(f => f.origin === "observed" && (!f.isDemo || candidate.isDemo) && f.source.capturedAt && f.source.recordId);
+  const eligible = allFacts.filter(f => (f.origin === "observed" || isOfficialNeighborhoodFact(f)) && (!f.isDemo || candidate.isDemo) && f.source.capturedAt && f.source.recordId);
   const fields = ["existingKitchen", "customerParking", "seatCapacity", "neighborhood", "monthlyAdditionalCharges"] as const;
   const conflicts = fields.filter(field => new Set(eligible.filter(f => f.field === field && f.value.kind !== "unknown").map(f => JSON.stringify(f.value))).size > 1);
   const safeFacts: CandidateFact[] = eligible.filter(f => !conflicts.includes(f.field));

@@ -7,11 +7,12 @@ import { reassessCandidate, type InvestigationNote, type SourceSnapshot } from "
 import { applyRequirementPreferences, groupFor, type AssessedCandidate } from "../domain/matching.ts";
 import { PROPERTY_INFERENCE_VERSION } from "../domain/property-inference.ts";
 import { BRIEF_STORAGE_KEY, decodeBriefs, persistBriefs } from "./brief-storage.ts";
-import { ensureSession, listAccountBriefs, loadAccountProfile, saveAccountBrief, saveAccountProfile, unlockSession, type SessionStatus } from "./data/account-client.ts";
+import { ensureSession, importBrowserCopies, listAccountBriefs, listAccountProfiles, loadAccountProfile, saveAccountBrief, saveAccountProfile, unlockSession, type ProfileSummary, type SessionStatus } from "./data/account-client.ts";
 import { refreshCandidateSources } from "./data/investigation-client.ts";
+import { mergeOfficialNeighborhood } from "./data/neighborhoods.ts";
 import { formFromRevision, type FormState } from "./profile-form.ts";
 import {
-  PROFILE_DRAFT_STORAGE_KEY, currentProfileRevision, decodeProfileDraft, persistProfileDraft, profileDraftEnvelopeSchema, resetProfileDraft,
+  PROFILE_DRAFT_STORAGE_KEY, currentProfileRevision, decodeProfileDraft, resetProfileDraft,
   type ProfileDraftEnvelope, type ProfileDraftStatus,
 } from "./storage.ts";
 import { AskDrawer, type AskContext } from "./sprout/ask.tsx";
@@ -23,7 +24,8 @@ import { NeedsReview, NeedsWizard } from "./sprout/needs.tsx";
 import { PlaceDetail } from "./sprout/place-detail.tsx";
 import { Places, type PlaceView } from "./sprout/places.tsx";
 import { Plan, biggestConcern, nextQuestionsFor } from "./sprout/plan.tsx";
-import { effectiveIntake, exampleEnvelope, reviseFromForm } from "./sprout/profile.ts";
+import { blankNeedsForm, effectiveIntake, emptyBasics, exampleEnvelope, ownerEnvelope, reviseFromForm, type RestaurantBasics } from "./sprout/profile.ts";
+import { ProfileSetup } from "./sprout/profile-setup.tsx";
 import { SearchProgress } from "./sprout/search.tsx";
 import { MAX_SAVED_PLACES, choicesToKeep, clearSearchSession, readSearchSession, writeSearchSession, type SearchSession } from "./sprout/session.ts";
 import { Header, Loading } from "./sprout/ui.tsx";
@@ -33,6 +35,7 @@ import "./sprout/sprout.css";
 type Screen =
   | { name: "boot" }
   | { name: "home" }
+  | { name: "newProfile" }
   | { name: "needs"; step: number; returnToReview: boolean }
   | { name: "review" }
   | { name: "search"; attempt: number }
@@ -45,12 +48,22 @@ type Screen =
   | { name: "plan" };
 
 const CITY_ID = "houston";
+/** Marks a legacy browser-only profile draft as already copied into the workspace (the original is never deleted). */
+const LEGACY_IMPORTED_KEY = "restaurantos.expansion.profile.draft.v1.imported";
 const errorText = (failure: unknown, fallback: string) => (failure instanceof Error && failure.message ? failure.message : fallback);
 
 export default function ExpansionPage() {
   const [screen, setScreen] = useState<Screen>({ name: "boot" });
+  /** Legacy browser-only profile draft (read once to copy it into the workspace). */
   const [draft, setDraft] = useState<ProfileDraftStatus>({ status: "empty" });
+  /** The active restaurant profile; the workspace database is its source of truth. */
   const [envelope, setEnvelope] = useState<ProfileDraftEnvelope | null>(null);
+  /** `updatedAt` of the active envelope as stored in the workspace (null = not stored yet). */
+  const [storedAt, setStoredAt] = useState<string | null>(null);
+  /** Basics of a profile being created (no envelope exists until it is saved). */
+  const [newProfile, setNewProfile] = useState<RestaurantBasics | null>(null);
+  const [profiles, setProfiles] = useState<ProfileSummary[] | null>(null);
+  const [profilesError, setProfilesError] = useState("");
   const [form, setForm] = useState<FormState | null>(null);
   const [account, setAccount] = useState<SessionStatus | null>(null);
   const [homeNotice, setHomeNotice] = useState("");
@@ -73,33 +86,51 @@ export default function ExpansionPage() {
   const loadGeneration = useRef(0);
 
   // ---------------------------------------------------------------- boot
+  const refreshProfiles = useCallback(async () => {
+    setProfilesError("");
+    try {
+      setProfiles((await listAccountProfiles()).profiles);
+    } catch (failure) {
+      setProfilesError(`Your restaurant profiles couldn’t be loaded. ${errorText(failure, "")}`.trim());
+    }
+  }, []);
+
   useEffect(() => {
     void Promise.resolve().then(async () => {
       let local: ProfileDraftStatus = { status: "empty" };
+      let importedAt: string | null = null;
       try {
         local = decodeProfileDraft(localStorage.getItem(PROFILE_DRAFT_STORAGE_KEY));
+        importedAt = localStorage.getItem(LEGACY_IMPORTED_KEY);
         const briefs = decodeBriefs(localStorage.getItem(BRIEF_STORAGE_KEY));
         if (briefs.status === "ok") setBrowserBriefs(briefs.briefs); else setBriefStorageBlocked(true);
         setResume(readSearchSession(localStorage));
       } catch { setBriefStorageBlocked(true); }
       setDraft(local);
-      if (local.status === "ok") setEnvelope(local.envelope);
       // Home never waits on the private workspace store; it fills in when it answers.
       setScreen({ name: "home" });
       const status = await ensureSession().catch(() => null);
       setAccount(status);
-      if (!status?.authenticated) return;
-      void listAccountBriefs().then((result) => setAccountBriefs(result.briefs.map((record) => record.brief))).catch(() => undefined);
-      if (local.status !== "empty") return;
-      const remote = await loadAccountProfile().catch(() => null);
-      const parsed = remote?.envelope ? profileDraftEnvelopeSchema.safeParse(remote.envelope) : null;
-      // Only adopt the workspace copy if the owner hasn't started editing here meanwhile.
-      if (parsed?.success) {
-        setEnvelope((current) => current ?? parsed.data);
-        setDraft((current) => (current.status === "empty" ? { status: "ok", envelope: parsed.data } : current));
+      if (!status?.authenticated) {
+        setProfiles([]);
+        if (!status) setProfilesError("Your workspace couldn’t be reached, so your restaurant profiles aren’t available.");
+        return;
       }
+      void listAccountBriefs().then((result) => setAccountBriefs(result.briefs.map((record) => record.brief))).catch(() => undefined);
+      // One-time copy of needs saved by older versions on this browser only.
+      if (local.status === "ok" && importedAt !== local.envelope.updatedAt) {
+        const updatedAt = local.envelope.updatedAt;
+        await importBrowserCopies({ profileDraft: local.envelope })
+          .then((result) => {
+            if (result.items.some((item) => item.kind === "profile" && item.status !== "rejected")) {
+              try { localStorage.setItem(LEGACY_IMPORTED_KEY, updatedAt); } catch { /* storage optional */ }
+            }
+          })
+          .catch(() => undefined);
+      }
+      await refreshProfiles();
     });
-  }, []);
+  }, [refreshProfiles]);
 
   const screenKey = screen.name === "needs" || screen.name === "costs" ? `${screen.name}:${screen.step}` : screen.name === "place" ? `place:${screen.id}` : screen.name;
   useEffect(() => { if (screenKey !== "boot") window.scrollTo({ top: 0 }); }, [screenKey]);
@@ -122,34 +153,80 @@ export default function ExpansionPage() {
   }, [accountBriefs, browserBriefs]);
 
   // ------------------------------------------------------------ profile
-  const startNeeds = () => {
-    const working = envelope ?? exampleEnvelope();
+  const openNeeds = (working: ProfileDraftEnvelope | null, nextForm: FormState) => {
     setEnvelope(working);
-    setForm(formFromRevision(currentProfileRevision(working)));
+    setForm(nextForm);
     setReview({ busy: false, error: "" });
     setScreen({ name: "needs", step: 0, returnToReview: false });
   };
 
-  /** Save the needs as a profile revision (browser + workspace). Returns the revision to search with. */
-  const commitNeeds = () => {
-    if (!envelope || !form) return null;
-    const result = reviseFromForm(envelope, form);
-    if (!result.ok) { setReview({ busy: false, error: result.message }); return null; }
-    const stored = draft.status === "ok" && draft.envelope.updatedAt === result.envelope.updatedAt;
-    if (!result.changed && stored) return result.revision;
+  /** Load a stored profile from the workspace and start from its latest needs. */
+  const openProfile = async (profileId: string) => {
+    const attempt = () => { void openProfile(profileId); };
+    setScreen({ name: "loading", message: "Opening your restaurant profile…" });
     try {
-      persistProfileDraft(localStorage, result.envelope);
-    } catch {
-      setReview({ busy: false, error: "Your browser storage is full or blocked, so your needs couldn’t be saved here. Nothing was lost on screen." });
+      const { envelope: stored } = await loadAccountProfile(profileId);
+      setNewProfile(null);
+      setStoredAt(stored.updatedAt);
+      openNeeds(stored, formFromRevision(currentProfileRevision(stored)));
+    } catch (failure) {
+      setScreen({ name: "loading", message: "Opening your restaurant profile…", error: errorText(failure, "Your restaurant profile couldn’t be opened."), retry: attempt });
+    }
+  };
+
+  const startNewProfile = () => {
+    setNewProfile((current) => current ?? emptyBasics());
+    setScreen({ name: "newProfile" });
+  };
+
+  /** A new workspace profile seeded from the fictional example (stored when the owner saves or searches). */
+  const startExample = () => {
+    const seeded = exampleEnvelope();
+    setNewProfile(null);
+    setStoredAt(null);
+    openNeeds(seeded, formFromRevision(currentProfileRevision(seeded)));
+  };
+
+  /** "Find Locations": the most recently used profile, or set one up. */
+  const startNeeds = () => {
+    if (profiles?.[0]) void openProfile(profiles[0].profileId);
+    else startNewProfile();
+  };
+
+  /** Edit the active profile's needs again (new search from the places list). */
+  const editNeeds = () => {
+    if (!envelope) { startNeeds(); return; }
+    openNeeds(envelope, formFromRevision(currentProfileRevision(envelope)));
+  };
+
+  /**
+   * Store the needs in the workspace: a new profile's first revision, or a
+   * new revision of the active one. Returns the revision to search with, or
+   * null (the edits stay on screen) when it couldn't be stored.
+   */
+  const commitNeeds = async () => {
+    if (!form) return null;
+    const result = envelope ? reviseFromForm(envelope, form) : newProfile ? ownerEnvelope(newProfile, form) : null;
+    if (!result) return null;
+    if (!result.ok) { setReview({ busy: false, error: result.message }); return null; }
+    if (!result.changed && storedAt === result.envelope.updatedAt) return result.revision;
+    setReview({ busy: true, error: "" });
+    try {
+      await saveAccountProfile(result.envelope);
+    } catch (failure) {
+      setReview({ busy: false, error: `Your needs couldn’t be saved to your workspace. Nothing was lost on screen. ${errorText(failure, "")}`.trim() });
+      return null;
     }
     setEnvelope(result.envelope);
-    setDraft({ status: "ok", envelope: result.envelope });
-    void saveAccountProfile(result.envelope).catch(() => undefined);
+    setStoredAt(result.envelope.updatedAt);
+    setNewProfile(null);
+    setReview({ busy: false, error: "" });
+    void refreshProfiles();
     return result.revision;
   };
 
-  const findLocations = () => {
-    const next = commitNeeds();
+  const findLocations = async () => {
+    const next = await commitNeeds();
     if (!next) return;
     setSearchProfile({ revisionId: next.revisionId, revisionNumber: next.revisionNumber, intake: effectiveIntake(next) });
     setScreen((old) => ({ name: "search", attempt: (old.name === "search" ? old.attempt : 0) + 1 }));
@@ -169,7 +246,11 @@ export default function ExpansionPage() {
           const base = next.candidates.find((item) => item.candidate.id === choice.candidateId);
           if (base && choice.assessment.profileRevisionId === next.requirements.revisionId && JSON.stringify(base.candidate) === JSON.stringify(choice.assessment.candidate)) {
             const assessments = applyRequirementPreferences(choice.assessment.assessments, next.requirements);
-            restored[choice.candidateId] = { ...choice, assessment: { ...choice.assessment, assessments, group: groupFor(assessments) } };
+            const officialSources = next.evidence.get(choice.candidateId);
+            const sources = officialSources ? mergeOfficialNeighborhood(choice.assessment.sources, officialSources) : choice.assessment.sources;
+            restored[choice.candidateId] = { ...choice, assessment: officialSources
+              ? reassessCandidate(base, next.requirements, choice.assessment.notes, sources, choice.assessment)
+              : { ...choice.assessment, assessments, group: groupFor(assessments) } };
           }
         }
       }
@@ -218,7 +299,7 @@ export default function ExpansionPage() {
     const choice = choices[base.candidate.id];
     const assessed: AssessedCandidate = choice ? { ...base, assessments: choice.assessment.assessments, group: choice.assessment.group } : base;
     const sources = choice?.assessment.sources ?? workspace?.evidence.get(base.candidate.id);
-    return { assessed, image: sources?.observations.find((o) => o.imageUrl)?.imageUrl ?? null };
+    return { assessed, sources, notes: choice?.assessment.notes ?? [], image: sources?.observations.find((o) => o.imageUrl)?.imageUrl ?? null };
   }), [workspace, choices]);
   const imageFor = (id: string) => views.find((view) => view.assessed.candidate.id === id)?.image ?? null;
 
@@ -246,13 +327,24 @@ export default function ExpansionPage() {
   };
 
   /** `auto`: the quiet first lookup when a never-checked place is opened (no notices; the button stays for retries). */
-  const refreshSources = async (id: string, mode: "live" | "synthetic", auto = false) => {
+  const refreshSources = async (id: string, mode: "live" | "synthetic", auto = false, scope: "all" | "neighborhood" = "all") => {
     if (!workspace) return;
     const choice = ensureChoice(id);
     if (!choice) return;
     setPlaceState({ busy: true, notice: "", error: "" });
     try {
-      const sources = await refreshCandidateSources(workspace.runId, id, { currentAddress: null, priceLevel: null, sourceMode: mode });
+      const fetched = await refreshCandidateSources(workspace.runId, id, { currentAddress: null, priceLevel: null, sourceMode: mode, scope });
+      const isContext = (provider: string) => ["neighborhood", "acs", "competition"].includes(provider);
+      const sources = scope === "all" ? fetched : {
+        ...choice.assessment.sources, refreshedAt: fetched.refreshedAt,
+        observations: [...choice.assessment.sources.observations.filter(o => !isContext(o.provider)), ...fetched.observations],
+        statuses: [...choice.assessment.sources.statuses.filter(s => !isContext(s.provider)), ...fetched.statuses],
+        gaps: [...choice.assessment.sources.gaps.filter(g => !g.startsWith("acs:") && !g.startsWith("competition:") && !g.startsWith("neighborhood:")), ...fetched.gaps],
+      };
+      if (sources.propertyInference) {
+        const retained = new Set([...choice.assessment.candidate.sourceIds, ...sources.observations.map(o => o.id)]);
+        sources.propertyInference = { ...sources.propertyInference, evidenceIds: sources.propertyInference.evidenceIds.filter(id => retained.has(id)) };
+      }
       revise(id, choice.assessment.notes, sources);
       if (auto) { setPlaceState({ busy: false, notice: "", error: "" }); return; }
       const found = sources.observations.length;
@@ -379,28 +471,39 @@ export default function ExpansionPage() {
       body = <Home
         resume={resume ? { cityLabel: resume.cityLabel, placesFound: resume.placesFound, saved: resume.saved.length } : null}
         plans={plans}
+        profiles={profiles}
+        profilesError={profilesError}
         profileProblem={draft.status === "corrupt" || draft.status === "unsupported" ? "We couldn’t read the needs saved on this browser, so they were left untouched." : null}
         access={account && !account.authenticated && account.accessCodeRequired ? { required: true, onUnlock: async (code) => {
-          try { const next = await unlockSession(code); setAccount(next); void listAccountBriefs().then((r) => setAccountBriefs(r.briefs.map((x) => x.brief))).catch(() => undefined); return null; }
+          try { const next = await unlockSession(code); setAccount(next); void listAccountBriefs().then((r) => setAccountBriefs(r.briefs.map((x) => x.brief))).catch(() => undefined); setProfiles(null); void refreshProfiles(); return null; }
           catch (failure) { return errorText(failure, "That access code wasn’t accepted."); }
         } } : null}
         notice={homeNotice}
         onFind={startNeeds}
+        onUseProfile={(id) => { void openProfile(id); }}
+        onNewProfile={startNewProfile}
+        onTryExample={startExample}
+        onRetryProfiles={() => { void refreshProfiles(); }}
         onResume={() => { if (resume) void openWorkspace(() => resume.source === "agent" ? loadAgentWorkspace(resume.runId) : loadDeterministicWorkspace(resume.runId), "Opening your search…", resume); }}
         onOpenPlan={openPlan}
-        onResetProfile={() => { try { resetProfileDraft(localStorage); } catch { /* blocked storage */ } setDraft({ status: "empty" }); setEnvelope(null); setHomeNotice("Starting fresh with the example restaurant."); }}
+        onResetProfile={() => { try { resetProfileDraft(localStorage); } catch { /* blocked storage */ } setDraft({ status: "empty" }); setHomeNotice("The unreadable browser copy was discarded. Your workspace profiles are unchanged."); }}
       />;
+      break;
+    case "newProfile":
+      body = <ProfileSetup initial={newProfile ?? emptyBasics()} onBack={() => goHome()}
+        onContinue={(basics) => { setNewProfile(basics); setStoredAt(null); openNeeds(null, blankNeedsForm(basics)); }} />;
       break;
     case "needs":
       body = form && <main className="sx-page"><NeedsWizard key={screen.step} form={form} onChange={setForm} step={screen.step} fromExample={Boolean(revision?.isDemo)}
         returnToReview={screen.returnToReview} onStep={(step) => setScreen({ name: "needs", step, returnToReview: false })}
-        onReview={() => { setReview({ busy: false, error: "" }); setScreen({ name: "review" }); }} onExit={() => goHome()} /></main>;
+        onReview={() => { setReview({ busy: false, error: "" }); setScreen({ name: "review" }); }}
+        onExit={() => (envelope || !newProfile ? goHome() : setScreen({ name: "newProfile" }))} /></main>;
       break;
     case "review":
       body = form && <NeedsReview form={form} revisions={envelope?.revisions ?? []} busy={review.busy} error={review.error}
         onChange={(step) => setScreen({ name: "needs", step, returnToReview: true })}
-        onFind={findLocations}
-        onSaveExit={() => { if (commitNeeds()) { setHomeNotice("Your needs are saved."); goHome(); } }}
+        onFind={() => { void findLocations(); }}
+        onSaveExit={() => { void commitNeeds().then((saved) => { if (saved) { setHomeNotice("Your needs are saved to your workspace."); goHome(); } }); }}
         onBack={() => setScreen({ name: "needs", step: 4, returnToReview: false })} />;
       break;
     case "search":
@@ -423,7 +526,7 @@ export default function ExpansionPage() {
     case "places":
       body = workspace && <Places workspace={workspace} views={views} saved={saved} selectedId={selectedId} notice={listNotice}
         onSelect={setSelectedId} onOpen={openPlace}
-        onToggleSave={toggleSave} onCompare={() => setScreen({ name: "compare" })} onNewSearch={startNeeds} />;
+        onToggleSave={toggleSave} onCompare={() => setScreen({ name: "compare" })} onNewSearch={editNeeds} />;
       break;
     case "place": {
       const choice = workspace ? choiceFor(screen.id) : null;
@@ -431,6 +534,7 @@ export default function ExpansionPage() {
         image={imageFor(screen.id)} busy={placeState.busy} notice={placeState.notice} error={placeState.error}
         onBack={() => { setSelectedId(screen.id); setScreen(restoredFrom ? { name: "plan" } : { name: "places" }); }}
         onToggleSave={() => toggleSave(screen.id)} onCompare={() => setScreen({ name: "compare" })} onAsk={() => askAboutPlace(screen.id)}
+        onRefreshNeighborhood={() => { void refreshSources(screen.id, "live", false, "neighborhood"); }}
         onRefresh={(mode) => void refreshSources(screen.id, mode)}
         onAddNote={(note) => { revise(screen.id, [...choice.assessment.notes, note], choice.assessment.sources); setPlaceState({ busy: false, error: "", notice: note.category === "verification" ? "Thanks. We re-checked this place with what you saw." : "Your assumption is noted. It won’t confirm a must-have." }); }} />;
       break;

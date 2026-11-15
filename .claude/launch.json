@@ -4,13 +4,29 @@
     {
       "name": "dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", "3000"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--hostname",
+        "127.0.0.1",
+        "--port",
+        "3000"
+      ],
       "port": 3000
     },
     {
       "name": "expansion-synthetic",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", "3000"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--hostname",
+        "127.0.0.1",
+        "--port",
+        "3000"
+      ],
       "port": 3000,
       "env": {
         "EXPANSION_E2E_DB_PATH": "src/features/expansion/data/data/e2e-synthetic.sqlite",
@@ -26,7 +42,15 @@
     {
       "name": "expansion-live-test",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", "3001"],
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--hostname",
+        "127.0.0.1",
+        "--port",
+        "3001"
+      ],
       "port": 3001,
       "env": {
         "EXPANSION_DB_PATH": "src/features/expansion/data/data/expansion.sqlite",
@@ -40,8 +64,29 @@
     {
       "name": "expansion-prod-smoke",
       "runtimeExecutable": "node",
-      "runtimeArgs": ["C:/Users/rain0/AppData/Local/Temp/claude/838cf1f7140065b5/9ac945a6-91ae-4836-a70f-0ca6d3281f79/scratchpad/smoke-server.mjs"],
+      "runtimeArgs": [
+        "C:/Users/rain0/AppData/Local/Temp/claude/838cf1f7140065b5/9ac945a6-91ae-4836-a70f-0ca6d3281f79/scratchpad/smoke-server.mjs"
+      ],
       "port": 3100
+    },
+    {
+      "name": "expansion-file-store",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--",
+        "--hostname",
+        "127.0.0.1",
+        "--port",
+        "3002"
+      ],
+      "port": 3002,
+      "env": {
+        "EXPANSION_PERSISTENCE": "file",
+        "EXPANSION_STORE_DIR": "src/features/expansion/data/data/store-preview",
+        "TACTICAL_DATA_SOURCE": "demo"
+      }
     }
   ]
 }

@@ -1,7 +1,14 @@
 import { createHash } from "node:crypto";
 import { EVIDENCE_VERSION, sourceObservationSchema, sourceSnapshotSchema, type SourceObservation, type SourceSnapshot } from "../domain/evidence.ts";
-import { ACS_VARIABLES, HEIGHTS_DEFINITION, SYNTHETIC_LIMITATION, acsObservation, contextGaps, mapMatterport, mapVexcel, parseAcsResponse } from "../domain/source-adapters.ts";
+import { ACS_VARIABLES, SYNTHETIC_LIMITATION, acsObservation, contextGaps, mapMatterport, mapVexcel, parseAcsResponse } from "../domain/source-adapters.ts";
 import type { SpaceCandidate } from "../domain/matching.ts";
+
+// Legacy metadata for explicit synthetic test fixtures only.
+const HEIGHTS_DEFINITION = {
+  version: "houston-sn15-lookup-v1", name: "Greater Heights (Super Neighborhood 15)",
+  referenceUrl: "https://www.houstontx.gov/superneighborhoods/15.html",
+  limitation: "Greater Heights is a documented possible interpretation of the owner's Heights preference. Membership requires a sourced boundary lookup; address text alone is not membership. Owner confirmation of this definition remains needed.",
+};
 
 /**
  * Labeled synthetic source fixtures (Phase 4, this machine has no provider

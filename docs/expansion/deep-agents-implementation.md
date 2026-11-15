@@ -266,3 +266,45 @@ delegation through the framework's `task(subagent_type, description)` tool.
 actually needs (bounded authenticated tools, validated artifacts, durable
 runs, SSE into Next.js, honest model-outage fallback).
 
+
+### Candidate market context returned to the agent (2026-11-15)
+
+`inspector.evidence` now returns an optional, independently versioned
+`marketContext` (`expansion-inspection-market-context-v1`) on each inspected
+candidate and preserves it in `inspection.json`. The TypeScript and Python
+contracts accept historical entries without this extension (or with null);
+existing artifact envelope versions and deterministic assessments are unchanged.
+Deploy the server and Python worker together; an older worker cannot read this
+new field.
+
+The bridge projects only non-synthetic ACS and OSM observations from the same
+candidate's collected snapshot: evidence IDs, provider record IDs, source and
+retrieval dates, origin, geographic scope, details, limitations and reference
+URLs. Images, raw source responses and property AI estimates are excluded from
+this public market context. Inspector/planner instructions require explaining
+this evidence and its gaps in the final tradeoff summary. No numeric ranking or
+financial input is inferred from it.
+
+ACS is pinned 2019–2023 containing-tract population/median household income with
+margins of error, not population within a restaurant's catchment radius. OSM is a
+bounded count of mapped restaurant objects within 500 m, not verified unique
+competitors or same-cuisine matching. Public calls still require
+`EXPANSION_SOURCE_NETWORK=1` and a non-demo candidate. The existing collection
+limit of three candidates and 20-second overall budget remain; skipped, disabled,
+failed and timed-out context is returned as explicit gaps. New searches receive
+this extension; historical completed runs are not rewritten. Map overlays are a
+separate feature.
+
+Validation uses labeled test responses and the shared cross-language inspection
+fixture, including success, disabled sources and source failure. It does not
+establish live ACS/OSM availability or a live model's analysis quality.
+
+The location detail page now shows this evidence in an always-visible **Around
+this location** section: containing-tract population and household income, nearby
+restaurant objects within 500 m, source dates/retrieval dates, explicit test-data
+labels, source links and limitations. A dedicated refresh action reuses the
+existing investigation source endpoint. Saved plans display their frozen evidence
+and disable refresh. When a full source snapshot has never been checked, the
+page can display the same candidate's persisted inspection market context; a
+newer source check takes precedence. No extra demographic or competitive score
+is calculated by the page.

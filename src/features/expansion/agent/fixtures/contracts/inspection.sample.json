@@ -6,10 +6,10 @@
   "candidates": [
     {
       "candidateId": "space-synth-1",
-      "name": "Synthetic Plaza · Suite 101",
+      "name": "Synthetic Plaza \u00b7 Suite 101",
       "candidate": {
         "id": "space-synth-1",
-        "name": "Synthetic Plaza · Suite 101",
+        "name": "Synthetic Plaza \u00b7 Suite 101",
         "address": "1 Synthetic Way",
         "suite": "101",
         "cityId": "Houston",
@@ -46,7 +46,7 @@
           "reasonCode": "below_cap",
           "reason": "The complete monthly occupancy upper bound of $4500 is within the $5000 total cap.",
           "evidenceIds": [],
-          "sourceValue": "Quoted 4.5 USD/SF/month (service type 7) → $4500–$4500/month"
+          "sourceValue": "Quoted 4.5 USD/SF/month (service type 7) \u2192 $4500\u2013$4500/month"
         },
         {
           "requirementId": "space.existingKitchen",
@@ -118,7 +118,50 @@
       "verificationTasks": [
         "Verify suite kitchen equipment with the landlord or a walkthrough.",
         "Confirm customer parking rights for the suite in the lease."
-      ]
+      ],
+      "marketContext": {
+        "version": "expansion-inspection-market-context-v1",
+        "observations": [
+          {
+            "id": "test:acs:tract",
+            "provider": "acs",
+            "scope": "tract",
+            "sourceRecordId": "48201510100",
+            "sourceDate": null,
+            "retrievedAt": "2026-11-01T00:00:00Z",
+            "origin": "observed",
+            "label": "Test ACS tract context",
+            "details": [
+              "Population: 1000 persons; MOE \u00b150 persons (90% confidence).",
+              "Median household income: 50000 USD (2023 inflation-adjusted); MOE \u00b12000 USD (90% confidence)."
+            ],
+            "limitations": [
+              "Test fixture; not a live provider record. Containing tract context only; not residents within 500 m or current demand."
+            ],
+            "referenceUrl": "https://api.census.gov/data/2023/acs/acs5.html"
+          },
+          {
+            "id": "test:osm:500m",
+            "provider": "competition",
+            "scope": "site",
+            "sourceRecordId": "test-osm-query",
+            "sourceDate": "2026-11-01T00:00:00Z",
+            "retrievedAt": "2026-11-01T00:00:00Z",
+            "origin": "derived",
+            "label": "Test OSM context",
+            "details": [
+              "1 mapped restaurant object within 500 m."
+            ],
+            "limitations": [
+              "Test fixture; not a live provider record. OSM completeness unknown; not a unique competitor census or same-cuisine ranking."
+            ],
+            "referenceUrl": "https://www.openstreetmap.org/copyright"
+          }
+        ],
+        "gaps": [
+          "Home similarity and price fit unavailable."
+        ]
+      }
     }
   ],
   "notFoundIds": [

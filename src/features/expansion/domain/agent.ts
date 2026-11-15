@@ -216,6 +216,20 @@ export const searchArtifactSchema = z.object({
 });
 export type SearchArtifact = z.infer<typeof searchArtifactSchema>;
 
+/** Optional versioned extension: public site context, never a suitability score. */
+export const inspectionMarketContextSchema = z.object({
+  version: z.literal("expansion-inspection-market-context-v1"),
+  observations: z.array(z.object({
+    id, provider: z.enum(["acs", "competition"]),
+    scope: z.enum(["site", "tract"]), sourceRecordId: z.string().min(1),
+    sourceDate: z.string().nullable(), retrievedAt: iso,
+    origin: z.enum(["observed", "derived"]), label: z.string().min(1),
+    details: z.array(z.string()), limitations: z.array(z.string()),
+    referenceUrl: z.url().nullable(),
+  }).strict()).max(2),
+  gaps: z.array(z.string()),
+}).strict();
+
 /** inspection.json — written by the inspector.evidence tool. */
 export const inspectionArtifactSchema = z.object({
   artifactVersion: z.literal(AGENT_ARTIFACT_VERSION),
@@ -230,6 +244,7 @@ export const inspectionArtifactSchema = z.object({
       assessments: z.array(assessmentSchema),
       gaps: z.array(assessmentSchema),
       verificationTasks: z.array(z.string().min(1)),
+      marketContext: inspectionMarketContextSchema.nullish(),
     }),
   ),
   notFoundIds: z.array(id),
@@ -523,6 +538,7 @@ export const inspectionToolOutputSchema = z.object({
       assessments: z.array(assessmentSchema),
       gaps: z.array(assessmentSchema),
       verificationTasks: z.array(z.string().min(1)),
+      marketContext: inspectionMarketContextSchema.nullish(),
     }),
   ),
   notFoundIds: z.array(id),

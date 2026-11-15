@@ -18,6 +18,7 @@ import {
   agentRunRequestFileSchema,
   financeArtifactSchema,
   inspectionArtifactSchema,
+  inspectionMarketContextSchema,
   inspectionToolOutputSchema,
   marketArtifactSchema,
   marketToolOutputSchema,
@@ -38,6 +39,7 @@ import { intakeSchema, type RestaurantIntake } from "../domain/intake.ts";
 import { normalizeRequirements } from "../domain/requirements.ts";
 import {
   assessCandidates,
+  evaluateCandidate,
   factSchema,
   MATCHING_MODEL_VERSION,
   serviceInclusion,
@@ -46,7 +48,7 @@ import {
 import { financeInputsFromBaseline } from "../domain/scenario.ts";
 import { sourceSnapshotSchema, type SourceSnapshot } from "../domain/evidence.ts";
 import type { SpaceCandidate } from "../domain/matching.ts";
-import { collectCandidateSources } from "./investigation-sources.ts";
+import { collectCandidateSources, type SourceDependencies } from "./investigation-sources.ts";
 import { invokeTool } from "../domain/tools.ts";
 import { requirementsHashOf, RunError } from "./runs.ts";
 import {
@@ -101,6 +103,8 @@ export type AgentServiceConfig = {
   /** Test hook: false skips spawning the detached worker. */
   spawn?: boolean;
   scriptPath?: string;
+  /** Server-only source overrides for deterministic integration tests. */
+  sourceDependencies?: SourceDependencies;
 };
 
 export const defaultAgentRunsDir = () =>
@@ -120,6 +124,7 @@ function serviceConfig(config: Partial<AgentServiceConfig>): AgentServiceConfig 
     defaultMode: config.defaultMode ?? defaultAgentMode(),
     spawn: config.spawn ?? true,
     scriptPath: config.scriptPath,
+    sourceDependencies: config.sourceDependencies,
   };
 }
 
@@ -807,20 +812,20 @@ export async function invokeAgentTool(
           },
           {
             source: "Neighborhood geography",
-            status: "not_configured" as const,
-            reason: "No sourced Heights neighborhood boundary is committed; geography-based market context is unavailable.",
+            status: process.env.EXPANSION_SOURCE_NETWORK === "1" ? ("configured" as const) : ("not_configured" as const),
+            reason: "City of Houston official Super Neighborhood polygons are queried during inspection. Only coordinate-based membership is reported; outside-coverage sites remain unassigned.",
             detail: null,
           },
           {
             source: "ACS demographics",
-            status: "not_configured" as const,
-            reason: "No ACS adapter is configured; demographic context is unavailable.",
+            status: process.env.EXPANSION_SOURCE_NETWORK === "1" ? ("configured" as const) : ("not_configured" as const),
+            reason: "ACS population/income context is fetched per candidate during inspection when public source calls are enabled; no city-level demographic score is computed.",
             detail: null,
           },
           {
             source: "Competition data",
-            status: "not_configured" as const,
-            reason: "No permitted competition source is configured; competitive context is unavailable.",
+            status: process.env.EXPANSION_SOURCE_NETWORK === "1" ? ("configured" as const) : ("not_configured" as const),
+            reason: "OSM restaurant-object counts within 500 m are fetched per candidate during inspection when public source calls are enabled; same-cuisine competition and composite scores remain unavailable.",
             detail: null,
           },
         ];
@@ -967,6 +972,28 @@ export async function invokeAgentTool(
           verificationTasks: verificationTasksFor(gaps),
         });
       }
+      const evidence = await collectAgentEvidence(config, sessionId, runId, inspected.map((item) => item.candidate));
+      for (const item of inspected) {
+        const snapshot = evidence?.snapshots.find((entry) => entry.candidateId === item.candidateId);
+        if (snapshot) {
+          const facts = snapshot.observations.filter(o => o.provider === "neighborhood" && !o.isSynthetic).flatMap(o => o.facts);
+          const neighborhood = evaluateCandidate(item.candidate, request.profile.requirements, facts).find(a => a.requirementId === "market.neighborhoodPreference")!;
+          item.assessments = item.assessments.map(a => a.requirementId === neighborhood.requirementId ? neighborhood : a);
+          item.gaps = item.assessments.filter(a => (a.status === "unknown" || a.status === "fail") && a.reasonCode !== "neighborhood_other");
+          item.verificationTasks = verificationTasksFor(item.gaps);
+        }
+        item.marketContext = inspectionMarketContextSchema.parse({
+          version: "expansion-inspection-market-context-v1",
+          observations: (snapshot?.observations ?? [])
+            .filter((entry) => !entry.isSynthetic && ["acs", "competition"].includes(entry.provider))
+            .map(({ id, provider, scope, sourceRecordId, sourceDate, retrievedAt, origin, label, details, limitations, referenceUrl }) =>
+              ({ id, provider, scope, sourceRecordId, sourceDate, retrievedAt, origin, label, details, limitations, referenceUrl })),
+          gaps: snapshot
+            ? [...snapshot.statuses.filter((entry) => ["acs", "competition"].includes(entry.provider) && entry.status !== "verified").map((entry) => `${entry.provider}: ${entry.reason}`),
+              ...snapshot.gaps.filter((gap) => gap.startsWith("Home similarity") || gap.startsWith("Price fit"))]
+            : [evidence?.note.startsWith("Source collection exceeded") ? evidence.note : "Public market context was not collected (collection disabled or candidate outside the bounded inspection budget)."],
+        });
+      }
       const output = inspectionToolOutputSchema.parse({
         modelVersion: "expansion-inspection-tool-v1",
         inspected,
@@ -1001,10 +1028,6 @@ export async function invokeAgentTool(
           notFoundIds: [...storedNotFounds],
         })),
       );
-      // Phase 5 integration: attach Phase 4 live source evidence for the
-      // inspected spaces as a server-written side artifact. The worker
-      // contract (tool output, inspection.json) is unchanged.
-      await collectAgentEvidence(config, sessionId, runId, inspected.map((item) => item.candidate));
       return output;
     }
 
@@ -1092,29 +1115,36 @@ export type AgentEvidence = z.infer<typeof agentEvidenceSchema>;
  * provider failures stay explicit `unavailable` statuses, and the whole step
  * is bounded so it can never stall the worker's tool call.
  */
-async function collectAgentEvidence(config: AgentServiceConfig, sessionId: string, runId: string, candidates: SpaceCandidate[]) {
-  if (process.env.EXPANSION_AGENT_EVIDENCE === "0" || candidates.length === 0) return;
+async function collectAgentEvidence(config: AgentServiceConfig, sessionId: string, runId: string, candidates: SpaceCandidate[]): Promise<AgentEvidence | null> {
+  if (process.env.EXPANSION_AGENT_EVIDENCE === "0" || candidates.length === 0) return null;
   const path = artifactPath(config, sessionId, runId, "evidence.json");
   let previous: AgentEvidence | null = null;
   try { previous = existsSync(path) ? agentEvidenceSchema.parse(readJson(path)) : null; } catch { previous = null; }
   const known = new Set(previous?.snapshots.map((item) => item.candidateId) ?? []);
   const targets = candidates.filter((item) => !known.has(item.id)).slice(0, AGENT_EVIDENCE_MAX_CANDIDATES - known.size);
-  if (targets.length === 0) return;
+  if (targets.length === 0) return previous;
   const timeout = new Promise<null>((resolveTimeout) => setTimeout(() => resolveTimeout(null), AGENT_EVIDENCE_TIMEOUT_MS).unref?.());
+  // Retain each completed public-context response even if imagery/AI runs over budget.
+  const completed = new Map<string, SourceSnapshot>();
   const collected = await Promise.race([
-    Promise.all(targets.map((candidate) => collectCandidateSources(candidate, { currentAddress: null, priceLevel: null }).catch(() => null))),
+    Promise.all(targets.map((candidate) => collectCandidateSources(candidate, { currentAddress: null, priceLevel: null }, {
+      ...config.sourceDependencies,
+      onNeighborhood: snapshot => { completed.set(candidate.id, snapshot); },
+    }).then(snapshot => { completed.set(candidate.id, snapshot); return snapshot; }).catch(() => null))),
     timeout,
   ]);
-  const snapshots = [...(previous?.snapshots ?? []), ...(collected ?? []).filter((item): item is SourceSnapshot => item !== null)];
-  atomicWrite(path, JSON.stringify(agentEvidenceSchema.parse({
+  const snapshots = [...(previous?.snapshots ?? []), ...completed.values()];
+  const evidence = agentEvidenceSchema.parse({
     version: AGENT_EVIDENCE_VERSION,
     runId,
     collectedAt: new Date().toISOString(),
     snapshots,
     note: collected === null
-      ? "Source collection exceeded its time budget; no evidence was substituted."
+      ? "Source collection exceeded its time budget; completed public context was retained and no evidence was substituted."
       : "Live Phase 4 source statuses for the inspected spaces. Unavailable sources are explicit; synthetic fixtures are never attached here.",
-  })));
+  });
+  atomicWrite(path, JSON.stringify(evidence));
+  return evidence;
 }
 
 export function getAgentEvidence(rawConfig: Partial<AgentServiceConfig>, sessionId: string, runId: string): AgentEvidence | null {

@@ -42,7 +42,7 @@ export function Compare({ workspace, choices, images, pick, onPick, onWorkOut, o
   };
   const neighborhood = (choice: BriefChoice) => {
     const item = choice.assessment.assessments.find((a) => a.requirementId === "market.neighborhoodPreference");
-    return item?.status === "pass" ? `${item.sourceValue}, one of your picks` : item?.status === "fail" ? `${item.sourceValue}, not one of your picks` : "Not confirmed";
+    return item?.reasonCode === "neighborhood_member" ? `${item.sourceValue}, one of your picks` : item?.reasonCode === "neighborhood_other" ? `${item.sourceValue}, not one of your picks` : "Not available from a source";
   };
   const monthly = (choice: BriefChoice) => {
     const total = choice.financeResults.occupancy;

@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { decisionBriefSchema, type DecisionBrief } from "../../domain/decision-brief.ts";
 import { sourceSnapshotSchema, type SourceSnapshot } from "../../domain/evidence.ts";
-import type { ProfileDraftEnvelope } from "../storage.ts";
+import { profileDraftEnvelopeSchema, type ProfileDraftEnvelope } from "../storage.ts";
 
 /**
  * Browser client for the owner session and durable workspace APIs.
@@ -79,8 +79,26 @@ export const listAccountBriefs = () =>
 export const saveAccountBrief = (brief: DecisionBrief) =>
   call("/api/expansion/briefs", briefRecordSchema.extend({ result: z.string(), storage: z.string() }), { method: "POST", body: JSON.stringify({ brief }) });
 
-export const loadAccountProfile = () =>
-  call("/api/expansion/profiles", z.object({ envelope: z.unknown().nullable(), storage: z.string() }));
+const profileSummarySchema = z.object({
+  profileId: z.string(),
+  restaurantName: z.string().nullable(),
+  isDemo: z.boolean(),
+  latestRevisionNumber: z.number(),
+  latestRevisionId: z.string(),
+  createdAt: z.string(),
+  updatedAt: z.string(),
+});
+export type ProfileSummary = z.infer<typeof profileSummarySchema>;
+
+/** The owner's restaurant profiles stored in the workspace, most recently updated first. */
+export const listAccountProfiles = () =>
+  call("/api/expansion/profiles", z.object({ profiles: z.array(profileSummarySchema), storage: z.string() }));
+
+/** One stored profile, validated as a profile envelope. */
+export const loadAccountProfile = async (profileId: string) => {
+  const body = await call(`/api/expansion/profiles/${encodeURIComponent(profileId)}`, z.object({ envelope: z.unknown(), storage: z.string() }));
+  return { envelope: profileDraftEnvelopeSchema.parse(body.envelope), storage: body.storage };
+};
 
 export const saveAccountProfile = (envelope: ProfileDraftEnvelope) =>
   call("/api/expansion/profiles", z.object({ profileId: z.string(), revisions: z.array(z.object({ revisionId: z.string(), revisionNumber: z.number(), result: z.string() })), storage: z.string() }), { method: "POST", body: JSON.stringify({ envelope }) });

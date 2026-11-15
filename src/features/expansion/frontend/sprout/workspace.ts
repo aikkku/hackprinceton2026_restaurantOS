@@ -1,6 +1,7 @@
 import type { DecisionBrief, InvestigationRun } from "../../domain/decision-brief.ts";
-import type { SourceSnapshot } from "../../domain/evidence.ts";
-import { applyRequirementPreferences, groupFor, type AssessedCandidate } from "../../domain/matching.ts";
+import { EVIDENCE_VERSION, sourceSnapshotSchema, type SourceSnapshot } from "../../domain/evidence.ts";
+import { applyRequirementPreferences, evaluateCandidate, groupFor, type AssessedCandidate } from "../../domain/matching.ts";
+import { loadRunNeighborhoods, mergeOfficialNeighborhood } from "../data/neighborhoods.ts";
 import type { RentEstimate } from "../../domain/rent-estimate.ts";
 import type { SearchRequirements } from "../../domain/requirements.ts";
 import { loadAgentEvidence } from "../data/account-client.ts";
@@ -84,7 +85,7 @@ export async function loadAgentWorkspace(runId: string, signal?: AbortSignal): P
     // Estimates are an enhancement, never a gate: failures yield an empty map.
     loadRentEstimates(runId, "agent", signal).catch(() => new Map<string, RentEstimate>()),
   ]);
-  return workspaceFromBundle(bundle, evidence, "agent", rentEstimates);
+  return populateOfficialNeighborhoods(workspaceFromBundle(bundle, evidence, "agent", rentEstimates), signal);
 }
 
 export async function loadDeterministicWorkspace(runId: string, signal?: AbortSignal): Promise<Workspace> {
@@ -101,7 +102,7 @@ export async function loadDeterministicWorkspace(runId: string, signal?: AbortSi
     if (!page.returned || offset >= page.total) break;
   }
   const requirements = run.profile.requirements;
-  return {
+  return populateOfficialNeighborhoods({
     source: "deterministic",
     runId,
     cityId: run.cityId,
@@ -121,7 +122,31 @@ export async function loadDeterministicWorkspace(runId: string, signal?: AbortSi
     isSynthetic: candidates.some((item) => item.candidate.isDemo) || /^synthetic[-_]/.test(run.datasetId ?? ""),
     included: run.counts.included,
     examined: run.counts.examined,
-  };
+  }, signal);
+}
+
+async function populateOfficialNeighborhoods(workspace: Workspace, signal?: AbortSignal): Promise<Workspace> {
+  if (workspace.source === "saved_plan" || workspace.isSynthetic) return workspace;
+  let snapshots: SourceSnapshot[];
+  try {
+    const result = await loadRunNeighborhoods(workspace.runId, workspace.source, signal);
+    snapshots = result.snapshots;
+  } catch (error) {
+    if (signal?.aborted) throw error;
+    const now = new Date().toISOString();
+    snapshots = workspace.candidates.map(item => sourceSnapshotSchema.parse({ version: EVIDENCE_VERSION, candidateId: item.candidate.id, refreshedAt: now,
+      observations: [], gaps: ["Official City neighborhood source unavailable; legacy labels are not substituted."],
+      statuses: [{ provider: "neighborhood", status: "unavailable", mode: "unavailable", checkedAt: now, capabilities: [], reason: "Official City neighborhood source unavailable; no neighborhood guessed." }] }));
+  }
+  const evidence = new Map(workspace.evidence);
+  for (const snapshot of snapshots) evidence.set(snapshot.candidateId, mergeOfficialNeighborhood(evidence.get(snapshot.candidateId), snapshot));
+  const candidates = workspace.candidates.map(item => {
+    const facts = evidence.get(item.candidate.id)?.observations.filter(o => o.provider === "neighborhood").flatMap(o => o.facts) ?? [];
+    const neighborhood = evaluateCandidate(item.candidate, workspace.requirements, facts).find(a => a.requirementId === "market.neighborhoodPreference")!;
+    const assessments = item.assessments.map(a => a.requirementId === neighborhood.requirementId ? neighborhood : a);
+    return { ...item, assessments, group: groupFor(assessments) };
+  });
+  return { ...workspace, evidence, candidates };
 }
 
 export function workspaceFromBrief(brief: DecisionBrief): Workspace {

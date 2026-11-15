@@ -8,6 +8,7 @@ import {
   formFromRevision,
   requirementToField,
 } from "./frontend/profile-form.ts";
+import { blankNeedsForm, basicsIssue, emptyBasics, ownerEnvelope, reviseFromForm } from "./frontend/sprout/profile.ts";
 
 const seed = () =>
   createProfileRevision(
@@ -165,4 +166,67 @@ test("profile form maps requirement ids to fields and summarizes changes", () =>
     "Owner edit: Total monthly occupancy limit.",
   );
   assert.equal(changedSummary([], base), "Owner edit (no requirement changes).");
+});
+
+// --- New owner profiles (stored in the workspace, no example data) ---------
+
+const basics = () => ({ ...emptyBasics(), name: "Lotus Noodle Bar", cuisine: "Vietnamese", currentCity: "Austin", currentState: "tx", funds: "150,000", reserve: "30,000" });
+const ownerForm = () => ({ ...blankNeedsForm(basics()), occupancy: "7000", seatsMin: "30", seatsMax: "45", neighborhoods: "Midtown, Montrose", parking: false });
+
+test("a new owner profile is a non-demo revision 0 whose requirements cite the owner's answers", () => {
+  const result = ownerEnvelope(basics(), ownerForm(), "2026-11-15T00:00:00.000Z");
+  assert.ok(result.ok);
+  const revision = result.revision;
+  assert.equal(revision.revisionNumber, 0);
+  assert.equal(revision.parentRevisionId, null);
+  assert.equal(revision.isDemo, false);
+  assert.equal(result.envelope.revisions.length, 1);
+  const intake = revision.intakeSnapshot;
+  assert.equal(intake.origin, "owner_entered");
+  assert.equal(intake.restaurant.name, "Lotus Noodle Bar");
+  assert.equal(intake.restaurant.currentState, "TX");
+  assert.equal(intake.budget.totalAvailableFunds, 150000);
+  assert.equal(intake.budget.cashReserveToKeep, 30000);
+  assert.equal(intake.space.mustHave.customerParking, false);
+  assert.deepEqual(intake.expansion.preferredNeighborhoods, ["Midtown", "Montrose"]);
+  assert.ok(!intake.followUpQuestions.some((item) => item.field === "budget.cashReserveToKeep"), "a given reserve is not asked again");
+  const answerIds = new Set(intake.sourceAnswers.map((item) => item.id));
+  for (const requirement of revision.requirements.requirements) {
+    assert.notEqual(requirement.origin, "simulated", `${requirement.id} is never labeled simulated`);
+    for (const id of requirement.sourceAnswerIds) assert.ok(answerIds.has(id), `${requirement.id} cites ${id}`);
+  }
+  const form = formFromRevision(revision);
+  assert.equal(form.occupancy, "7000");
+  assert.equal(form.seatsMax, "45");
+});
+
+test("owner profile edits become new revisions on top of the owner's revision 0", () => {
+  const created = ownerEnvelope(basics(), ownerForm(), "2026-11-15T00:00:00.000Z");
+  assert.ok(created.ok);
+  const revised = reviseFromForm(created.envelope, { ...formFromRevision(created.revision), occupancy: "6500" }, "2026-11-15T00:05:00.000Z");
+  assert.ok(revised.ok && revised.changed);
+  assert.equal(revised.revision.revisionNumber, 1);
+  assert.equal(revised.revision.parentRevisionId, created.revision.revisionId);
+  assert.equal(revised.envelope.revisions[0].revisionId, created.revision.revisionId, "the profile id (revision 0) is unchanged");
+});
+
+test("new owner profiles reject missing basics, impossible money and unsupported markets", () => {
+  assert.match(basicsIssue({ ...basics(), name: " " }) ?? "", /name/);
+  assert.match(basicsIssue({ ...basics(), currentState: "Texas" }) ?? "", /two-letter/);
+  assert.match(basicsIssue({ ...basics(), funds: "" }) ?? "", /money/);
+  assert.match(basicsIssue({ ...basics(), reserve: "200,000" }) ?? "", /reserve/);
+  assert.equal(basicsIssue(basics()), null);
+  const noSeats = ownerEnvelope(basics(), { ...ownerForm(), seatsMin: "" });
+  assert.ok(!noSeats.ok && /seat/.test(noSeats.message));
+  const noRent = ownerEnvelope(basics(), { ...ownerForm(), occupancy: "" });
+  assert.ok(!noRent.ok && /occupancy/.test(noRent.message));
+  const la = ownerEnvelope(basics(), { ...ownerForm(), market: "US-CA-Los Angeles" });
+  assert.ok(!la.ok && /not a supported market/.test(la.message));
+});
+
+test("buildEdits with no previous revision validates and returns every edit", () => {
+  const { edits, issues } = buildEdits(ownerForm(), null);
+  assert.deepEqual(issues, []);
+  assert.ok(edits.some((edit) => edit.id === "occupancy.monthlyLimit"));
+  assert.ok(edits.some((edit) => edit.id === "space.existingKitchen"));
 });

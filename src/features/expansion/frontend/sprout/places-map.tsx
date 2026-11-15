@@ -3,160 +3,41 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Map as LibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { FIT_ICON, FIT_LABEL, type Fit } from "./model.ts";
+import { cardElement, pinElement, toSpots, type MapPlace, type Spot } from "./map-dom.ts";
+import type { MapsBrowserConfig } from "../../backend/maps-config.ts";
+import { GooglePlacesMap } from "./google-places-map.tsx";
 
-export type MapPlace = {
-  id: string; name: string; location: string; address: string;
-  lat: number | null; lng: number | null; fit: Fit;
-  /** Short label inside the pin. */
-  price: string;
-  /** Full price line for the card, e.g. "$4,875/mo" or "≈ $2.3k–3.4k/mo + building charges". */
-  priceLabel: string;
-  /** "1,500 sq ft" or "1,200–2,000 sq ft"; empty when unknown. */
-  size: string;
-  /** First still-open check question, shown as a soft banner. */
-  question: string | null;
-  image: string | null;
-  saved: boolean;
-};
-type Spot = { key: string; lat: number; lng: number; places: MapPlace[] };
+export type { MapPlace } from "./map-dom.ts";
 
-const FIT_ORDER: Fit[] = ["meets", "verify", "other", "fails"];
-const bestFit = (places: MapPlace[]) => FIT_ORDER.find((fit) => places.some((p) => p.fit === fit)) ?? "other";
-
-/** Group listings that share a map position so they never hide each other. */
-function toSpots(places: MapPlace[]): Spot[] {
-  const spots = new Map<string, Spot>();
-  for (const place of places) {
-    if (place.lat === null || place.lng === null) continue;
-    const key = `${place.lat.toFixed(5)},${place.lng.toFixed(5)}`;
-    const spot = spots.get(key) ?? { key, lat: place.lat, lng: place.lng, places: [] };
-    spot.places.push(place);
-    spots.set(key, spot);
-  }
-  return [...spots.values()];
-}
-
-function pinElement(spot: Spot, selectedId: string | null, onPick: (id: string, spotKey: string) => void): HTMLButtonElement {
-  const selectedHere = spot.places.find((p) => p.id === selectedId);
-  const lead = selectedHere ?? spot.places[0];
-  const fit = spot.places.length > 1 ? bestFit(spot.places) : lead.fit;
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = `sx-pin${!selectedHere && fit === "fails" ? " sx-pin-dim" : ""}`;
-  button.setAttribute("aria-pressed", String(Boolean(selectedHere)));
-  const label = spot.places.length > 1
-    ? `${spot.places.length} places at one address${selectedHere ? `, showing ${selectedHere.name}` : ""}`
-    : `${lead.name}, ${lead.price}${lead.fit === "verify" ? "" : `, ${FIT_LABEL[lead.fit]}`}`;
-  button.setAttribute("aria-label", label);
-  const dot = document.createElement("span");
-  dot.className = `sx-dot sx-s-${fit}`;
-  dot.setAttribute("aria-hidden", "true");
-  dot.textContent = FIT_ICON[fit];
-  if (fit !== "verify") button.append(dot);
-  button.append(document.createTextNode(spot.places.length > 1 && !selectedHere ? `${spot.places.length} places` : lead.price));
-  if (spot.places.some((p) => p.saved)) {
-    const saved = document.createElement("span");
-    saved.className = "sx-pin-saved";
-    saved.setAttribute("aria-hidden", "true");
-    button.append(saved);
-  }
-  button.addEventListener("click", (event) => {
-    event.stopPropagation();
-    // Clicking a shared address cycles through the places there.
-    const index = selectedHere ? spot.places.indexOf(selectedHere) : -1;
-    onPick(spot.places[(index + 1) % spot.places.length].id, spot.key);
-  });
-  return button;
-}
-
-/** Simple address card shown next to the clicked pin (DOM for the popup). */
-function cardElement(place: MapPlace, onDetails: (id: string) => void, onToggleSave: (id: string) => void, onClose: () => void): HTMLElement {
-  const card = document.createElement("div");
-  card.className = "sx-map-card";
-  // Clicks inside the card never close it via a background/plane handler.
-  card.addEventListener("click", (event) => event.stopPropagation());
-
-  // Photo header: the aerial photo we have (if any), else a labeled neutral block.
-  const photo = document.createElement("div");
-  photo.className = "sx-map-card-photo";
-  if (place.image) {
-    const img = document.createElement("img");
-    img.src = place.image;
-    img.alt = `Aerial view around ${place.name}`;
-    photo.append(img);
-  } else {
-    const none = document.createElement("span");
-    none.className = "sx-map-card-photo-empty";
-    none.textContent = "No aerial photo yet";
-    photo.append(none);
-  }
-  const close = document.createElement("button");
-  close.type = "button";
-  close.className = "sx-map-card-close";
-  close.setAttribute("aria-label", "Close");
-  close.textContent = "×";
-  close.addEventListener("click", () => onClose());
-  photo.append(close);
-  card.append(photo);
-
-  const body = document.createElement("div");
-  body.className = "sx-map-card-body";
-  const eyebrow = document.createElement("span");
-  eyebrow.className = "sx-map-card-eyebrow";
-  eyebrow.textContent = place.location;
-  const name = document.createElement("span");
-  name.className = "sx-map-card-name";
-  name.textContent = place.name;
-  const address = document.createElement("span");
-  address.className = "sx-map-card-address";
-  address.textContent = place.address;
-  const pill = document.createElement("span");
-  pill.className = `sx-pill sx-s-${place.fit}`;
-  const pillIcon = document.createElement("span");
-  pillIcon.className = "sx-pill-icon";
-  pillIcon.setAttribute("aria-hidden", "true");
-  pillIcon.textContent = FIT_ICON[place.fit];
-  pill.append(pillIcon, document.createTextNode(FIT_LABEL[place.fit]));
-  const price = document.createElement("span");
-  price.className = "sx-map-card-price";
-  price.textContent = place.size ? `${place.priceLabel} · ${place.size}` : place.priceLabel;
-  body.append(eyebrow, name, address);
-  if (place.fit !== "verify") body.append(pill);
-  body.append(price);
-  if (place.question) {
-    const question = document.createElement("span");
-    question.className = "sx-map-card-question";
-    question.textContent = place.question;
-    body.append(question);
-  }
-
-  const actions = document.createElement("span");
-  actions.className = "sx-map-card-actions";
-  const inspect = document.createElement("button");
-  inspect.type = "button";
-  inspect.className = "sx-btn sx-btn-primary sx-map-card-inspect";
-  inspect.textContent = "Inspect space";
-  inspect.addEventListener("click", () => onDetails(place.id));
-  const save = document.createElement("button");
-  save.type = "button";
-  save.className = `sx-btn sx-map-card-save${place.saved ? " sx-map-card-save-on" : ""}`;
-  save.setAttribute("aria-pressed", String(place.saved));
-  save.setAttribute("aria-label", place.saved ? `Remove ${place.name} from saved` : `Save ${place.name}`);
-  const bookmark = document.createElement("span");
-  bookmark.className = "sx-map-card-bookmark";
-  bookmark.setAttribute("aria-hidden", "true");
-  save.append(bookmark, document.createTextNode(place.saved ? "Saved" : "Save"));
-  save.addEventListener("click", () => onToggleSave(place.id));
-  actions.append(inspect, save);
-  body.append(actions);
-  card.append(body);
-  return card;
-}
-
-export function PlacesMap({ places, selectedId, onSelect, onOpen, onToggleSave, center, note }: {
+export type PlacesMapProps = {
   places: MapPlace[]; selectedId: string | null; onSelect: (id: string) => void; onOpen: (id: string) => void; onToggleSave: (id: string) => void; center: [number, number] | null; note: string;
-}) {
+  /** Run and owner cuisine for the Google nearby-restaurant layer. */
+  runId: string; cuisine: string | null;
+};
+
+/**
+ * Google map when a browser key is configured. Otherwise (or if Google fails
+ * to load) the MapLibre map shows listings only: Google Places results are
+ * never drawn on a non-Google map.
+ */
+export function PlacesMap(props: PlacesMapProps) {
+  const [config, setConfig] = useState<MapsBrowserConfig | null | "loading">("loading");
+  const [googleFailed, setGoogleFailed] = useState("");
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/expansion/maps-config", { cache: "no-store", signal: controller.signal })
+      .then(response => response.ok ? response.json() as Promise<MapsBrowserConfig> : null)
+      .then(next => setConfig(next))
+      .catch(() => { if (!controller.signal.aborted) setConfig(null); });
+    return () => controller.abort();
+  }, []);
+  if (config === "loading") return <div className="sx-map" aria-label="Map of places" aria-busy="true" />;
+  if (config?.browserKey && !googleFailed) return <GooglePlacesMap {...props} browserKey={config.browserKey} mapId={config.mapId} onFail={setGoogleFailed} />;
+  const why = googleFailed || config?.reason || "Google map settings unavailable";
+  return <LibrePlacesMap {...props} note={`${props.note} · ${why}; nearby restaurants are listed on each place’s page`} />;
+}
+
+function LibrePlacesMap({ places, selectedId, onSelect, onOpen, onToggleSave, center, note }: PlacesMapProps) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LibreMap | null>(null);
   const markers = useRef<Marker[]>([]);
@@ -266,7 +147,7 @@ export function PlacesMap({ places, selectedId, onSelect, onOpen, onToggleSave, 
         </div>
       )}
       <div className="sx-map-legend" aria-label="Map legend">
-        {(["meets", "fails"] as const).map((fit) => <span key={fit}><span className={`sx-dot sx-s-${fit}`} aria-hidden="true">{FIT_ICON[fit]}</span>{FIT_LABEL[fit]}</span>)}
+        <span>Fit score 1–10 · higher is better</span><span>×N = spaces at this address · best score shown</span>
       </div>
       <p className="sx-map-note">{state === "fallback" ? "Map tiles couldn’t load. Pins show relative positions only." : note}{missing ? ` · ${missing} without a map location` : ""}</p>
     </div>

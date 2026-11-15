@@ -259,12 +259,12 @@ export function createMongoRepository(getDatabase: () => Promise<Db>): Expansion
   let ready: Promise<Db> | null = null;
   let failedUntil = 0;
   const database = async () => {
-    if (Date.now() < failedUntil) throw new PersistenceError("persistence_unavailable", "MongoDB is unreachable (retrying shortly). Browser copies are kept; nothing was lost.");
+    if (Date.now() < failedUntil) throw new PersistenceError("persistence_unavailable", "MongoDB is unreachable (retrying shortly). Nothing was changed.");
     ready ??= getDatabase().then(async db => { await migrateMongo(db); return db; });
     try { return await ready; } catch {
       ready = null;
       failedUntil = Date.now() + 30_000;
-      throw new PersistenceError("persistence_unavailable", "MongoDB is unreachable or rejected the connection. Check MONGODB_URI and the database network access list; browser copies are kept.");
+      throw new PersistenceError("persistence_unavailable", "MongoDB is unreachable or rejected the connection. Check MONGODB_URI and that this computer's IP is on the Atlas network access list. Nothing was changed.");
     }
   };
   const guarded = async <T>(work: (db: Db) => Promise<T>): Promise<T> => {
@@ -342,6 +342,6 @@ export async function getRepository(): Promise<ExpansionRepository | null> {
 
 export async function requireRepository(): Promise<ExpansionRepository> {
   const repository = await getRepository();
-  if (!repository) throw new PersistenceError("persistence_unavailable", "Account storage is not configured on this server (set MONGODB_URI, or EXPANSION_PERSISTENCE=file for single-host development). Browser copies are kept.");
+  if (!repository) throw new PersistenceError("persistence_unavailable", "Account storage is not configured on this server (set MONGODB_URI, or EXPANSION_PERSISTENCE=file for single-host development). Nothing was changed.");
   return repository;
 }
