@@ -237,7 +237,8 @@ export async function migrateMongo(db: Db): Promise<MigrationReport> {
       report.validatorsApplied.push(name);
     }
     for (const index of MONGO_INDEXES[key]) {
-      await db.collection(name).createIndex(index.key, { name: index.name, unique: index.unique, ...(index.expireAfterSeconds ? { expireAfterSeconds: index.expireAfterSeconds } : {}) });
+      // The driver serializes undefined as BSON null; MongoDB requires a boolean.
+      await db.collection(name).createIndex(index.key, { name: index.name, unique: index.unique ?? false, ...(index.expireAfterSeconds ? { expireAfterSeconds: index.expireAfterSeconds } : {}) });
       report.indexes += 1;
     }
   }
