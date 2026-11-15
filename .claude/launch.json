@@ -1,0 +1,41 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "expansion-synthetic",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", "3000"],
+      "port": 3000,
+      "env": {
+        "EXPANSION_E2E_DB_PATH": "src/features/expansion/data/data/e2e-synthetic.sqlite",
+        "EXPANSION_E2E_DATASET_ID": "synthetic-e2e-v1",
+        "EXPANSION_E2E_COSTAR_ROOT": "src/features/expansion/data/data/e2e-kit",
+        "EXPANSION_E2E_RUNS_DIR": "src/features/expansion/data/data/runs-preview",
+        "EXPANSION_AGENT_RUNS_DIR": "src/features/expansion/data/data/runs-preview",
+        "EXPANSION_AGENT_DEFAULT_MODE": "scripted",
+        "EXPANSION_SOURCE_NETWORK": "0",
+        "TACTICAL_DATA_SOURCE": "demo"
+      }
+    },
+    {
+      "name": "expansion-live-test",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--hostname", "127.0.0.1", "--port", "3001"],
+      "port": 3001,
+      "env": {
+        "EXPANSION_DB_PATH": "src/features/expansion/data/data/expansion.sqlite",
+        "EXPANSION_COSTAR_ROOT": "src/features/expansion/data/costar-hackathon-kit (1)",
+        "EXPANSION_PERSISTENCE": "file",
+        "EXPANSION_AGENT_BRIDGE_URL": "http://127.0.0.1:3001",
+        "EXPANSION_AGENT_RUNS_DIR": "src/features/expansion/data/data/runs-live-test",
+        "TACTICAL_DATA_SOURCE": "demo"
+      }
+    },
+    {
+      "name": "expansion-prod-smoke",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["C:/Users/rain0/AppData/Local/Temp/claude/838cf1f7140065b5/9ac945a6-91ae-4836-a70f-0ca6d3281f79/scratchpad/smoke-server.mjs"],
+      "port": 3100
+    }
+  ]
+}
