@@ -18,3 +18,20 @@ src/features/expansion/data/costar-hackathon-kit (1)/
 src/features/expansion/data/data/
 src/features/expansion/data/output/
 src/features/expansion/data/quickstart/
+
+# ---- Phase 3 Deep Agents worker (isolated environment / scratch) ----
+src/features/expansion/agent/.venv/
+src/features/expansion/agent/.tools/
+src/features/expansion/agent/.uv-cache/
+src/features/expansion/agent/.tmp/
+src/features/expansion/data/.venv-helper/
+
+# Runtime test scratch (never source data)
+/.phase4-tmp/
+/bridge-*/
+/cancel-*/
+/deleg-*/
+/events-*/
+/safety-*/
+/smoke-run-*/
+/phase4-provider-*/

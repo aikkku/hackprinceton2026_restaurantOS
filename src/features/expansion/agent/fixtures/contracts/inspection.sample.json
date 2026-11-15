@@ -1,0 +1,127 @@
+{
+  "artifactVersion": "expansion-agent-artifact-v1",
+  "modelVersion": "expansion-inspection-tool-v1",
+  "runId": "fixture-run",
+  "inspectedAt": "2026-11-14T12:02:00.000Z",
+  "candidates": [
+    {
+      "candidateId": "space-synth-1",
+      "name": "Synthetic Plaza · Suite 101",
+      "candidate": {
+        "id": "space-synth-1",
+        "name": "Synthetic Plaza · Suite 101",
+        "address": "1 Synthetic Way",
+        "suite": "101",
+        "cityId": "Houston",
+        "latitude": 29.7,
+        "longitude": -95.4,
+        "h3Index": "882830829bfffff",
+        "floorAreaSqFt": 1000,
+        "sizeRangeSqFt": {
+          "minimum": 1000,
+          "maximum": 1000
+        },
+        "rent": {
+          "low": 4.5,
+          "high": 4.5,
+          "rateBasisCode": 1,
+          "currencyCode": 1,
+          "measurementCode": 1,
+          "serviceTypeCode": 7
+        },
+        "spaceUseCode": 5,
+        "listingStatusCode": 1,
+        "propertyId": "prop-synth-1",
+        "sourceIds": [
+          "costar:listing:synth-1"
+        ],
+        "recordDate": "2026-11-01",
+        "datasetDate": "2026-11-01",
+        "isDemo": false
+      },
+      "assessments": [
+        {
+          "requirementId": "occupancy.monthlyLimit",
+          "status": "pass",
+          "reasonCode": "below_cap",
+          "reason": "The complete monthly occupancy upper bound of $4500 is within the $5000 total cap.",
+          "evidenceIds": [],
+          "sourceValue": "Quoted 4.5 USD/SF/month (service type 7) → $4500–$4500/month"
+        },
+        {
+          "requirementId": "space.existingKitchen",
+          "status": "unknown",
+          "reasonCode": "kitchen_unverified",
+          "reason": "No suite-scoped evidence verifies an existing kitchen. Verification is needed.",
+          "evidenceIds": [],
+          "sourceValue": "No kitchen evidence"
+        },
+        {
+          "requirementId": "space.customerParking",
+          "status": "unknown",
+          "reasonCode": "parking_unverified",
+          "reason": "Customer parking use rights are unverified. Nearby visible stalls alone do not establish customer use.",
+          "evidenceIds": [],
+          "sourceValue": "No parking evidence"
+        },
+        {
+          "requirementId": "space.seats",
+          "status": "not_applicable",
+          "reasonCode": "capacity_unknown",
+          "reason": "No usable dining-area or capacity evidence; the seat preference cannot be assessed.",
+          "evidenceIds": [],
+          "sourceValue": "Capacity unknown"
+        },
+        {
+          "requirementId": "market.neighborhoodPreference",
+          "status": "unknown",
+          "reasonCode": "neighborhood_unresolved",
+          "reason": "This space's neighborhood is unresolved; Heights remains preferred but other Houston neighborhoods stay eligible.",
+          "evidenceIds": [],
+          "sourceValue": "Neighborhood unknown"
+        }
+      ],
+      "gaps": [
+        {
+          "requirementId": "space.existingKitchen",
+          "status": "unknown",
+          "reasonCode": "kitchen_unverified",
+          "reason": "No suite-scoped evidence verifies an existing kitchen. Verification is needed.",
+          "evidenceIds": [],
+          "sourceValue": "No kitchen evidence"
+        },
+        {
+          "requirementId": "space.customerParking",
+          "status": "unknown",
+          "reasonCode": "parking_unverified",
+          "reason": "Customer parking use rights are unverified. Nearby visible stalls alone do not establish customer use.",
+          "evidenceIds": [],
+          "sourceValue": "No parking evidence"
+        },
+        {
+          "requirementId": "space.seats",
+          "status": "not_applicable",
+          "reasonCode": "capacity_unknown",
+          "reason": "No usable dining-area or capacity evidence; the seat preference cannot be assessed.",
+          "evidenceIds": [],
+          "sourceValue": "Capacity unknown"
+        },
+        {
+          "requirementId": "market.neighborhoodPreference",
+          "status": "unknown",
+          "reasonCode": "neighborhood_unresolved",
+          "reason": "This space's neighborhood is unresolved; Heights remains preferred but other Houston neighborhoods stay eligible.",
+          "evidenceIds": [],
+          "sourceValue": "Neighborhood unknown"
+        }
+      ],
+      "verificationTasks": [
+        "Verify suite kitchen equipment with the landlord or a walkthrough.",
+        "Confirm customer parking rights for the suite in the lease."
+      ]
+    }
+  ],
+  "notFoundIds": [
+    "space-does-not-exist"
+  ]
+}

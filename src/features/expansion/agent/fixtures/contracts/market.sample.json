@@ -1,0 +1,32 @@
+{
+  "artifactVersion": "expansion-agent-artifact-v1",
+  "modelVersion": "expansion-market-tool-v1",
+  "runId": "fixture-run",
+  "cityId": "Houston",
+  "sourced": true,
+  "dataset": {
+    "datasetId": "fixture-dataset",
+    "datasetDate": "2026-11-01",
+    "propertyCount": 12,
+    "listingCount": 9,
+    "spaceCount": 9,
+    "mappableCount": 12
+  },
+  "sourceCapabilities": [
+    {
+      "source": "CoStar local snapshot",
+      "status": "available",
+      "reason": "Dated local snapshot \"fixture-dataset\" is loaded for Houston.",
+      "detail": "dataset date 2026-11-01"
+    },
+    {
+      "source": "Neighborhood geography",
+      "status": "not_configured",
+      "reason": "No sourced Heights neighborhood boundary is committed.",
+      "detail": null
+    }
+  ],
+  "unavailableReasons": [
+    "Neighborhood geography: no sourced Heights boundary is committed."
+  ]
+}

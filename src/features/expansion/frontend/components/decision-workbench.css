@@ -1,0 +1,26 @@
+.expansion-app .decision-workbench { border: 1px solid var(--ros-border); border-radius: var(--ros-radius, 12px); background: var(--ros-surface); padding: clamp(16px, 3vw, 28px); margin-block: 24px; display: grid; gap: 18px; min-width: 0; }
+.expansion-app .decision-workbench h2, .expansion-app .decision-workbench summary { display: flex; align-items: center; gap: 8px; }
+.expansion-app .decision-workbench details { border: 1px solid var(--ros-border); border-radius: 8px; padding: 12px; }
+.expansion-app .decision-workbench details[open] > summary { margin-bottom: 12px; }
+.expansion-app .decision-workbench summary { cursor: pointer; font-weight: 600; min-height: 40px; }
+.expansion-app .decision-workbench label { display: grid; gap: 6px; font-size: 12px; color: var(--ros-muted); min-width: 0; }
+.expansion-app .decision-workbench input, .expansion-app .decision-workbench select { color: var(--ros-ink); background: var(--ros-surface); border: 1px solid var(--ros-border); border-radius: 6px; padding: 9px; width: 100%; min-width: 0; }
+.expansion-app .decision-inline, .expansion-app .decision-picker { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.expansion-app .decision-inline label, .expansion-app .decision-picker > label:first-child { flex: 1 1 240px; }
+.expansion-app .decision-check { display: flex !important; align-items: center; min-height: 44px; }
+.expansion-app .decision-check input { width: 20px; }
+.expansion-app .decision-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-block: 14px; }
+.expansion-app .decision-investigation { display: grid; gap: 14px; min-width: 0; }
+.expansion-app .decision-requirements { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 10px; }
+.expansion-app .decision-requirements article, .expansion-app .decision-comparison-grid > article, .expansion-app .saved-briefs article { border: 1px solid var(--ros-border); border-radius: 8px; padding: 14px; display: grid; gap: 8px; }
+.expansion-app .decision-requirements small, .expansion-app .decision-workbench p, .expansion-app .decision-workbench li { overflow-wrap: anywhere; }
+.expansion-app .decision-workbench .decision-run-meta, .expansion-app .decision-notice { background: var(--ros-canvas, #f3f5f2); padding: 12px; border-radius: 8px; }
+.expansion-app .decision-comparison-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: 12px; margin-top: 12px; }
+.expansion-app .decision-finance-summary dl { display: grid; gap: 4px; margin-block: 8px; }
+.expansion-app .decision-finance-summary dt { font-size: 12px; color: var(--ros-muted); }
+.expansion-app .decision-finance-summary dd { margin: 0 0 10px; font-weight: 600; overflow-wrap: anywhere; }
+.expansion-app .decision-source iframe { display: block; width: 100%; height: 360px; border: 0; }
+.expansion-app .decision-source img { max-width: 100%; height: auto; }
+.expansion-app .decision-workbench button:focus-visible, .expansion-app .decision-workbench summary:focus-visible, .expansion-app .decision-workbench input:focus-visible, .expansion-app .decision-workbench select:focus-visible { outline: 3px solid var(--ros-forest); outline-offset: 3px; }
+@media(max-width: 600px) { .expansion-app .decision-form-grid { grid-template-columns: 1fr; } .expansion-app .decision-workbench .section-heading { flex-wrap: wrap; gap: 12px; } }
+@media(prefers-reduced-motion: reduce) { .expansion-app .decision-workbench *, .expansion-app .decision-workbench { animation: none !important; transition: none !important; scroll-behavior: auto; } }

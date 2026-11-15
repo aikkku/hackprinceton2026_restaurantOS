@@ -31,11 +31,14 @@ test("Expansion does not change Tactical styles during client navigation", async
   }
   const before = await tacticalStyles();
   await page.getByRole("link", { name: "Explore expansion" }).click();
-  await expect(page).toHaveURL(/\/expansion/);
+  // Phase 3 adds the agent section to /expansion; under a fully parallel
+  // suite the first client navigation can compile routes on demand. The
+  // functional assertion is unchanged, only the wait is more generous.
+  await expect(page).toHaveURL(/\/expansion/, { timeout: 30000 });
   await page.getByRole("button", { name: "Continue to the scouting map" }).click();
   await expect(page.locator(".property-card")).toHaveCount(4);
   await page.getByRole("link", { name: "Manage restaurant" }).click();
-  await expect(page).toHaveURL(/\/tactical/);
+  await expect(page).toHaveURL(/\/tactical/, { timeout: 30000 });
   await expect(
     page.locator(".tactical-workspace .workspace-main"),
   ).toBeVisible();
@@ -51,7 +54,7 @@ test("scout, simulate, compare, save and restore exact assumptions", async ({
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
   await page.goto("/");
-  await expect(page).toHaveURL(/\/tactical/);
+  await expect(page).toHaveURL(/\/tactical/, { timeout: 30000 });
   await page.goto("/expansion");
   await page.getByRole("button", { name: "Continue to the scouting map" }).click();
   await expect(

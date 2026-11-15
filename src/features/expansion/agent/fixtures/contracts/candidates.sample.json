@@ -1,0 +1,580 @@
+{
+  "artifactVersion": "expansion-agent-artifact-v1",
+  "modelVersion": "expansion-search-v1",
+  "matchingModelVersion": "expansion-matching-v1",
+  "requirementsModelVersion": "expansion-requirements-v1",
+  "runId": "fixture-run",
+  "cityId": "Houston",
+  "datasetId": "fixture-dataset",
+  "datasetDate": "2026-11-01",
+  "searchedAt": "2026-11-14T12:01:00.000Z",
+  "cancelled": false,
+  "requirements": {
+    "modelVersion": "expansion-requirements-v1",
+    "revisionId": "fixture-revision-1",
+    "revisionNumber": 3,
+    "createdAt": "2026-11-14T12:00:00.000Z",
+    "requirements": [
+      {
+        "id": "market.target",
+        "kind": "hard",
+        "label": "Target market",
+        "value": {
+          "kind": "market",
+          "market": {
+            "city": "Houston",
+            "state": "TX",
+            "country": "US"
+          }
+        },
+        "unit": null,
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_0",
+          "answer_1"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_0",
+          "answer_1"
+        ],
+        "editedAt": null,
+        "note": "Search market. Unsupported markets are rejected explicitly, never re-interpreted."
+      },
+      {
+        "id": "market.neighborhoodPreference",
+        "kind": "soft",
+        "label": "Neighborhood preference",
+        "value": {
+          "kind": "neighborhood",
+          "preferred": [
+            "Heights"
+          ],
+          "othersAcceptable": true
+        },
+        "unit": null,
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_0",
+          "answer_1"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_0",
+          "answer_1"
+        ],
+        "editedAt": null,
+        "note": "Heights is preferred; other Houston neighborhoods remain eligible."
+      },
+      {
+        "id": "occupancy.monthlyLimit",
+        "kind": "hard",
+        "label": "Total monthly occupancy limit",
+        "value": {
+          "kind": "number",
+          "value": 5000
+        },
+        "unit": "USD/month",
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "editedAt": null,
+        "note": "Hard TOTAL monthly occupancy cap. Base rent alone does not establish affordability."
+      },
+      {
+        "id": "occupancy.scope",
+        "kind": "hard",
+        "label": "What the occupancy limit covers",
+        "value": {
+          "kind": "text",
+          "value": "base_rent_and_additional_occupancy_charges"
+        },
+        "unit": null,
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "editedAt": null,
+        "note": "The $5,000 limit covers base rent and additional building charges."
+      },
+      {
+        "id": "funds.totalAvailable",
+        "kind": "hard",
+        "label": "Total available funds",
+        "value": {
+          "kind": "number",
+          "value": 100000
+        },
+        "unit": "USD",
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "editedAt": null,
+        "note": "$100,000 total funds is not the available opening spend; the emergency reserve is unspecified."
+      },
+      {
+        "id": "funds.emergencyReserve",
+        "kind": "soft",
+        "label": "Emergency reserve to keep",
+        "value": {
+          "kind": "unknown"
+        },
+        "unit": "USD",
+        "origin": "simulated",
+        "state": "unknown",
+        "sourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "editedAt": null,
+        "note": "The unspecified reserve stays unknown; it is not zero."
+      },
+      {
+        "id": "space.seats",
+        "kind": "soft",
+        "label": "Preferred seats",
+        "value": {
+          "kind": "range",
+          "minimum": 40,
+          "maximum": 50
+        },
+        "unit": "seats",
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "editedAt": null,
+        "note": "Preference, not a hard square-footage filter. Seats are never converted into an area bound."
+      },
+      {
+        "id": "space.areaSqFt",
+        "kind": "soft",
+        "label": "Space area",
+        "value": {
+          "kind": "unknown"
+        },
+        "unit": "sq ft",
+        "origin": "unavailable",
+        "state": "unknown",
+        "sourceAnswerIds": [],
+        "originalSourceAnswerIds": [],
+        "editedAt": null,
+        "note": "No square-footage requirement was supplied and none is derived from the seat preference."
+      },
+      {
+        "id": "space.existingKitchen",
+        "kind": "hard",
+        "label": "Existing kitchen",
+        "value": {
+          "kind": "boolean",
+          "value": true
+        },
+        "unit": null,
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "editedAt": null,
+        "note": "Mandatory. Missing evidence means verification is needed; it does not establish presence or absence."
+      },
+      {
+        "id": "space.customerParking",
+        "kind": "hard",
+        "label": "Customer parking",
+        "value": {
+          "kind": "boolean",
+          "value": true
+        },
+        "unit": null,
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "editedAt": null,
+        "note": "Mandatory. Missing evidence means verification is needed."
+      },
+      {
+        "id": "space.parkingSpacesMinimum",
+        "kind": "soft",
+        "label": "Minimum customer parking spaces",
+        "value": {
+          "kind": "unknown"
+        },
+        "unit": "spaces",
+        "origin": "simulated",
+        "state": "unknown",
+        "sourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "editedAt": null,
+        "note": "No numeric parking minimum was supplied; none is inferred."
+      },
+      {
+        "id": "space.ventilation",
+        "kind": "soft",
+        "label": "Cooking / ventilation needs",
+        "value": {
+          "kind": "unknown"
+        },
+        "unit": null,
+        "origin": "simulated",
+        "state": "unknown",
+        "sourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "editedAt": null,
+        "note": "Optional follow-up question; the initial search does not require it."
+      },
+      {
+        "id": "timeline.openingDate",
+        "kind": "soft",
+        "label": "Target opening date",
+        "value": {
+          "kind": "unknown"
+        },
+        "unit": null,
+        "origin": "unavailable",
+        "state": "unknown",
+        "sourceAnswerIds": [],
+        "originalSourceAnswerIds": [],
+        "editedAt": null,
+        "note": "No opening date was supplied."
+      },
+      {
+        "id": "finance.baseline",
+        "kind": "soft",
+        "label": "Financial baseline",
+        "value": {
+          "kind": "unknown"
+        },
+        "unit": null,
+        "origin": "unavailable",
+        "state": "unknown",
+        "sourceAnswerIds": [],
+        "originalSourceAnswerIds": [],
+        "editedAt": null,
+        "note": "Financial baseline is unavailable; profit and payback cannot be estimated from this intake alone."
+      }
+    ]
+  },
+  "counts": {
+    "examined": 3,
+    "included": 3,
+    "excluded": 0,
+    "offMarket": 0,
+    "unknownMarketingStatus": 0,
+    "incompatibleUse": 0,
+    "useUnknown": 0,
+    "scanCapped": false,
+    "meets": 0,
+    "needsVerification": 2,
+    "doesNotMeet": 1
+  },
+  "candidates": [
+    {
+      "candidate": {
+        "id": "space-synth-1",
+        "name": "Synthetic Plaza · Suite 101",
+        "address": "1 Synthetic Way",
+        "suite": "101",
+        "cityId": "Houston",
+        "latitude": 29.7,
+        "longitude": -95.4,
+        "h3Index": "882830829bfffff",
+        "floorAreaSqFt": 1000,
+        "sizeRangeSqFt": {
+          "minimum": 1000,
+          "maximum": 1000
+        },
+        "rent": {
+          "low": 4.5,
+          "high": 4.5,
+          "rateBasisCode": 1,
+          "currencyCode": 1,
+          "measurementCode": 1,
+          "serviceTypeCode": 7
+        },
+        "spaceUseCode": 5,
+        "listingStatusCode": 1,
+        "propertyId": "prop-synth-1",
+        "sourceIds": [
+          "costar:listing:synth-1"
+        ],
+        "recordDate": "2026-11-01",
+        "datasetDate": "2026-11-01",
+        "isDemo": false
+      },
+      "assessments": [
+        {
+          "requirementId": "occupancy.monthlyLimit",
+          "status": "pass",
+          "reasonCode": "below_cap",
+          "reason": "The complete monthly occupancy upper bound of $4500 is within the $5000 total cap.",
+          "evidenceIds": [],
+          "sourceValue": "Quoted 4.5 USD/SF/month (service type 7) → $4500–$4500/month"
+        },
+        {
+          "requirementId": "space.existingKitchen",
+          "status": "unknown",
+          "reasonCode": "kitchen_unverified",
+          "reason": "No suite-scoped evidence verifies an existing kitchen. Verification is needed.",
+          "evidenceIds": [],
+          "sourceValue": "No kitchen evidence"
+        },
+        {
+          "requirementId": "space.customerParking",
+          "status": "unknown",
+          "reasonCode": "parking_unverified",
+          "reason": "Customer parking use rights are unverified. Nearby visible stalls alone do not establish customer use.",
+          "evidenceIds": [],
+          "sourceValue": "No parking evidence"
+        },
+        {
+          "requirementId": "space.seats",
+          "status": "not_applicable",
+          "reasonCode": "capacity_unknown",
+          "reason": "No usable dining-area or capacity evidence; the seat preference cannot be assessed.",
+          "evidenceIds": [],
+          "sourceValue": "Capacity unknown"
+        },
+        {
+          "requirementId": "market.neighborhoodPreference",
+          "status": "unknown",
+          "reasonCode": "neighborhood_unresolved",
+          "reason": "This space's neighborhood is unresolved; Heights remains preferred but other Houston neighborhoods stay eligible.",
+          "evidenceIds": [],
+          "sourceValue": "Neighborhood unknown"
+        }
+      ],
+      "group": "needs_verification",
+      "rank": 0,
+      "orderingNotes": [
+        "Synthetic fixture ordering note."
+      ]
+    },
+    {
+      "candidate": {
+        "id": "space-synth-2",
+        "name": "Synthetic Plaza · Suite 102",
+        "address": "1 Synthetic Way",
+        "suite": "102",
+        "cityId": "Houston",
+        "latitude": 29.7,
+        "longitude": -95.4,
+        "h3Index": "882830829bfffff",
+        "floorAreaSqFt": 1000,
+        "sizeRangeSqFt": {
+          "minimum": 1000,
+          "maximum": 1000
+        },
+        "rent": {
+          "low": 6,
+          "high": 6,
+          "rateBasisCode": 1,
+          "currencyCode": 1,
+          "measurementCode": 1,
+          "serviceTypeCode": 10
+        },
+        "spaceUseCode": 5,
+        "listingStatusCode": 1,
+        "propertyId": "prop-synth-1",
+        "sourceIds": [
+          "costar:listing:synth-2"
+        ],
+        "recordDate": "2026-11-01",
+        "datasetDate": "2026-11-01",
+        "isDemo": false
+      },
+      "assessments": [
+        {
+          "requirementId": "occupancy.monthlyLimit",
+          "status": "fail",
+          "reasonCode": "exceeds_cap",
+          "reason": "A supported monthly occupancy lower bound of $6000 exceeds the $5000 total cap.",
+          "evidenceIds": [],
+          "sourceValue": "Quoted 6 USD/SF/month (service type 10) → lower bound $6000/month"
+        },
+        {
+          "requirementId": "space.existingKitchen",
+          "status": "unknown",
+          "reasonCode": "kitchen_unverified",
+          "reason": "No suite-scoped evidence verifies an existing kitchen. Verification is needed.",
+          "evidenceIds": [],
+          "sourceValue": "No kitchen evidence"
+        },
+        {
+          "requirementId": "space.customerParking",
+          "status": "unknown",
+          "reasonCode": "parking_unverified",
+          "reason": "Customer parking use rights are unverified. Nearby visible stalls alone do not establish customer use.",
+          "evidenceIds": [],
+          "sourceValue": "No parking evidence"
+        },
+        {
+          "requirementId": "space.seats",
+          "status": "not_applicable",
+          "reasonCode": "capacity_unknown",
+          "reason": "No usable dining-area or capacity evidence; the seat preference cannot be assessed.",
+          "evidenceIds": [],
+          "sourceValue": "Capacity unknown"
+        },
+        {
+          "requirementId": "market.neighborhoodPreference",
+          "status": "unknown",
+          "reasonCode": "neighborhood_unresolved",
+          "reason": "This space's neighborhood is unresolved; Heights remains preferred but other Houston neighborhoods stay eligible.",
+          "evidenceIds": [],
+          "sourceValue": "Neighborhood unknown"
+        }
+      ],
+      "group": "does_not_meet",
+      "rank": 1,
+      "orderingNotes": [
+        "Synthetic fixture ordering note."
+      ]
+    },
+    {
+      "candidate": {
+        "id": "space-synth-3",
+        "name": "Synthetic Annex · Suite A",
+        "address": "1 Synthetic Way",
+        "suite": "A",
+        "cityId": "Houston",
+        "latitude": 29.7,
+        "longitude": -95.4,
+        "h3Index": "882830829bfffff",
+        "floorAreaSqFt": null,
+        "sizeRangeSqFt": {
+          "minimum": null,
+          "maximum": null
+        },
+        "rent": {
+          "low": null,
+          "high": null,
+          "rateBasisCode": null,
+          "currencyCode": null,
+          "measurementCode": null,
+          "serviceTypeCode": null
+        },
+        "spaceUseCode": 5,
+        "listingStatusCode": 1,
+        "propertyId": "prop-synth-2",
+        "sourceIds": [
+          "costar:listing:synth-3"
+        ],
+        "recordDate": "2026-11-01",
+        "datasetDate": "2026-11-01",
+        "isDemo": false
+      },
+      "assessments": [
+        {
+          "requirementId": "occupancy.monthlyLimit",
+          "status": "unknown",
+          "reasonCode": "ambiguous_basis",
+          "reason": "No supported asking rent was supplied for this space.",
+          "evidenceIds": [],
+          "sourceValue": "No asking rent"
+        },
+        {
+          "requirementId": "space.existingKitchen",
+          "status": "unknown",
+          "reasonCode": "kitchen_unverified",
+          "reason": "No suite-scoped evidence verifies an existing kitchen. Verification is needed.",
+          "evidenceIds": [],
+          "sourceValue": "No kitchen evidence"
+        },
+        {
+          "requirementId": "space.customerParking",
+          "status": "unknown",
+          "reasonCode": "parking_unverified",
+          "reason": "Customer parking use rights are unverified. Nearby visible stalls alone do not establish customer use.",
+          "evidenceIds": [],
+          "sourceValue": "No parking evidence"
+        },
+        {
+          "requirementId": "space.seats",
+          "status": "not_applicable",
+          "reasonCode": "capacity_unknown",
+          "reason": "No usable dining-area or capacity evidence; the seat preference cannot be assessed.",
+          "evidenceIds": [],
+          "sourceValue": "Capacity unknown"
+        },
+        {
+          "requirementId": "market.neighborhoodPreference",
+          "status": "unknown",
+          "reasonCode": "neighborhood_unresolved",
+          "reason": "This space's neighborhood is unresolved; Heights remains preferred but other Houston neighborhoods stay eligible.",
+          "evidenceIds": [],
+          "sourceValue": "Neighborhood unknown"
+        }
+      ],
+      "group": "needs_verification",
+      "rank": 2,
+      "orderingNotes": [
+        "Synthetic fixture ordering note."
+      ]
+    }
+  ],
+  "excluded": [],
+  "excludedTruncated": false
+}

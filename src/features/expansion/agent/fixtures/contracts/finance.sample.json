@@ -1,0 +1,54 @@
+{
+  "artifactVersion": "expansion-agent-artifact-v1",
+  "modelVersion": "expansion-finance-tool-v1",
+  "runId": "fixture-run",
+  "evaluatedAt": "2026-11-14T12:03:00.000Z",
+  "occupancy": [
+    {
+      "candidateId": "space-synth-1",
+      "known": true,
+      "low": 4500,
+      "high": 4500,
+      "notes": [
+        "Quoted rent service includes additional charges; extras are not added again."
+      ],
+      "reasonCode": null,
+      "reason": null,
+      "serviceInclusion": "included"
+    },
+    {
+      "candidateId": "space-synth-2",
+      "known": true,
+      "low": 6000,
+      "high": null,
+      "notes": [
+        "Additional charges are not included in the quoted rent and are unknown."
+      ],
+      "reasonCode": null,
+      "reason": null,
+      "serviceInclusion": "not_included"
+    },
+    {
+      "candidateId": "space-synth-3",
+      "known": false,
+      "low": null,
+      "high": null,
+      "notes": [],
+      "reasonCode": "ambiguous_basis",
+      "reason": "No supported asking rent was supplied for this space.",
+      "serviceInclusion": "unknown"
+    }
+  ],
+  "requiredSales": {
+    "status": "unavailable",
+    "requiredSalesMonthly": null,
+    "reason": "The financial baseline is unavailable, so no fixed costs or margin can be derived.",
+    "fixedCostsMonthly": null,
+    "contributionMargin": null,
+    "inputOrigin": "unavailable"
+  },
+  "missingInputs": [
+    "The financial baseline is unavailable, so no fixed costs or margin can be derived."
+  ],
+  "assumptions": []
+}

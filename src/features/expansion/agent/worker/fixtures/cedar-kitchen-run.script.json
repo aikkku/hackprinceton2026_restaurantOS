@@ -1,0 +1,238 @@
+{
+  "version": 1,
+  "comment": "Deterministic model-double script for the Cedar Kitchen acceptance run. The real deepagents graph consumes these messages; tool names match the specialists' allowlisted tools and candidate-ID placeholders resolve lazily from the persisted search artifact. Labeled synthetic: no real restaurant or provider data.",
+  "agents": {
+    "planner": [
+      {
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "plan_1",
+            "name": "task",
+            "args": {
+              "subagent_type": "readiness",
+              "description": "Assess profile completeness and report the missing data and follow-up questions from the validated readiness tool output. Never invent a readiness score."
+            }
+          }
+        ]
+      },
+      {
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "plan_2",
+            "name": "task",
+            "args": {
+              "subagent_type": "market",
+              "description": "Report the sourced market context and source capabilities for this run's city, keeping everything the tool marks unavailable explicitly unavailable."
+            }
+          }
+        ]
+      },
+      {
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "plan_3",
+            "name": "task",
+            "args": {
+              "subagent_type": "site_scout",
+              "description": "Run the full-city search with deterministic assessments and finalize the grounded candidate IDs and counts from the tool output."
+            }
+          }
+        ]
+      },
+      {
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "plan_4",
+            "name": "task",
+            "args": {
+              "subagent_type": "space_inspector",
+              "description": "Inspect the top candidate IDs returned by the site scout and report suite-scoped facts, gaps and verification tasks from the tool output."
+            }
+          }
+        ]
+      },
+      {
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "plan_5",
+            "name": "task",
+            "args": {
+              "subagent_type": "finance",
+              "description": "Run the deterministic finance tools for the top candidates and the profile snapshot, and finalize with the missing inputs listed explicitly."
+            }
+          }
+        ]
+      },
+      {
+        "content": "All five specialist stages have produced validated outputs; composing the grounded summary.",
+        "tool_calls": [
+          {
+            "id": "plan_6",
+            "name": "finalize_run",
+            "args": {
+              "summary_text": "Agent-assisted scouting completed: readiness lists the profile gaps and follow-ups; market context came from the dated local snapshot with explicit unavailable sources; the site scout evaluated every offered space deterministically; the space inspector reported suite-scoped gaps and verification tasks for the top candidates; finance ran the deterministic tools and kept missing baseline inputs unavailable. No scores, quotes or candidate facts were invented; all grounded details live in the validated artifacts.",
+              "missing_evidence": [
+                "Emergency reserve amount (budget.cashReserveToKeep)",
+                "Ventilation/cooking equipment requirements (space.ventilationRequirements)",
+                "Financial baseline for required-sales scenarios (financialBaseline)"
+              ],
+              "follow_ups": [
+                "Ask the owner for the emergency reserve amount.",
+                "Ask the owner which cooking equipment the new kitchen needs.",
+                "Ask the owner for a recent sales and expense report."
+              ],
+              "assumptions": [
+                "The fictional Cedar Kitchen profile is labeled simulated.",
+                "Source records remain dated snapshots; active marketing does not verify current vacancy."
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "content": "Scouting run complete."
+      }
+    ],
+    "readiness": [
+      {
+        "content": "",
+        "tool_calls": [{ "id": "r1", "name": "profile_readiness", "args": {} }]
+      },
+      {
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "r2",
+            "name": "finalize_readiness",
+            "args": {
+              "missing_data": [
+                "budget.cashReserveToKeep",
+                "space.ventilationRequirements",
+                "financialBaseline"
+              ],
+              "follow_ups": [
+                "How much of the $100,000 would you like to keep for emergencies?",
+                "What kind of cooking equipment will the new kitchen need?",
+                "Would you like to share a recent sales and expense report?"
+              ],
+              "unavailable": false,
+              "notes": "Readiness assessed from the validated profile report; the missing items above block upfront-affordability and financial scenarios, not the citywide search."
+            }
+          }
+        ]
+      },
+      { "content": "Readiness stage complete." }
+    ],
+    "market": [
+      {
+        "content": "",
+        "tool_calls": [{ "id": "m1", "name": "market_context", "args": {} }]
+      },
+      {
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "m2",
+            "name": "finalize_market",
+            "args": {
+              "context_summary": "Market context is sourced from the dated local CoStar snapshot for this run's city; neighborhood geography, ACS demographics and competition data remain explicitly unavailable and are not approximated.",
+              "sourced": true,
+              "unavailable_reasons": [
+                "Neighborhood geography: no sourced Heights boundary committed",
+                "ACS demographics: no adapter configured",
+                "Competition data: no permitted source configured"
+              ],
+              "capability_notes": [
+                "Matterport and Vexcel helpers report their configured state without claiming verified imagery access."
+              ]
+            }
+          }
+        ]
+      },
+      { "content": "Market stage complete." }
+    ],
+    "site_scout": [
+      {
+        "content": "",
+        "tool_calls": [{ "id": "s1", "name": "search_city", "args": {} }]
+      },
+      {
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "s2",
+            "name": "finalize_scout",
+            "args": {
+              "candidate_ids": "@TOP_CANDIDATE_IDS:5",
+              "counts_note": "Counts come from the deterministic assessment report stored in the candidates artifact.",
+              "notes": "Full-city search completed with deterministic pass/fail/unknown assessments; candidate IDs are grounded in the tool output."
+            }
+          }
+        ]
+      },
+      { "content": "Site scout stage complete." }
+    ],
+    "space_inspector": [
+      {
+        "content": "",
+        "tool_calls": [
+          { "id": "i0", "name": "list_candidates", "args": {} }
+        ]
+      },
+      {
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "i1",
+            "name": "inspect_candidates",
+            "args": { "candidate_ids": "@TOP_CANDIDATE_IDS:3" }
+          }
+        ]
+      },
+      {
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "i2",
+            "name": "finalize_inspection",
+            "args": {
+              "inspected_candidate_ids": "@TOP_CANDIDATE_IDS:3",
+              "findings": ["Suite-scoped facts and assessments were read from the inspection tool output."],
+              "verification_tasks": ["Verify kitchen and parking evidence with the landlord or a walkthrough for the inspected candidates."],
+              "gaps_summary": "Inspected candidates carry unknown kitchen/parking or occupancy evidence; verification tasks are recorded, never resolved by assumption."
+            }
+          }
+        ]
+      },
+      { "content": "Space inspection stage complete." }
+    ],
+    "finance": [
+      {
+        "content": "",
+        "tool_calls": [{ "id": "f1", "name": "evaluate_finance", "args": {} }]
+      },
+      {
+        "content": "",
+        "tool_calls": [
+          {
+            "id": "f2",
+            "name": "finalize_finance",
+            "args": {
+              "summary": "Deterministic finance tools ran for the top candidates. Required-sales stays unavailable because the financial baseline is missing; occupancy ranges reflect only what the source records support.",
+              "assumptions": [],
+              "missing_inputs": [
+                "The financial baseline is unavailable, so no fixed costs or margin can be derived."
+              ]
+            }
+          }
+        ]
+      },
+      { "content": "Finance stage complete." }
+    ]
+  }
+}

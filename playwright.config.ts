@@ -2,6 +2,8 @@ import { defineConfig, devices } from "@playwright/test";
 import { resolve } from "node:path";
 
 const dataDir = resolve(process.cwd(), "src/features/expansion/data/data");
+// Explicit opt-in live-model acceptance still uses only the synthetic cache.
+const liveAgentAcceptance = process.env.EXPANSION_E2E_LIVE_MODEL === "1";
 
 export default defineConfig({
   testDir: "./src/features/expansion/frontend/e2e",
@@ -33,6 +35,18 @@ export default defineConfig({
       EXPANSION_E2E_DATASET_ID: "synthetic-e2e-v1",
       EXPANSION_E2E_COSTAR_ROOT: resolve(dataDir, "e2e-kit"),
       EXPANSION_E2E_RUNS_DIR: resolve(dataDir, "runs-e2e"),
+      // Phase 3: scripted deterministic model double for the browser journey;
+      // a "live" request is forced offline so the outage fallback spec never
+      // touches a real provider. Both are documented, labeled test modes.
+      EXPANSION_AGENT_DEFAULT_MODE: liveAgentAcceptance ? "live" : "scripted",
+      EXPANSION_AGENT_E2E_FORCE_OFFLINE: liveAgentAcceptance ? "0" : "1",
+      EXPANSION_SOURCE_NETWORK: "0",
+      EXPANSION_AGENT_RUNS_DIR: resolve(dataDir, "runs-e2e"),
+      // The browser suite must not depend on the developer's .env.local:
+      // Tactical is pinned to its demo fixture (pre-set env wins over
+      // .env.local in Next dev, verified 2026-11-14) so a developer's
+      // TACTICAL_DATA_SOURCE=mongodb cannot break the shared gate.
+      TACTICAL_DATA_SOURCE: "demo",
     },
   },
 });
