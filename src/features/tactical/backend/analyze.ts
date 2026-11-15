@@ -1,32 +1,10 @@
+import demo from "../frontend/data/demo-restaurant.json";
 import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse, type NextRequest } from "next/server";
 import {
   autoRotateToEntranceWall, validateDraft, floorPlanDraftSchema, analyzeRequestSchema,
   type AnalyzeApiRequest, type AnalyzeApiResponse, type FloorPlanDraft, type DraftWall,
 } from "../domain/analyze";
-
-const MOCK_PLAN: FloorPlanDraft = {
-  room: { width: 42, depth: 28, confidence: 0.7 },
-  door: { wall: "S", position: 0.45, label: "Entrance" },
-  fixtures: [
-    { id: "bar-1", type: "bar", x: 1, y: 1, width: 16, depth: 3.5, stool_count: 6, wall: "N" },
-    { id: "cashier-1", type: "cashier", x: 34, y: 1, width: 5, depth: 3, wall: "N" },
-  ],
-  tables: [
-    { id: "T1", x: 4,  y: 8,  shape: "rect",  width: 4, depth: 3, seats: 4, chairs_visible: 4, is_joined_group: false, confidence: 0.9, label: "T1" },
-    { id: "T2", x: 11, y: 8,  shape: "rect",  width: 4, depth: 3, seats: 4, chairs_visible: 4, is_joined_group: false, confidence: 0.9, label: "T2" },
-    { id: "T3", x: 18, y: 8,  shape: "rect",  width: 4, depth: 3, seats: 4, chairs_visible: 4, is_joined_group: false, confidence: 0.85, label: "T3" },
-    { id: "T4", x: 25, y: 8,  shape: "rect",  width: 4, depth: 3, seats: 4, chairs_visible: 4, is_joined_group: false, confidence: 0.85, label: "T4" },
-    { id: "T5", x: 4,  y: 18, shape: "round", width: 3.5, depth: 3.5, seats: 2, chairs_visible: 2, is_joined_group: false, confidence: 0.9, label: "T5" },
-    { id: "T6", x: 11, y: 18, shape: "round", width: 3.5, depth: 3.5, seats: 2, chairs_visible: 2, is_joined_group: false, confidence: 0.4, label: "T6" },
-    { id: "T7", x: 18, y: 18, shape: "rect",  width: 6, depth: 3, seats: 6, chairs_visible: 6, is_joined_group: true,  confidence: 0.75, label: "T7" },
-    { id: "T8", x: 28, y: 18, shape: "rect",  width: 4, depth: 3, seats: 4, chairs_visible: 4, is_joined_group: false, confidence: 0.88, label: "T8" },
-  ],
-  questions: [
-    "How far apart are the tables from each other?",
-    "Is the joined table group (T7) a permanent arrangement or occasional?",
-  ],
-};
 
 const hasApiKey = Boolean(process.env.ANTHROPIC_API_KEY);
 const client = hasApiKey ? new Anthropic() : null;
@@ -146,7 +124,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<AnalyzeApiRes
     if (!client) {
       // No API key — return a realistic mock plan so the editor can be used immediately.
       await new Promise((r) => setTimeout(r, 800)); // simulate latency
-      let draft = { ...MOCK_PLAN, questions: [...MOCK_PLAN.questions] };
+      let draft = floorPlanDraftSchema.parse(demo.photoPlans.fallback);
       if (facts.entranceWall !== "unknown") draft = autoRotateToEntranceWall(draft, facts.entranceWall);
       return NextResponse.json({ ok: true, draft, fixupApplied: false, source: "demo" });
     }

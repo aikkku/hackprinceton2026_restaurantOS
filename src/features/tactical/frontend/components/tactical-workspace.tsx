@@ -1,5 +1,6 @@
 "use client";
 
+import type { Dataset } from "../../domain/dataset";
 import { StateButton } from "./state-button";
 
 import Link from "next/link";
@@ -16,7 +17,7 @@ import {
 } from "../../domain/layout";
 import { simulateSeating, simulateTurnover, scenarioAction } from "../../domain/scenario";
 import {
-  modelVersion, objectLimit, roomSchema, layoutSchema, type ScenarioSettings, type Assumptions, type Fixture, type Layout, type LayoutObject,
+  modelVersion, objectLimit, roomSchema, layoutSchema, type ScenarioSettings, type Assumptions, type Layout, type LayoutObject,
   type ObjectKind, type Scenario,
 } from "../../domain/schemas";
 import { loadDemoStorage, makeId, readScenarios } from "../storage";
@@ -48,7 +49,7 @@ const objectIcons = {
 
 const objectKinds = Object.keys(furniture) as ObjectKind[];
 
-export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
+export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: Dataset; dataSource: string; revision: number | null }) {
   const pathname = usePathname();
   const router = useRouter();
   const section = pathname.split("/")[2] ?? "floor";
@@ -446,7 +447,7 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
               if (isDirty && !window.confirm("Leave Tactical and discard unsaved layout changes?")) event.preventDefault();
             }}>Explore expansion</Link>
           </nav>
-          <span className="demo-badge">Demo</span>
+          <span className="demo-badge">Demo · {dataSource}{revision !== null ? ` · revision ${revision}` : ""}</span>
         </div>
       </header>
       <main className="workspace-main">
@@ -589,7 +590,7 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
         <section className="panel layout-library"><h2>Layout insights</h2><p>Rule-based hypotheses from your geometry. Select a finding to inspect its first affected object. No observed seating preferences or safety assessment are available.</p>
           {insights.length ? insights.map(insight => <details key={insight.id}><summary>{insight.severity} · {insight.title}</summary><p>{insight.explanation}</p><button className="button secondary compact" onClick={() => { setSelectedId(insight.objectIds[0]); editorTitle.current?.scrollIntoView({ block: "start" }); }}>Inspect affected object</button></details>) : <p>No proximity or overlap findings. This does not establish that the layout is optimal.</p>}
         </section>
-        <details className="panel layout-library"><summary>Estimate a separate draft from photos</summary><p>Photo estimates require manual measurements and verification. This separate draft does not change your saved restaurant layout.</p><AnalyzePlan /></details>
+        <details className="panel layout-library"><summary>Estimate a separate draft from photos</summary><p>Photo estimates require manual measurements and verification. This separate draft does not change your saved restaurant layout.</p><AnalyzePlan plans={fixture.photoPlans} /></details>
         <div className="scenario-inline" ref={scenarioSection} tabIndex={-1}>
           <div className="scenario-inline-header">
             <h2>Scenarios</h2>
@@ -607,13 +608,13 @@ export function TacticalWorkspace({ fixture }: { fixture: Fixture }) {
         <ReviewInsights reviews={fixture.reviews} mission={fixture.mission} onTrySeating={trySeating} />
         </div>
         <div hidden={section !== "hr"}>
-          <HrPage />
+          <HrPage operations={fixture.operations} restaurantName={fixture.profile.name} />
         </div>
         <div hidden={section !== "supply"}>
-          <SupplyPage />
+          <SupplyPage operations={fixture.operations} restaurantName={fixture.profile.name} />
         </div>
         <div hidden={section !== "finance"}>
-          <FinancePage assumptions={fixture.assumptions} />
+          <FinancePage assumptions={fixture.assumptions} operations={fixture.operations} restaurantName={fixture.profile.name} />
         </div>
         <div hidden={section !== "ai"}>
           <AiAssistant />

@@ -2,15 +2,15 @@
 
 [Documentation index](README.md) · [Detailed inventory and backlog](IMPLEMENTATION_STATUS.md)
 
-All six sections share the persistent Tactical shell. The core editor/reviews use the restaurant fixture; HR/Supply/Finance still contain hardcoded demo records and labels, so complete selected-restaurant propagation remains unfinished. Internal links preserve open editor state. Browser reload restores explicitly saved layouts and scenarios.
+All six sections share the persistent Tactical shell and one validated, server-selected synthetic dataset. Choose local fixture or MongoDB mode through server configuration; MongoDB errors remain visible. See [database setup](MONGODB_SETUP.md). Internal links preserve open editor state. Browser reload restores explicitly saved layouts and scenarios.
 
 | Page | Implemented | Next work |
 | --- | --- | --- |
 | Floor Plan — `/tactical` | Existing SVG editor; named persistent configurations; duplicate/rename/open/delete; explicit baseline; AC, chair, wall, window, light, decoration and custom objects; editable names/descriptions; geometry comparison; heuristic insights; seating/turnover scenarios and saved comparisons inline | More expressive art, measured operational data, AI interpretation with evidence, photo-to-layout conversion |
 | Customer Reviews & Social Media — `/tactical/reviews` | Fixture review search, rating distribution, supplied theme filters and mission citations | Authorized CSV/JSON imports, source/sentiment/date/dish filters, trends, evidence-linked AI findings and editable response drafts; observed social network analysis only when data exists |
-| HR — `/tactical/hr` | Fictional directory, schedule and expandable profiles | Consolidate fixtures; synthetic contacts, pay, availability, labor estimates and job-description preview |
-| Supply Management — `/tactical/supply` | Fictional inventory, category filters, suppliers and stock indicators | Consolidate fixtures; costs, displayed thresholds and derived restock summary |
-| Financial Intelligence — `/tactical/finance` | Existing demo revenue/transaction/pricing views and capacity what-if | Validated financial records, accounting filters, explicit channel costs, pricing and volume scenarios, persistence and shared calculation reuse |
+| HR — `/tactical/hr` | Central fictional directory, schedule, contact/pay/availability/mood profiles and base-labor estimate | Structured shift validation and job-description preview |
+| Supply Management — `/tactical/supply` | Central inventory, category filters, suppliers, costs, thresholds and derived stock/restock indicators | Reorder-cost preview and UI polish |
+| Financial Intelligence — `/tactical/finance` | Reconciled synthetic ledger, month/channel/type filters, channel contribution, dated sample dish prices, price/volume and capacity experiments | Real-data imports, saved pricing scenarios and shared edited assumptions |
 | AI Assistant — `/tactical/ai` | Explicit inactive placeholder | Intentionally deferred |
 
 Legacy `/tactical/scenarios`, `/tactical/decisions`, and `/tactical/analyze` redirect to Floor Plan. Photo analysis is an expandable separate editor inside Floor Plan. It does not update the measured floor plan or financial model.

@@ -1,5 +1,6 @@
 "use client";
 
+import type { Dataset } from "../../domain/dataset";
 import { StateButton } from "./state-button";
 
 import { useEffect, useRef, useState } from "react";
@@ -20,32 +21,6 @@ import "./analyze.css";
 
 type Photo = { id: string; dataUrl: string; tag: string };
 
-const SAMPLE_PLAN: FloorPlanDraft = {
-  room: { width: 40, depth: 30, confidence: 1 },
-  door: { wall: "S", position: 0.5, label: "Entrance" },
-  fixtures: [
-    { id: "bar-1", type: "bar", x: 0.5, y: 0.5, width: 18, depth: 3.5, stool_count: 7, wall: "N" },
-    { id: "cashier-1", type: "cashier", x: 32, y: 1, width: 5, depth: 3, wall: "N" },
-  ],
-  tables: [
-    { id: "T1", x: 4, y: 8, shape: "rect", width: 4, depth: 3, seats: 4, chairs_visible: 4, is_joined_group: false, confidence: 0.9, label: "T1" },
-    { id: "T2", x: 11, y: 8, shape: "rect", width: 4, depth: 3, seats: 4, chairs_visible: 4, is_joined_group: false, confidence: 0.9, label: "T2" },
-    { id: "T3", x: 18, y: 8, shape: "rect", width: 4, depth: 3, seats: 4, chairs_visible: 4, is_joined_group: false, confidence: 0.85, label: "T3" },
-    { id: "T4", x: 25, y: 8, shape: "rect", width: 4, depth: 3, seats: 4, chairs_visible: 4, is_joined_group: false, confidence: 0.85, label: "T4" },
-    { id: "T5", x: 4, y: 18, shape: "round", width: 3.5, depth: 3.5, seats: 2, chairs_visible: 2, is_joined_group: false, confidence: 0.9, label: "T5" },
-    { id: "T6", x: 11, y: 18, shape: "round", width: 3.5, depth: 3.5, seats: 2, chairs_visible: 2, is_joined_group: false, confidence: 0.4, label: "T6" },
-  ],
-  questions: ["How far apart are the tables from each other?"],
-};
-
-const BLANK_PLAN: FloorPlanDraft = {
-  room: { width: 30, depth: 20, confidence: 1 },
-  door: { wall: "S", position: 0.5, label: "Entrance" },
-  fixtures: [],
-  tables: [],
-  questions: [],
-};
-
 const WALL_OPTIONS: Array<{ value: DraftWall; label: string }> = [
   { value: "unknown", label: "Unknown" },
   { value: "N", label: "North" },
@@ -60,7 +35,7 @@ function emptyFacts(): AnalyzeFacts {
 
 function makeId() { return crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`; }
 
-export function AnalyzePlan() {
+export function AnalyzePlan({ plans }: { plans: Dataset["photoPlans"] }) {
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [facts, setFacts] = useState<AnalyzeFacts>(emptyFacts());
   const [accuracy, setAccuracy] = useState<"standard" | "high">("standard");
@@ -178,8 +153,8 @@ export function AnalyzePlan() {
     }
   }
 
-  function loadSample() { resetEditor(SAMPLE_PLAN); }
-  function loadBlank() { resetEditor(BLANK_PLAN); }
+  function loadSample() { resetEditor(plans.sample); }
+  function loadBlank() { resetEditor(plans.blank); }
 
   function resetEditor(plan: FloorPlanDraft) {
     setDraft(plan);

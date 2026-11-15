@@ -80,3 +80,26 @@ test("reload restores React button states without browser-persisted disabled att
   await expect(page.locator(".layout-library").first().getByRole("button", { name: "Duplicate", exact: true })).toBeEnabled();
   expect(hydrationErrors).toEqual([]);
 });
+
+test("central mock records feed financial filters, pricing, HR and supply", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await page.goto("/tactical/finance");
+  await page.getByRole("button", { name: "Transactions", exact: true }).click();
+  await page.getByRole("combobox", { name: "Month", exact: true }).selectOption("2026-11");
+  await expect(page.locator(".transaction-table tbody tr")).toHaveCount(15);
+  await page.getByRole("combobox", { name: "Record type", exact: true }).selectOption("expense");
+  await expect(page.locator(".transaction-table tbody tr")).toHaveCount(3);
+  await page.getByRole("button", { name: "Menu Pricing", exact: true }).click();
+  await expect(page.locator(".pricing-table tbody tr")).toHaveCount(8);
+  await page.getByRole("button", { name: "Simulator", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Price and demand experiment" })).toBeVisible();
+  await page.getByRole("combobox", { name: "Pricing channel", exact: true }).selectOption("delivery");
+  await expect(page.getByText(/Candidate price/)).toBeVisible();
+  await page.goto("/tactical/hr");
+  await expect(page.getByText(/Estimated scheduled base labor/)).toBeVisible();
+  await page.goto("/tactical/supply");
+  await expect(page.locator(".inventory-table tbody tr")).toHaveCount(15);
+  await expect(page.getByText(/Rule-based demo summary/)).toBeVisible();
+  expect(errors).toEqual([]);
+});

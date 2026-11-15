@@ -1,5 +1,10 @@
 # Tactical backend
 
-`analyze.ts` implements the existing server-side Anthropic photo-analysis handler. `src/app/api/tactical/analyze/route.ts` re-exports it. Runtime request and draft validation live in `../domain/analyze.ts`. Without `ANTHROPIC_API_KEY`, responses explicitly identify a synthetic demo plan and the UI says the photos were not analyzed.
+- `mongodb.ts`: official MongoDB driver, cached connection, IPv4, bounded pool; reads and revision-checked atomic writes to `restaurantos.tactical_datasets`.
+- `load-dataset.ts`: explicit demo/Mongo source selection for server rendering. Failures remain visible.
+- `data-api.ts`: authenticated, bounded JSON validation and list/read/write handlers. Thin route files live under `src/app/api/tactical/`.
+- `dataset-cli.ts`: fixture validation/export and create-only seed.
+- `api-cli.ts`: authenticated API list/get/validate/upload without token arguments.
+- `analyze.ts`: existing Anthropic photo handler; live AI remains unverified and no-key fallback is labeled synthetic.
 
-Live model calls are not part of the automated tests. Account persistence, review-analysis services and sponsor adapters remain future work. Keep credentials and provider SDKs in this directory, outside frontend/domain modules.
+See [MongoDB setup and API guide](../../../../docs/tactical/MONGODB_SETUP.md). All current business data is synthetic. The database is shared across the application; only Tactical's collection is touched. Rain's code remains independent. Credentials stay server-side in ignored environment files/deployment secrets.

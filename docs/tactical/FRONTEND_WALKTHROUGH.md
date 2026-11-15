@@ -71,6 +71,11 @@ For an authorized photo, the no-key path explicitly says that photos were not an
 
 ## 12. Review the supporting sections
 
-HR shows a fictional roster and schedule. Supply shows fictional inventory/suppliers. Finance shows sample charts, transactions, menu comparisons and a simplified capacity slider. These pages still contain embedded demo records; they do not establish real payroll, inventory or accounting. AI Assistant is intentionally inactive.
+HR shows a fictional roster and schedule. Supply shows fictional inventory/suppliers. Finance shows sample charts, transactions, menu comparisons and a simplified capacity slider. These pages consume the central validated mock dataset, from the local fixture or MongoDB. Finance filters reconcile to the displayed ledger; menu/channel costs and price/volume experiments are explicit assumptions. HR/Supply derive labor/stock summaries. These remain synthetic examples, not real payroll or accounting. AI Assistant is intentionally inactive.
 
 For exact remaining capabilities, use the [page guide](PAGES.md) and [implementation inventory](IMPLEMENTATION_STATUS.md).
+
+
+## 13. Seed or upload the mock dataset to MongoDB
+
+Follow [MongoDB setup](MONGODB_SETUP.md) for the shared database, server credentials, create-only seed, authenticated upload and optimistic revision updates. MongoDB mode shows its source/revision in the header. Working layout/scenario saves are still browser-local; dataset upload does not automatically synchronize them.

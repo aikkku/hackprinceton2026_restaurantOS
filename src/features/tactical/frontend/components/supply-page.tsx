@@ -1,51 +1,11 @@
 "use client";
 
 import { Package, AlertTriangle, CheckCircle, Truck, RefreshCw } from "lucide-react";
+import type { Operations } from "../../domain/dataset";
+import { stockStatus } from "../../domain/finance";
 import { useState } from "react";
 
 type StockStatus = "good" | "low" | "critical" | "overstock";
-
-type InventoryItem = {
-  id: string;
-  name: string;
-  category: string;
-  supplier: string;
-  current: number;
-  threshold: number;
-  unit: string;
-  status: StockStatus;
-  lastOrdered: string;
-  nextDelivery: string | null;
-};
-
-const INVENTORY: InventoryItem[] = [
-  { id: "i1", name: "Grass-fed beef tenderloin", category: "Proteins", supplier: "Artisan Farms", current: 24, threshold: 20, unit: "lbs", status: "good", lastOrdered: "Nov 10", nextDelivery: "Nov 16" },
-  { id: "i2", name: "Pacific salmon (whole)", category: "Proteins", supplier: "Ocean Fresh Co.", current: 7, threshold: 10, unit: "lbs", status: "low", lastOrdered: "Nov 9", nextDelivery: "Nov 15" },
-  { id: "i3", name: "Free-range chicken breast", category: "Proteins", supplier: "Artisan Farms", current: 18, threshold: 15, unit: "lbs", status: "good", lastOrdered: "Nov 10", nextDelivery: "Nov 16" },
-  { id: "i4", name: "Ribeye steak 12 oz", category: "Proteins", supplier: "Artisan Farms", current: 10, threshold: 12, unit: "lbs", status: "low", lastOrdered: "Nov 10", nextDelivery: "Nov 15" },
-  { id: "i5", name: "Heirloom tomatoes", category: "Produce", supplier: "Sunrise Organics", current: 4, threshold: 8, unit: "lbs", status: "low", lastOrdered: "Nov 11", nextDelivery: "Nov 14" },
-  { id: "i6", name: "Local microgreens", category: "Produce", supplier: "Sunrise Organics", current: 1, threshold: 4, unit: "oz", status: "critical", lastOrdered: "Nov 12", nextDelivery: "Nov 14" },
-  { id: "i7", name: "Seasonal mixed veg", category: "Produce", supplier: "Sunrise Organics", current: 22, threshold: 15, unit: "lbs", status: "overstock", lastOrdered: "Nov 10", nextDelivery: null },
-  { id: "i8", name: "Fresh herbs bundle", category: "Produce", supplier: "Sunrise Organics", current: 6, threshold: 5, unit: "bunches", status: "good", lastOrdered: "Nov 11", nextDelivery: null },
-  { id: "i9", name: "House white wine", category: "Beverages", supplier: "Vineyard Select", current: 5, threshold: 12, unit: "bottles", status: "critical", lastOrdered: "Nov 8", nextDelivery: "Nov 15" },
-  { id: "i10", name: "House red wine", category: "Beverages", supplier: "Vineyard Select", current: 9, threshold: 12, unit: "bottles", status: "low", lastOrdered: "Nov 8", nextDelivery: "Nov 15" },
-  { id: "i11", name: "Craft beer variety", category: "Beverages", supplier: "Local Brewery Co.", current: 36, threshold: 24, unit: "cans", status: "good", lastOrdered: "Nov 7", nextDelivery: null },
-  { id: "i12", name: "Specialty coffee beans", category: "Beverages", supplier: "Roastery Direct", current: 2, threshold: 5, unit: "lbs", status: "low", lastOrdered: "Nov 9", nextDelivery: "Nov 16" },
-  { id: "i13", name: "Arborio rice", category: "Dry Goods", supplier: "European Imports", current: 12, threshold: 10, unit: "lbs", status: "good", lastOrdered: "Oct 28", nextDelivery: null },
-  { id: "i14", name: "Semolina flour", category: "Dry Goods", supplier: "European Imports", current: 25, threshold: 20, unit: "lbs", status: "overstock", lastOrdered: "Oct 28", nextDelivery: null },
-  { id: "i15", name: "Premium olive oil", category: "Dry Goods", supplier: "Mediterranean Co.", current: 1.5, threshold: 3, unit: "gal", status: "low", lastOrdered: "Nov 7", nextDelivery: "Nov 15" },
-];
-
-const SUPPLIERS = [
-  { name: "Artisan Farms", contact: "artisan@artisanfarms.com", phone: "(609) 555-0121", leadDays: 2, notes: "Twice-weekly delivery Mon/Thu" },
-  { name: "Ocean Fresh Co.", contact: "orders@oceanfresh.com", phone: "(609) 555-0188", leadDays: 1, notes: "Next-day delivery available" },
-  { name: "Sunrise Organics", contact: "hello@sunriseorganics.com", phone: "(609) 555-0145", leadDays: 1, notes: "Daily delivery by 7 AM" },
-  { name: "Vineyard Select", contact: "orders@vineyardselect.com", phone: "(609) 555-0162", leadDays: 5, notes: "Weekly delivery Fridays" },
-  { name: "Local Brewery Co.", contact: "tap@localbrewery.com", phone: "(609) 555-0174", leadDays: 3, notes: "Bi-weekly delivery" },
-  { name: "Roastery Direct", contact: "hi@roasterydirect.com", phone: "(609) 555-0199", leadDays: 3, notes: "Roasted to order" },
-  { name: "European Imports", contact: "orders@euroimports.com", phone: "(609) 555-0133", leadDays: 7, notes: "Bulk orders recommended" },
-  { name: "Mediterranean Co.", contact: "orders@medco.com", phone: "(609) 555-0155", leadDays: 5, notes: "Free shipping over $200" },
-];
 
 const STATUS_CONFIG: Record<StockStatus, { label: string; cls: string; icon: typeof CheckCircle }> = {
   good: { label: "Good", cls: "status-good", icon: CheckCircle },
@@ -54,9 +14,12 @@ const STATUS_CONFIG: Record<StockStatus, { label: string; cls: string; icon: typ
   overstock: { label: "Overstock", cls: "status-overstock", icon: Package },
 };
 
-const CATEGORIES = ["All", ...Array.from(new Set(INVENTORY.map((i) => i.category)))];
 
-export function SupplyPage() {
+
+export function SupplyPage({ operations, restaurantName }: { operations: Operations; restaurantName: string }) {
+  const SUPPLIERS = operations.suppliers;
+  const INVENTORY = operations.inventory.map(item => ({ ...item, status: stockStatus(item.current, item.threshold), supplier: SUPPLIERS.find(s => s.id === item.supplierId)!.name }));
+  const CATEGORIES = ["All", ...new Set(INVENTORY.map(i => i.category))];
   const [category, setCategory] = useState("All");
   const [tab, setTab] = useState<"inventory" | "suppliers">("inventory");
 
@@ -71,7 +34,7 @@ export function SupplyPage() {
         <div className="section-icon-wrap"><Package size={20} /></div>
         <div>
           <h2>Supply Management</h2>
-          <p>Juniper Table — inventory and suppliers</p>
+          <p>{restaurantName} — inventory and suppliers</p>
         </div>
         <span className="pill">Demo data</span>
       </div>
@@ -102,7 +65,7 @@ export function SupplyPage() {
           <span className="kpi-icon"><Truck size={16} /></span>
           <div>
             <span className="kpi-value">{upcoming}</span>
-            <span className="kpi-label">Deliveries pending</span>
+            <span className="kpi-label">Items awaiting delivery</span>
           </div>
         </div>
       </div>
@@ -130,7 +93,7 @@ export function SupplyPage() {
                   <th>Item</th>
                   <th>Supplier</th>
                   <th>Stock</th>
-                  <th>Status</th>
+                  <th>Reorder point / unit cost</th><th>Status</th>
                   <th>Next delivery</th>
                 </tr>
               </thead>
@@ -151,6 +114,7 @@ export function SupplyPage() {
                           <span className="stock-label">{item.current} {item.unit}</span>
                         </div>
                       </td>
+                      <td>{item.threshold} {item.unit} · ${(item.unitCostCents / 100).toFixed(2)} / {item.unit}</td>
                       <td><span className={`status-badge ${cfg.cls}`}>{cfg.label}</span></td>
                       <td className={item.nextDelivery ? "" : "muted"}>{item.nextDelivery ?? "Not scheduled"}</td>
                     </tr>
@@ -183,7 +147,7 @@ export function SupplyPage() {
 
       <div className="reorder-banner">
         <RefreshCw size={15} />
-        <span><strong>{critical + low} items</strong> need reordering — microgreens and house white wine are critically low.</span>
+        <span><strong>{critical + low} items</strong> are below their reorder thresholds across {new Set(INVENTORY.filter(i => i.current < i.threshold).map(i => i.supplierId)).size} suppliers. Rule-based demo summary.</span>
       </div>
 
       <p className="section-footnote">Inventory and supplier data is a demo fixture. No real purchasing actions are performed.</p>

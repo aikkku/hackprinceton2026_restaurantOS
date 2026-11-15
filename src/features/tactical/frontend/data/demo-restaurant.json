@@ -11,26 +11,150 @@
     "restaurantId": "juniper-table",
     "name": "Juniper Table floor plan",
     "unit": "m",
-    "room": { "width": 12, "depth": 7.5 },
+    "room": {
+      "width": 12,
+      "depth": 7.5
+    },
     "updatedAt": "2026-11-14T00:00:00.000Z",
     "objects": [
-      { "id": "kitchen", "type": "kitchen_zone", "x": 0.4, "y": 0.45, "width": 3.65, "depth": 2.45, "rotation": 0 },
-      { "id": "counter", "type": "counter", "x": 0.65, "y": 3.25, "width": 2.95, "depth": 1.15, "rotation": 0, "seats": 3 },
-      { "id": "north-booth", "type": "booth", "x": 5.1, "y": 0.55, "width": 2.25, "depth": 1.4, "rotation": 0, "seats": 4 },
-      { "id": "east-booth", "type": "booth", "x": 8.5, "y": 0.55, "width": 2.25, "depth": 1.4, "rotation": 0, "seats": 4 },
-      { "id": "center-four", "type": "table_4", "x": 5.1, "y": 2.85, "width": 1.7, "depth": 1.7, "rotation": 0, "seats": 4 },
-      { "id": "east-four", "type": "table_4", "x": 8.15, "y": 2.85, "width": 1.7, "depth": 1.7, "rotation": 0, "seats": 4 },
-      { "id": "south-two", "type": "table_2", "x": 5.25, "y": 5.55, "width": 1.4, "depth": 0.9, "rotation": 0, "seats": 2 },
-      { "id": "corner-two", "type": "table_2", "x": 8.35, "y": 5.55, "width": 1.4, "depth": 0.9, "rotation": 0, "seats": 2 },
-      { "id": "entry", "type": "door", "x": 0.85, "y": 7.05, "width": 1.25, "depth": 0.45, "rotation": 0 },
-      { "id": "entry-plant", "type": "plant", "x": 0.55, "y": 5.75, "width": 0.6, "depth": 0.6, "rotation": 0 },
-      { "id": "corner-plant", "type": "plant", "x": 11.15, "y": 6.6, "width": 0.55, "depth": 0.55, "rotation": 0 }
+      {
+        "id": "kitchen",
+        "type": "kitchen_zone",
+        "x": 0.4,
+        "y": 0.45,
+        "width": 3.65,
+        "depth": 2.45,
+        "rotation": 0
+      },
+      {
+        "id": "counter",
+        "type": "counter",
+        "x": 0.65,
+        "y": 3.25,
+        "width": 2.95,
+        "depth": 1.15,
+        "rotation": 0,
+        "seats": 3
+      },
+      {
+        "id": "north-booth",
+        "type": "booth",
+        "x": 5.1,
+        "y": 0.55,
+        "width": 2.25,
+        "depth": 1.4,
+        "rotation": 0,
+        "seats": 4
+      },
+      {
+        "id": "east-booth",
+        "type": "booth",
+        "x": 8.5,
+        "y": 0.55,
+        "width": 2.25,
+        "depth": 1.4,
+        "rotation": 0,
+        "seats": 4
+      },
+      {
+        "id": "center-four",
+        "type": "table_4",
+        "x": 5.1,
+        "y": 2.85,
+        "width": 1.7,
+        "depth": 1.7,
+        "rotation": 0,
+        "seats": 4
+      },
+      {
+        "id": "east-four",
+        "type": "table_4",
+        "x": 8.15,
+        "y": 2.85,
+        "width": 1.7,
+        "depth": 1.7,
+        "rotation": 0,
+        "seats": 4
+      },
+      {
+        "id": "south-two",
+        "type": "table_2",
+        "x": 5.25,
+        "y": 5.55,
+        "width": 1.4,
+        "depth": 0.9,
+        "rotation": 0,
+        "seats": 2
+      },
+      {
+        "id": "corner-two",
+        "type": "table_2",
+        "x": 8.35,
+        "y": 5.55,
+        "width": 1.4,
+        "depth": 0.9,
+        "rotation": 0,
+        "seats": 2
+      },
+      {
+        "id": "entry",
+        "type": "door",
+        "x": 0.85,
+        "y": 7.05,
+        "width": 1.25,
+        "depth": 0.45,
+        "rotation": 0
+      },
+      {
+        "id": "entry-plant",
+        "type": "plant",
+        "x": 0.55,
+        "y": 5.75,
+        "width": 0.6,
+        "depth": 0.6,
+        "rotation": 0
+      },
+      {
+        "id": "corner-plant",
+        "type": "plant",
+        "x": 11.15,
+        "y": 6.6,
+        "width": 0.55,
+        "depth": 0.55,
+        "rotation": 0
+      }
     ]
   },
   "reviews": [
-    { "id": "juniper-review-01", "date": "2026-10-31", "rating": 4, "text": "We loved dinner, but we waited about half an hour for a table on Saturday.", "themes": ["Wait time", "Weekend service"] },
-    { "id": "juniper-review-02", "date": "2026-11-07", "rating": 3, "text": "Our party of four came around seven and left when there wasn't a table available.", "themes": ["Seating", "Weekend service"] },
-    { "id": "juniper-review-03", "date": "2026-11-08", "rating": 5, "text": "We sat at the counter on Sunday and the team was lovely.", "themes": ["Service"] }
+    {
+      "id": "juniper-review-01",
+      "date": "2026-10-31",
+      "rating": 4,
+      "text": "We loved dinner, but we waited about half an hour for a table on Saturday.",
+      "themes": [
+        "Wait time",
+        "Weekend service"
+      ]
+    },
+    {
+      "id": "juniper-review-02",
+      "date": "2026-11-07",
+      "rating": 3,
+      "text": "Our party of four came around seven and left when there wasn't a table available.",
+      "themes": [
+        "Seating",
+        "Weekend service"
+      ]
+    },
+    {
+      "id": "juniper-review-03",
+      "date": "2026-11-08",
+      "rating": 5,
+      "text": "We sat at the counter on Sunday and the team was lovely.",
+      "themes": [
+        "Service"
+      ]
+    }
   ],
   "mission": {
     "id": "juniper-seating",
@@ -44,7 +168,10 @@
       "Measured furniture clearance and usable floor space",
       "Extra staffing or other fixed operating costs"
     ],
-    "evidenceIds": ["juniper-review-01", "juniper-review-02"]
+    "evidenceIds": [
+      "juniper-review-01",
+      "juniper-review-02"
+    ]
   },
   "assumptions": {
     "turnsPerDay": 1.5,
@@ -53,5 +180,2040 @@
     "operatingDaysPerMonth": 26,
     "incrementalContributionMargin": 0.32,
     "investmentCost": 2400
-  }
+  },
+  "datasetVersion": 1,
+  "provenance": {
+    "origin": "synthetic",
+    "sourceId": "fixture-operations",
+    "asOf": "2026-11-14",
+    "description": "Entirely fictional restaurant dataset for development. Not real banking, staff, reviews, inventory or property data."
+  },
+  "operations": {
+    "currency": "USD",
+    "employees": [
+      {
+        "id": "e1",
+        "name": "Sarah Chen",
+        "role": "Head Chef",
+        "type": "Full-time",
+        "tenure": "8 yrs",
+        "rating": "Excellent",
+        "hoursThisWeek": 40,
+        "schedule": [
+          "8–4",
+          "8–4",
+          null,
+          "8–4",
+          "8–4",
+          "8–4",
+          null
+        ],
+        "email": "staff1@example.com",
+        "hourlyRateCents": 1800,
+        "availability": "Availability supplied in fictional schedule",
+        "mood": "Happy"
+      },
+      {
+        "id": "e2",
+        "name": "Marcus Torres",
+        "role": "Sous Chef",
+        "type": "Full-time",
+        "tenure": "3 yrs",
+        "rating": "Excellent",
+        "hoursThisWeek": 48,
+        "schedule": [
+          null,
+          "8–4",
+          "8–4",
+          "8–4",
+          "8–4",
+          "8–4",
+          "10–6"
+        ],
+        "email": "staff2@example.com",
+        "hourlyRateCents": 2050,
+        "availability": "Availability supplied in fictional schedule",
+        "mood": "Neutral"
+      },
+      {
+        "id": "e3",
+        "name": "Lily Nakamura",
+        "role": "Host / Hostess",
+        "type": "Full-time",
+        "tenure": "4 yrs",
+        "rating": "Excellent",
+        "hoursThisWeek": 45,
+        "schedule": [
+          "11–8",
+          null,
+          "11–8",
+          "11–8",
+          "11–8",
+          "11–8",
+          null
+        ],
+        "email": "staff3@example.com",
+        "hourlyRateCents": 2300,
+        "availability": "Availability supplied in fictional schedule",
+        "mood": "Tired"
+      },
+      {
+        "id": "e4",
+        "name": "Noah Williams",
+        "role": "Bartender",
+        "type": "Full-time",
+        "tenure": "2 yrs",
+        "rating": "Good",
+        "hoursThisWeek": 48,
+        "schedule": [
+          "4–12",
+          "4–12",
+          null,
+          "4–12",
+          "4–12",
+          "4–12",
+          "4–12"
+        ],
+        "email": "staff4@example.com",
+        "hourlyRateCents": 2550,
+        "availability": "Availability supplied in fictional schedule",
+        "mood": "Happy"
+      },
+      {
+        "id": "e5",
+        "name": "Emily Rodriguez",
+        "role": "Senior Server",
+        "type": "Full-time",
+        "tenure": "2 yrs",
+        "rating": "Good",
+        "hoursThisWeek": 45,
+        "schedule": [
+          "11–8",
+          "11–8",
+          "11–8",
+          null,
+          "11–8",
+          "11–8",
+          null
+        ],
+        "email": "staff5@example.com",
+        "hourlyRateCents": 2800,
+        "availability": "Availability supplied in fictional schedule",
+        "mood": "Neutral"
+      },
+      {
+        "id": "e6",
+        "name": "James Park",
+        "role": "Server",
+        "type": "Part-time",
+        "tenure": "1 yr",
+        "rating": "Good",
+        "hoursThisWeek": 25,
+        "schedule": [
+          null,
+          "5–10",
+          "5–10",
+          "5–10",
+          null,
+          "5–10",
+          "5–10"
+        ],
+        "email": "staff6@example.com",
+        "hourlyRateCents": 3050,
+        "availability": "Availability supplied in fictional schedule",
+        "mood": "Tired"
+      },
+      {
+        "id": "e7",
+        "name": "Aisha Johnson",
+        "role": "Server",
+        "type": "Part-time",
+        "tenure": "8 mos",
+        "rating": "Developing",
+        "hoursThisWeek": 20,
+        "schedule": [
+          null,
+          null,
+          "5–10",
+          "5–10",
+          "5–10",
+          "5–10",
+          null
+        ],
+        "email": "staff7@example.com",
+        "hourlyRateCents": 3300,
+        "availability": "Availability supplied in fictional schedule",
+        "mood": "Happy"
+      },
+      {
+        "id": "e8",
+        "name": "Tom Mitchell",
+        "role": "Busser",
+        "type": "Part-time",
+        "tenure": "5 mos",
+        "rating": "Good",
+        "hoursThisWeek": 25,
+        "schedule": [
+          null,
+          "5–10",
+          null,
+          "5–10",
+          "5–10",
+          "5–10",
+          "11–4"
+        ],
+        "email": "staff8@example.com",
+        "hourlyRateCents": 3550,
+        "availability": "Availability supplied in fictional schedule",
+        "mood": "Neutral"
+      }
+    ],
+    "suppliers": [
+      {
+        "name": "Artisan Farms",
+        "contact": "supplier1@example.com",
+        "phone": "(609) 555-0121",
+        "leadDays": 2,
+        "notes": "Twice-weekly delivery Mon/Thu",
+        "id": "supplier-1"
+      },
+      {
+        "name": "Ocean Fresh Co.",
+        "contact": "supplier2@example.com",
+        "phone": "(609) 555-0188",
+        "leadDays": 1,
+        "notes": "Next-day delivery available",
+        "id": "supplier-2"
+      },
+      {
+        "name": "Sunrise Organics",
+        "contact": "supplier3@example.com",
+        "phone": "(609) 555-0145",
+        "leadDays": 1,
+        "notes": "Daily delivery by 7 AM",
+        "id": "supplier-3"
+      },
+      {
+        "name": "Vineyard Select",
+        "contact": "supplier4@example.com",
+        "phone": "(609) 555-0162",
+        "leadDays": 5,
+        "notes": "Weekly delivery Fridays",
+        "id": "supplier-4"
+      },
+      {
+        "name": "Local Brewery Co.",
+        "contact": "supplier5@example.com",
+        "phone": "(609) 555-0174",
+        "leadDays": 3,
+        "notes": "Bi-weekly delivery",
+        "id": "supplier-5"
+      },
+      {
+        "name": "Roastery Direct",
+        "contact": "supplier6@example.com",
+        "phone": "(609) 555-0199",
+        "leadDays": 3,
+        "notes": "Roasted to order",
+        "id": "supplier-6"
+      },
+      {
+        "name": "European Imports",
+        "contact": "supplier7@example.com",
+        "phone": "(609) 555-0133",
+        "leadDays": 7,
+        "notes": "Bulk orders recommended",
+        "id": "supplier-7"
+      },
+      {
+        "name": "Mediterranean Co.",
+        "contact": "supplier8@example.com",
+        "phone": "(609) 555-0155",
+        "leadDays": 5,
+        "notes": "Free shipping over $200",
+        "id": "supplier-8"
+      }
+    ],
+    "inventory": [
+      {
+        "id": "i1",
+        "name": "Grass-fed beef tenderloin",
+        "category": "Proteins",
+        "current": 24,
+        "threshold": 20,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-10",
+        "nextDelivery": "2026-11-16",
+        "supplierId": "supplier-1",
+        "unitCostCents": 250
+      },
+      {
+        "id": "i2",
+        "name": "Pacific salmon (whole)",
+        "category": "Proteins",
+        "current": 7,
+        "threshold": 10,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-09",
+        "nextDelivery": "2026-11-15",
+        "supplierId": "supplier-2",
+        "unitCostCents": 425
+      },
+      {
+        "id": "i3",
+        "name": "Free-range chicken breast",
+        "category": "Proteins",
+        "current": 18,
+        "threshold": 15,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-10",
+        "nextDelivery": "2026-11-16",
+        "supplierId": "supplier-1",
+        "unitCostCents": 600
+      },
+      {
+        "id": "i4",
+        "name": "Ribeye steak 12 oz",
+        "category": "Proteins",
+        "current": 10,
+        "threshold": 12,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-10",
+        "nextDelivery": "2026-11-15",
+        "supplierId": "supplier-1",
+        "unitCostCents": 775
+      },
+      {
+        "id": "i5",
+        "name": "Heirloom tomatoes",
+        "category": "Produce",
+        "current": 4,
+        "threshold": 8,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-11",
+        "nextDelivery": "2026-11-14",
+        "supplierId": "supplier-3",
+        "unitCostCents": 950
+      },
+      {
+        "id": "i6",
+        "name": "Local microgreens",
+        "category": "Produce",
+        "current": 1,
+        "threshold": 4,
+        "unit": "oz",
+        "lastOrdered": "2026-11-12",
+        "nextDelivery": "2026-11-14",
+        "supplierId": "supplier-3",
+        "unitCostCents": 1125
+      },
+      {
+        "id": "i7",
+        "name": "Seasonal mixed veg",
+        "category": "Produce",
+        "current": 22,
+        "threshold": 15,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-10",
+        "nextDelivery": null,
+        "supplierId": "supplier-3",
+        "unitCostCents": 1300
+      },
+      {
+        "id": "i8",
+        "name": "Fresh herbs bundle",
+        "category": "Produce",
+        "current": 6,
+        "threshold": 5,
+        "unit": "bunches",
+        "lastOrdered": "2026-11-11",
+        "nextDelivery": null,
+        "supplierId": "supplier-3",
+        "unitCostCents": 1475
+      },
+      {
+        "id": "i9",
+        "name": "House white wine",
+        "category": "Beverages",
+        "current": 5,
+        "threshold": 12,
+        "unit": "bottles",
+        "lastOrdered": "2026-11-08",
+        "nextDelivery": "2026-11-15",
+        "supplierId": "supplier-4",
+        "unitCostCents": 1650
+      },
+      {
+        "id": "i10",
+        "name": "House red wine",
+        "category": "Beverages",
+        "current": 9,
+        "threshold": 12,
+        "unit": "bottles",
+        "lastOrdered": "2026-11-08",
+        "nextDelivery": "2026-11-15",
+        "supplierId": "supplier-4",
+        "unitCostCents": 1825
+      },
+      {
+        "id": "i11",
+        "name": "Craft beer variety",
+        "category": "Beverages",
+        "current": 36,
+        "threshold": 24,
+        "unit": "cans",
+        "lastOrdered": "2026-11-07",
+        "nextDelivery": null,
+        "supplierId": "supplier-5",
+        "unitCostCents": 2000
+      },
+      {
+        "id": "i12",
+        "name": "Specialty coffee beans",
+        "category": "Beverages",
+        "current": 2,
+        "threshold": 5,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-09",
+        "nextDelivery": "2026-11-16",
+        "supplierId": "supplier-6",
+        "unitCostCents": 2175
+      },
+      {
+        "id": "i13",
+        "name": "Arborio rice",
+        "category": "Dry Goods",
+        "current": 12,
+        "threshold": 10,
+        "unit": "lbs",
+        "lastOrdered": "2026-10-28",
+        "nextDelivery": null,
+        "supplierId": "supplier-7",
+        "unitCostCents": 2350
+      },
+      {
+        "id": "i14",
+        "name": "Semolina flour",
+        "category": "Dry Goods",
+        "current": 25,
+        "threshold": 20,
+        "unit": "lbs",
+        "lastOrdered": "2026-10-28",
+        "nextDelivery": null,
+        "supplierId": "supplier-7",
+        "unitCostCents": 2525
+      },
+      {
+        "id": "i15",
+        "name": "Premium olive oil",
+        "category": "Dry Goods",
+        "current": 1.5,
+        "threshold": 3,
+        "unit": "gal",
+        "lastOrdered": "2026-11-07",
+        "nextDelivery": "2026-11-15",
+        "supplierId": "supplier-8",
+        "unitCostCents": 2700
+      }
+    ],
+    "menu": [
+      {
+        "id": "dish-1",
+        "name": "House Burger",
+        "category": "Mains",
+        "dineInPriceCents": 1800,
+        "deliveryPriceCents": 2300,
+        "ingredientCostCents": 576,
+        "packagingCostCents": 150,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 35
+      },
+      {
+        "id": "dish-2",
+        "name": "Salmon Fillet",
+        "category": "Mains",
+        "dineInPriceCents": 2800,
+        "deliveryPriceCents": 3400,
+        "ingredientCostCents": 896,
+        "packagingCostCents": 150,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 43
+      },
+      {
+        "id": "dish-3",
+        "name": "Pasta Primavera",
+        "category": "Mains",
+        "dineInPriceCents": 2200,
+        "deliveryPriceCents": 2700,
+        "ingredientCostCents": 704,
+        "packagingCostCents": 150,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 51
+      },
+      {
+        "id": "dish-4",
+        "name": "Ribeye Steak 12 oz",
+        "category": "Mains",
+        "dineInPriceCents": 4500,
+        "deliveryPriceCents": 5400,
+        "ingredientCostCents": 1440,
+        "packagingCostCents": 150,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 59
+      },
+      {
+        "id": "dish-5",
+        "name": "Caesar Salad",
+        "category": "Starters",
+        "dineInPriceCents": 1400,
+        "deliveryPriceCents": 1800,
+        "ingredientCostCents": 448,
+        "packagingCostCents": 150,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 67
+      },
+      {
+        "id": "dish-6",
+        "name": "Mushroom Soup",
+        "category": "Starters",
+        "dineInPriceCents": 1000,
+        "deliveryPriceCents": 1300,
+        "ingredientCostCents": 320,
+        "packagingCostCents": 150,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 75
+      },
+      {
+        "id": "dish-7",
+        "name": "Tiramisu",
+        "category": "Desserts",
+        "dineInPriceCents": 900,
+        "deliveryPriceCents": 1200,
+        "ingredientCostCents": 288,
+        "packagingCostCents": 150,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 83
+      },
+      {
+        "id": "dish-8",
+        "name": "Craft Cocktail",
+        "category": "Beverages",
+        "dineInPriceCents": 1400,
+        "deliveryPriceCents": 1600,
+        "ingredientCostCents": 448,
+        "packagingCostCents": 150,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 91
+      }
+    ],
+    "transactions": [
+      {
+        "id": "sale-6-1",
+        "date": "2026-06-01",
+        "description": "Synthetic service summary 1",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 84500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-6-2",
+        "date": "2026-06-02",
+        "description": "Synthetic service summary 2",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 86000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-6-3",
+        "date": "2026-06-03",
+        "description": "Synthetic service summary 3",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 87500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-6-4",
+        "date": "2026-06-04",
+        "description": "Synthetic service summary 4",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 89000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-6-5",
+        "date": "2026-06-05",
+        "description": "Synthetic service summary 5",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 90500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-6-6",
+        "date": "2026-06-06",
+        "description": "Synthetic service summary 6",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 92000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-6-7",
+        "date": "2026-06-07",
+        "description": "Synthetic service summary 7",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 93500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-6-8",
+        "date": "2026-06-08",
+        "description": "Synthetic service summary 8",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 95000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-6-9",
+        "date": "2026-06-09",
+        "description": "Synthetic service summary 9",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 96500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-6-10",
+        "date": "2026-06-10",
+        "description": "Synthetic service summary 10",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 98000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-6-11",
+        "date": "2026-06-11",
+        "description": "Synthetic service summary 11",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 99500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-6-12",
+        "date": "2026-06-12",
+        "description": "Synthetic service summary 12",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 101000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-6-0",
+        "date": "2026-06-12",
+        "description": "Synthetic ingredients expense",
+        "kind": "expense",
+        "category": "ingredients",
+        "channel": "shared",
+        "amountCents": 220000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-6-1",
+        "date": "2026-06-12",
+        "description": "Synthetic labor expense",
+        "kind": "expense",
+        "category": "labor",
+        "channel": "shared",
+        "amountCents": 340000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-6-2",
+        "date": "2026-06-12",
+        "description": "Synthetic rent expense",
+        "kind": "expense",
+        "category": "rent",
+        "channel": "shared",
+        "amountCents": 200000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-7-1",
+        "date": "2026-07-01",
+        "description": "Synthetic service summary 1",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 87500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-7-2",
+        "date": "2026-07-02",
+        "description": "Synthetic service summary 2",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 89000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-7-3",
+        "date": "2026-07-03",
+        "description": "Synthetic service summary 3",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 90500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-7-4",
+        "date": "2026-07-04",
+        "description": "Synthetic service summary 4",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 92000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-7-5",
+        "date": "2026-07-05",
+        "description": "Synthetic service summary 5",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 93500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-7-6",
+        "date": "2026-07-06",
+        "description": "Synthetic service summary 6",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 95000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-7-7",
+        "date": "2026-07-07",
+        "description": "Synthetic service summary 7",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 96500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-7-8",
+        "date": "2026-07-08",
+        "description": "Synthetic service summary 8",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 98000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-7-9",
+        "date": "2026-07-09",
+        "description": "Synthetic service summary 9",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 99500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-7-10",
+        "date": "2026-07-10",
+        "description": "Synthetic service summary 10",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 101000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-7-11",
+        "date": "2026-07-11",
+        "description": "Synthetic service summary 11",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 102500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-7-12",
+        "date": "2026-07-12",
+        "description": "Synthetic service summary 12",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 104000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-7-0",
+        "date": "2026-07-12",
+        "description": "Synthetic ingredients expense",
+        "kind": "expense",
+        "category": "ingredients",
+        "channel": "shared",
+        "amountCents": 220000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-7-1",
+        "date": "2026-07-12",
+        "description": "Synthetic labor expense",
+        "kind": "expense",
+        "category": "labor",
+        "channel": "shared",
+        "amountCents": 340000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-7-2",
+        "date": "2026-07-12",
+        "description": "Synthetic rent expense",
+        "kind": "expense",
+        "category": "rent",
+        "channel": "shared",
+        "amountCents": 200000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-8-1",
+        "date": "2026-08-01",
+        "description": "Synthetic service summary 1",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 90500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-8-2",
+        "date": "2026-08-02",
+        "description": "Synthetic service summary 2",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 92000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-8-3",
+        "date": "2026-08-03",
+        "description": "Synthetic service summary 3",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 93500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-8-4",
+        "date": "2026-08-04",
+        "description": "Synthetic service summary 4",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 95000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-8-5",
+        "date": "2026-08-05",
+        "description": "Synthetic service summary 5",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 96500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-8-6",
+        "date": "2026-08-06",
+        "description": "Synthetic service summary 6",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 98000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-8-7",
+        "date": "2026-08-07",
+        "description": "Synthetic service summary 7",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 99500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-8-8",
+        "date": "2026-08-08",
+        "description": "Synthetic service summary 8",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 101000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-8-9",
+        "date": "2026-08-09",
+        "description": "Synthetic service summary 9",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 102500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-8-10",
+        "date": "2026-08-10",
+        "description": "Synthetic service summary 10",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 104000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-8-11",
+        "date": "2026-08-11",
+        "description": "Synthetic service summary 11",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 105500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-8-12",
+        "date": "2026-08-12",
+        "description": "Synthetic service summary 12",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 107000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-8-0",
+        "date": "2026-08-12",
+        "description": "Synthetic ingredients expense",
+        "kind": "expense",
+        "category": "ingredients",
+        "channel": "shared",
+        "amountCents": 220000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-8-1",
+        "date": "2026-08-12",
+        "description": "Synthetic labor expense",
+        "kind": "expense",
+        "category": "labor",
+        "channel": "shared",
+        "amountCents": 340000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-8-2",
+        "date": "2026-08-12",
+        "description": "Synthetic rent expense",
+        "kind": "expense",
+        "category": "rent",
+        "channel": "shared",
+        "amountCents": 200000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-9-1",
+        "date": "2026-09-01",
+        "description": "Synthetic service summary 1",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 93500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-9-2",
+        "date": "2026-09-02",
+        "description": "Synthetic service summary 2",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 95000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-9-3",
+        "date": "2026-09-03",
+        "description": "Synthetic service summary 3",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 96500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-9-4",
+        "date": "2026-09-04",
+        "description": "Synthetic service summary 4",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 98000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-9-5",
+        "date": "2026-09-05",
+        "description": "Synthetic service summary 5",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 99500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-9-6",
+        "date": "2026-09-06",
+        "description": "Synthetic service summary 6",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 101000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-9-7",
+        "date": "2026-09-07",
+        "description": "Synthetic service summary 7",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 102500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-9-8",
+        "date": "2026-09-08",
+        "description": "Synthetic service summary 8",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 104000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-9-9",
+        "date": "2026-09-09",
+        "description": "Synthetic service summary 9",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 105500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-9-10",
+        "date": "2026-09-10",
+        "description": "Synthetic service summary 10",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 107000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-9-11",
+        "date": "2026-09-11",
+        "description": "Synthetic service summary 11",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 108500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-9-12",
+        "date": "2026-09-12",
+        "description": "Synthetic service summary 12",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 110000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-9-0",
+        "date": "2026-09-12",
+        "description": "Synthetic ingredients expense",
+        "kind": "expense",
+        "category": "ingredients",
+        "channel": "shared",
+        "amountCents": 220000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-9-1",
+        "date": "2026-09-12",
+        "description": "Synthetic labor expense",
+        "kind": "expense",
+        "category": "labor",
+        "channel": "shared",
+        "amountCents": 340000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-9-2",
+        "date": "2026-09-12",
+        "description": "Synthetic rent expense",
+        "kind": "expense",
+        "category": "rent",
+        "channel": "shared",
+        "amountCents": 200000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-10-1",
+        "date": "2026-10-01",
+        "description": "Synthetic service summary 1",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 96500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-10-2",
+        "date": "2026-10-02",
+        "description": "Synthetic service summary 2",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 98000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-10-3",
+        "date": "2026-10-03",
+        "description": "Synthetic service summary 3",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 99500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-10-4",
+        "date": "2026-10-04",
+        "description": "Synthetic service summary 4",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 101000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-10-5",
+        "date": "2026-10-05",
+        "description": "Synthetic service summary 5",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 102500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-10-6",
+        "date": "2026-10-06",
+        "description": "Synthetic service summary 6",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 104000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-10-7",
+        "date": "2026-10-07",
+        "description": "Synthetic service summary 7",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 105500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-10-8",
+        "date": "2026-10-08",
+        "description": "Synthetic service summary 8",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 107000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-10-9",
+        "date": "2026-10-09",
+        "description": "Synthetic service summary 9",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 108500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-10-10",
+        "date": "2026-10-10",
+        "description": "Synthetic service summary 10",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 110000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-10-11",
+        "date": "2026-10-11",
+        "description": "Synthetic service summary 11",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 111500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-10-12",
+        "date": "2026-10-12",
+        "description": "Synthetic service summary 12",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 113000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-10-0",
+        "date": "2026-10-12",
+        "description": "Synthetic ingredients expense",
+        "kind": "expense",
+        "category": "ingredients",
+        "channel": "shared",
+        "amountCents": 220000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-10-1",
+        "date": "2026-10-12",
+        "description": "Synthetic labor expense",
+        "kind": "expense",
+        "category": "labor",
+        "channel": "shared",
+        "amountCents": 340000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-10-2",
+        "date": "2026-10-12",
+        "description": "Synthetic rent expense",
+        "kind": "expense",
+        "category": "rent",
+        "channel": "shared",
+        "amountCents": 200000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-11-1",
+        "date": "2026-11-01",
+        "description": "Synthetic service summary 1",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 99500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-11-2",
+        "date": "2026-11-02",
+        "description": "Synthetic service summary 2",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 101000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-11-3",
+        "date": "2026-11-03",
+        "description": "Synthetic service summary 3",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 102500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-11-4",
+        "date": "2026-11-04",
+        "description": "Synthetic service summary 4",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 104000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-11-5",
+        "date": "2026-11-05",
+        "description": "Synthetic service summary 5",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 105500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-11-6",
+        "date": "2026-11-06",
+        "description": "Synthetic service summary 6",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 107000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-11-7",
+        "date": "2026-11-07",
+        "description": "Synthetic service summary 7",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 108500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-11-8",
+        "date": "2026-11-08",
+        "description": "Synthetic service summary 8",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 110000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-11-9",
+        "date": "2026-11-09",
+        "description": "Synthetic service summary 9",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 111500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-11-10",
+        "date": "2026-11-10",
+        "description": "Synthetic service summary 10",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 113000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-11-11",
+        "date": "2026-11-11",
+        "description": "Synthetic service summary 11",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 114500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "sale-11-12",
+        "date": "2026-11-12",
+        "description": "Synthetic service summary 12",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 116000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-11-0",
+        "date": "2026-11-12",
+        "description": "Synthetic ingredients expense",
+        "kind": "expense",
+        "category": "ingredients",
+        "channel": "shared",
+        "amountCents": 220000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-11-1",
+        "date": "2026-11-12",
+        "description": "Synthetic labor expense",
+        "kind": "expense",
+        "category": "labor",
+        "channel": "shared",
+        "amountCents": 340000,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "expense-11-2",
+        "date": "2026-11-12",
+        "description": "Synthetic rent expense",
+        "kind": "expense",
+        "category": "rent",
+        "channel": "shared",
+        "amountCents": 200000,
+        "sourceId": "fixture-operations"
+      }
+    ],
+    "competitors": [
+      {
+        "id": "comparison-0",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-1",
+        "item": "House Burger",
+        "priceCents": 2000,
+        "observedOn": "2026-11-01",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "comparison-1",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-2",
+        "item": "Salmon Fillet",
+        "priceCents": 3000,
+        "observedOn": "2026-11-01",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "comparison-2",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-3",
+        "item": "Pasta Primavera",
+        "priceCents": 2400,
+        "observedOn": "2026-11-01",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      }
+    ]
+  },
+  "photoPlans": {
+    "sample": {
+      "room": {
+        "width": 40,
+        "depth": 30,
+        "confidence": 1
+      },
+      "door": {
+        "wall": "S",
+        "position": 0.5,
+        "label": "Entrance"
+      },
+      "fixtures": [
+        {
+          "id": "bar-1",
+          "type": "bar",
+          "x": 0.5,
+          "y": 0.5,
+          "width": 18,
+          "depth": 3.5,
+          "stool_count": 7,
+          "wall": "N"
+        },
+        {
+          "id": "cashier-1",
+          "type": "cashier",
+          "x": 32,
+          "y": 1,
+          "width": 5,
+          "depth": 3,
+          "wall": "N"
+        }
+      ],
+      "tables": [
+        {
+          "id": "T1",
+          "x": 4,
+          "y": 8,
+          "shape": "rect",
+          "width": 4,
+          "depth": 3,
+          "seats": 4,
+          "chairs_visible": 4,
+          "is_joined_group": false,
+          "confidence": 0.9,
+          "label": "T1"
+        },
+        {
+          "id": "T2",
+          "x": 11,
+          "y": 8,
+          "shape": "rect",
+          "width": 4,
+          "depth": 3,
+          "seats": 4,
+          "chairs_visible": 4,
+          "is_joined_group": false,
+          "confidence": 0.9,
+          "label": "T2"
+        },
+        {
+          "id": "T3",
+          "x": 18,
+          "y": 8,
+          "shape": "rect",
+          "width": 4,
+          "depth": 3,
+          "seats": 4,
+          "chairs_visible": 4,
+          "is_joined_group": false,
+          "confidence": 0.85,
+          "label": "T3"
+        },
+        {
+          "id": "T4",
+          "x": 25,
+          "y": 8,
+          "shape": "rect",
+          "width": 4,
+          "depth": 3,
+          "seats": 4,
+          "chairs_visible": 4,
+          "is_joined_group": false,
+          "confidence": 0.85,
+          "label": "T4"
+        },
+        {
+          "id": "T5",
+          "x": 4,
+          "y": 18,
+          "shape": "round",
+          "width": 3.5,
+          "depth": 3.5,
+          "seats": 2,
+          "chairs_visible": 2,
+          "is_joined_group": false,
+          "confidence": 0.9,
+          "label": "T5"
+        },
+        {
+          "id": "T6",
+          "x": 11,
+          "y": 18,
+          "shape": "round",
+          "width": 3.5,
+          "depth": 3.5,
+          "seats": 2,
+          "chairs_visible": 2,
+          "is_joined_group": false,
+          "confidence": 0.4,
+          "label": "T6"
+        }
+      ],
+      "questions": [
+        "How far apart are the tables from each other?"
+      ]
+    },
+    "blank": {
+      "room": {
+        "width": 30,
+        "depth": 20,
+        "confidence": 1
+      },
+      "door": {
+        "wall": "S",
+        "position": 0.5,
+        "label": "Entrance"
+      },
+      "fixtures": [],
+      "tables": [],
+      "questions": []
+    },
+    "fallback": {
+      "room": {
+        "width": 42,
+        "depth": 28,
+        "confidence": 0.7
+      },
+      "door": {
+        "wall": "S",
+        "position": 0.45,
+        "label": "Entrance"
+      },
+      "fixtures": [
+        {
+          "id": "bar-1",
+          "type": "bar",
+          "x": 1,
+          "y": 1,
+          "width": 16,
+          "depth": 3.5,
+          "stool_count": 6,
+          "wall": "N"
+        },
+        {
+          "id": "cashier-1",
+          "type": "cashier",
+          "x": 34,
+          "y": 1,
+          "width": 5,
+          "depth": 3,
+          "wall": "N"
+        }
+      ],
+      "tables": [
+        {
+          "id": "T1",
+          "x": 4,
+          "y": 8,
+          "shape": "rect",
+          "width": 4,
+          "depth": 3,
+          "seats": 4,
+          "chairs_visible": 4,
+          "is_joined_group": false,
+          "confidence": 0.9,
+          "label": "T1"
+        },
+        {
+          "id": "T2",
+          "x": 11,
+          "y": 8,
+          "shape": "rect",
+          "width": 4,
+          "depth": 3,
+          "seats": 4,
+          "chairs_visible": 4,
+          "is_joined_group": false,
+          "confidence": 0.9,
+          "label": "T2"
+        },
+        {
+          "id": "T3",
+          "x": 18,
+          "y": 8,
+          "shape": "rect",
+          "width": 4,
+          "depth": 3,
+          "seats": 4,
+          "chairs_visible": 4,
+          "is_joined_group": false,
+          "confidence": 0.85,
+          "label": "T3"
+        },
+        {
+          "id": "T4",
+          "x": 25,
+          "y": 8,
+          "shape": "rect",
+          "width": 4,
+          "depth": 3,
+          "seats": 4,
+          "chairs_visible": 4,
+          "is_joined_group": false,
+          "confidence": 0.85,
+          "label": "T4"
+        },
+        {
+          "id": "T5",
+          "x": 4,
+          "y": 18,
+          "shape": "round",
+          "width": 3.5,
+          "depth": 3.5,
+          "seats": 2,
+          "chairs_visible": 2,
+          "is_joined_group": false,
+          "confidence": 0.9,
+          "label": "T5"
+        },
+        {
+          "id": "T6",
+          "x": 11,
+          "y": 18,
+          "shape": "round",
+          "width": 3.5,
+          "depth": 3.5,
+          "seats": 2,
+          "chairs_visible": 2,
+          "is_joined_group": false,
+          "confidence": 0.4,
+          "label": "T6"
+        },
+        {
+          "id": "T7",
+          "x": 18,
+          "y": 18,
+          "shape": "rect",
+          "width": 6,
+          "depth": 3,
+          "seats": 6,
+          "chairs_visible": 6,
+          "is_joined_group": true,
+          "confidence": 0.75,
+          "label": "T7"
+        },
+        {
+          "id": "T8",
+          "x": 28,
+          "y": 18,
+          "shape": "rect",
+          "width": 4,
+          "depth": 3,
+          "seats": 4,
+          "chairs_visible": 4,
+          "is_joined_group": false,
+          "confidence": 0.88,
+          "label": "T8"
+        }
+      ],
+      "questions": [
+        "How far apart are the tables from each other?",
+        "Is the joined table group (T7) a permanent arrangement or occasional?"
+      ]
+    }
+  },
+  "layoutConfigurations": {
+    "version": 1,
+    "activeId": "current",
+    "baselineId": "current",
+    "entries": [
+      {
+        "id": "current",
+        "layout": {
+          "schemaVersion": 1,
+          "restaurantId": "juniper-table",
+          "name": "Juniper Table floor plan",
+          "unit": "m",
+          "room": {
+            "width": 12,
+            "depth": 7.5
+          },
+          "updatedAt": "2026-11-14T00:00:00.000Z",
+          "objects": [
+            {
+              "id": "kitchen",
+              "type": "kitchen_zone",
+              "x": 0.4,
+              "y": 0.45,
+              "width": 3.65,
+              "depth": 2.45,
+              "rotation": 0
+            },
+            {
+              "id": "counter",
+              "type": "counter",
+              "x": 0.65,
+              "y": 3.25,
+              "width": 2.95,
+              "depth": 1.15,
+              "rotation": 0,
+              "seats": 3
+            },
+            {
+              "id": "north-booth",
+              "type": "booth",
+              "x": 5.1,
+              "y": 0.55,
+              "width": 2.25,
+              "depth": 1.4,
+              "rotation": 0,
+              "seats": 4
+            },
+            {
+              "id": "east-booth",
+              "type": "booth",
+              "x": 8.5,
+              "y": 0.55,
+              "width": 2.25,
+              "depth": 1.4,
+              "rotation": 0,
+              "seats": 4
+            },
+            {
+              "id": "center-four",
+              "type": "table_4",
+              "x": 5.1,
+              "y": 2.85,
+              "width": 1.7,
+              "depth": 1.7,
+              "rotation": 0,
+              "seats": 4
+            },
+            {
+              "id": "east-four",
+              "type": "table_4",
+              "x": 8.15,
+              "y": 2.85,
+              "width": 1.7,
+              "depth": 1.7,
+              "rotation": 0,
+              "seats": 4
+            },
+            {
+              "id": "south-two",
+              "type": "table_2",
+              "x": 5.25,
+              "y": 5.55,
+              "width": 1.4,
+              "depth": 0.9,
+              "rotation": 0,
+              "seats": 2
+            },
+            {
+              "id": "corner-two",
+              "type": "table_2",
+              "x": 8.35,
+              "y": 5.55,
+              "width": 1.4,
+              "depth": 0.9,
+              "rotation": 0,
+              "seats": 2
+            },
+            {
+              "id": "entry",
+              "type": "door",
+              "x": 0.85,
+              "y": 7.05,
+              "width": 1.25,
+              "depth": 0.45,
+              "rotation": 0
+            },
+            {
+              "id": "entry-plant",
+              "type": "plant",
+              "x": 0.55,
+              "y": 5.75,
+              "width": 0.6,
+              "depth": 0.6,
+              "rotation": 0
+            },
+            {
+              "id": "corner-plant",
+              "type": "plant",
+              "x": 11.15,
+              "y": 6.6,
+              "width": 0.55,
+              "depth": 0.55,
+              "rotation": 0
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "scenarioSnapshots": [
+    {
+      "schemaVersion": 1,
+      "modelVersion": "turnover-v1",
+      "id": "demo-turnover",
+      "label": "Example turnover experiment",
+      "action": "turnover",
+      "targetTurnsPerDay": 2,
+      "createdAt": "2026-11-14T00:00:00.000Z",
+      "missionTitle": "The Seating Problem",
+      "evidence": [
+        {
+          "id": "juniper-review-01",
+          "date": "2026-10-31",
+          "rating": 4,
+          "text": "We loved dinner, but we waited about half an hour for a table on Saturday.",
+          "themes": [
+            "Wait time",
+            "Weekend service"
+          ]
+        },
+        {
+          "id": "juniper-review-02",
+          "date": "2026-11-07",
+          "rating": 3,
+          "text": "Our party of four came around seven and left when there wasn't a table available.",
+          "themes": [
+            "Seating",
+            "Weekend service"
+          ]
+        }
+      ],
+      "layout": {
+        "schemaVersion": 1,
+        "restaurantId": "juniper-table",
+        "name": "Juniper Table floor plan",
+        "unit": "m",
+        "room": {
+          "width": 12,
+          "depth": 7.5
+        },
+        "updatedAt": "2026-11-14T00:00:00.000Z",
+        "objects": [
+          {
+            "id": "kitchen",
+            "type": "kitchen_zone",
+            "x": 0.4,
+            "y": 0.45,
+            "width": 3.65,
+            "depth": 2.45,
+            "rotation": 0
+          },
+          {
+            "id": "counter",
+            "type": "counter",
+            "x": 0.65,
+            "y": 3.25,
+            "width": 2.95,
+            "depth": 1.15,
+            "rotation": 0,
+            "seats": 3
+          },
+          {
+            "id": "north-booth",
+            "type": "booth",
+            "x": 5.1,
+            "y": 0.55,
+            "width": 2.25,
+            "depth": 1.4,
+            "rotation": 0,
+            "seats": 4
+          },
+          {
+            "id": "east-booth",
+            "type": "booth",
+            "x": 8.5,
+            "y": 0.55,
+            "width": 2.25,
+            "depth": 1.4,
+            "rotation": 0,
+            "seats": 4
+          },
+          {
+            "id": "center-four",
+            "type": "table_4",
+            "x": 5.1,
+            "y": 2.85,
+            "width": 1.7,
+            "depth": 1.7,
+            "rotation": 0,
+            "seats": 4
+          },
+          {
+            "id": "east-four",
+            "type": "table_4",
+            "x": 8.15,
+            "y": 2.85,
+            "width": 1.7,
+            "depth": 1.7,
+            "rotation": 0,
+            "seats": 4
+          },
+          {
+            "id": "south-two",
+            "type": "table_2",
+            "x": 5.25,
+            "y": 5.55,
+            "width": 1.4,
+            "depth": 0.9,
+            "rotation": 0,
+            "seats": 2
+          },
+          {
+            "id": "corner-two",
+            "type": "table_2",
+            "x": 8.35,
+            "y": 5.55,
+            "width": 1.4,
+            "depth": 0.9,
+            "rotation": 0,
+            "seats": 2
+          },
+          {
+            "id": "entry",
+            "type": "door",
+            "x": 0.85,
+            "y": 7.05,
+            "width": 1.25,
+            "depth": 0.45,
+            "rotation": 0
+          },
+          {
+            "id": "entry-plant",
+            "type": "plant",
+            "x": 0.55,
+            "y": 5.75,
+            "width": 0.6,
+            "depth": 0.6,
+            "rotation": 0
+          },
+          {
+            "id": "corner-plant",
+            "type": "plant",
+            "x": 11.15,
+            "y": 6.6,
+            "width": 0.55,
+            "depth": 0.55,
+            "rotation": 0
+          }
+        ]
+      },
+      "baselineSeats": 23,
+      "assumptions": {
+        "turnsPerDay": 1.5,
+        "occupancyFraction": 0.65,
+        "averageCheck": 34,
+        "operatingDaysPerMonth": 26,
+        "incrementalContributionMargin": 0.32,
+        "investmentCost": 2400
+      },
+      "result": {
+        "draftSeats": 23,
+        "seatChange": 0,
+        "additionalCoversPerDay": 7.4750000000000005,
+        "incrementalRevenuePerMonth": 6607.900000000001,
+        "incrementalContributionPerMonth": 2114.5280000000002,
+        "simplePaybackMonths": 1.1350050696893113
+      }
+    }
+  ]
 }

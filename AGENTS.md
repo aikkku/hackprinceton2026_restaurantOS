@@ -14,7 +14,7 @@ RestaurantOS is an AI-powered **restaurant business simulator** for independent 
 - **Do not edit another developer's owned module without explicit permission.** Propose shared-contract changes instead of silently introducing breaking types.
 
 ## Stack — proposed defaults, not irrevocable decisions
-Next.js App Router + TypeScript, Tailwind CSS, shadcn/ui, Zod, Supabase (Postgres/storage), an AI model with structured outputs, lightweight React/SVG/motion for the game presentation, and deterministic TypeScript functions for numeric simulation. Use the repo's actual package manager and installed libraries once established. Avoid introducing a second backend or full game engine without a specific need.
+Next.js App Router + TypeScript, Tailwind CSS, shadcn/ui, Zod, MongoDB (user-selected shared `restaurantos` database; feature-owned collections), an AI model with structured outputs, lightweight React/SVG/motion for the game presentation, and deterministic TypeScript functions for numeric simulation. Use the repo's actual package manager and installed libraries once established. Avoid introducing a second backend or full game engine without a specific need.
 
 ## Product conventions
 - Both modes use **Mission → Action → Scenario → Outcome → Evidence** as shared concepts.

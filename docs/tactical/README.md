@@ -6,6 +6,7 @@ Start with **[Current implementation and remaining work](IMPLEMENTATION_STATUS.m
 
 | Document | Purpose | Update when |
 | --- | --- | --- |
+| [MONGODB_SETUP.md](MONGODB_SETUP.md) | Shared database, environment setup, seed/export, protected APIs and live verification | Database/API behavior changes |
 | [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) | Detailed current-versus-target status, source map, task IDs, priorities, dependencies, limitations and acceptance criteria | A feature ships, scope changes or verification finds a gap |
 | [PRODUCT_REFINEMENT_BRIEF.md](PRODUCT_REFINEMENT_BRIEF.md) | Preserved user-supplied target product brief | Keep as the supplied reference; record later scope changes explicitly |
 | [PAGES.md](PAGES.md) | Short route and page responsibility guide | Navigation, page ownership or save behavior changes |

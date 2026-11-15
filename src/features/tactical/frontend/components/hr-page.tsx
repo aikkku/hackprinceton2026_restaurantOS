@@ -1,31 +1,11 @@
 "use client";
 
 import { Users, Clock, Star, TrendingUp, Calendar, ChevronDown } from "lucide-react";
+import type { Operations } from "../../domain/dataset";
 import { useState } from "react";
 
-type Employee = {
-  id: string;
-  name: string;
-  role: string;
-  type: "Full-time" | "Part-time";
-  tenure: string;
-  rating: "Excellent" | "Good" | "Developing";
-  hoursThisWeek: number;
-  schedule: (string | null)[];
-};
-
+type Employee = Operations["employees"][number];
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-const EMPLOYEES: Employee[] = [
-  { id: "e1", name: "Sarah Chen", role: "Head Chef", type: "Full-time", tenure: "8 yrs", rating: "Excellent", hoursThisWeek: 42, schedule: ["8–4", "8–4", null, "8–4", "8–4", "8–4", null] },
-  { id: "e2", name: "Marcus Torres", role: "Sous Chef", type: "Full-time", tenure: "3 yrs", rating: "Excellent", hoursThisWeek: 40, schedule: [null, "8–4", "8–4", "8–4", "8–4", "8–4", "10–6"] },
-  { id: "e3", name: "Lily Nakamura", role: "Host / Hostess", type: "Full-time", tenure: "4 yrs", rating: "Excellent", hoursThisWeek: 38, schedule: ["11–8", null, "11–8", "11–8", "11–8", "11–8", null] },
-  { id: "e4", name: "Noah Williams", role: "Bartender", type: "Full-time", tenure: "2 yrs", rating: "Good", hoursThisWeek: 36, schedule: ["4–12", "4–12", null, "4–12", "4–12", "4–12", "4–12"] },
-  { id: "e5", name: "Emily Rodriguez", role: "Senior Server", type: "Full-time", tenure: "2 yrs", rating: "Good", hoursThisWeek: 35, schedule: ["11–8", "11–8", "11–8", null, "11–8", "11–8", null] },
-  { id: "e6", name: "James Park", role: "Server", type: "Part-time", tenure: "1 yr", rating: "Good", hoursThisWeek: 24, schedule: [null, "5–10", "5–10", "5–10", null, "5–10", "5–10"] },
-  { id: "e7", name: "Aisha Johnson", role: "Server", type: "Part-time", tenure: "8 mos", rating: "Developing", hoursThisWeek: 20, schedule: [null, null, "5–10", "5–10", "5–10", "5–10", null] },
-  { id: "e8", name: "Tom Mitchell", role: "Busser", type: "Part-time", tenure: "5 mos", rating: "Good", hoursThisWeek: 18, schedule: [null, "5–10", null, "5–10", "5–10", "5–10", "11–4"] },
-];
 
 const RATING_COLORS: Record<Employee["rating"], string> = {
   Excellent: "hr-pill-excellent",
@@ -33,7 +13,8 @@ const RATING_COLORS: Record<Employee["rating"], string> = {
   Developing: "hr-pill-developing",
 };
 
-export function HrPage() {
+export function HrPage({ operations, restaurantName }: { operations: Operations; restaurantName: string }) {
+  const EMPLOYEES = operations.employees;
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const fullTime = EMPLOYEES.filter((e) => e.type === "Full-time").length;
@@ -46,7 +27,7 @@ export function HrPage() {
         <div className="section-icon-wrap"><Users size={20} /></div>
         <div>
           <h2>Team</h2>
-          <p>Juniper Table — demo staff roster</p>
+          <p>{restaurantName} — demo staff roster</p>
         </div>
         <span className="pill">Demo data</span>
       </div>
@@ -129,6 +110,10 @@ export function HrPage() {
             {expanded === emp.id && (
               <div className="employee-detail">
                 <dl className="emp-detail-grid">
+                  <div><dt>Contact</dt><dd>{emp.email}</dd></div>
+                  <div><dt>Hourly rate (assumed)</dt><dd>${(emp.hourlyRateCents / 100).toFixed(2)}</dd></div>
+                  <div><dt>Availability</dt><dd>{emp.availability}</dd></div>
+                  <div><dt>Self-reported mood (fictional)</dt><dd>{emp.mood}</dd></div>
                   <div><dt>Tenure</dt><dd>{emp.tenure}</dd></div>
                   <div><dt>Employment</dt><dd>{emp.type}</dd></div>
                   <div><dt>Hours this week</dt><dd>{emp.hoursThisWeek} hrs</dd></div>
@@ -140,6 +125,7 @@ export function HrPage() {
         ))}
       </div>
 
+      <p className="section-footnote">Estimated scheduled base labor: ${(EMPLOYEES.reduce((sum, emp) => sum + emp.hoursThisWeek * emp.hourlyRateCents, 0) / 100).toFixed(2)}. Excludes overtime premiums, taxes and benefits.</p>
       <p className="section-footnote">Staff data is a demo fixture. No real employee information is used.</p>
     </div>
   );

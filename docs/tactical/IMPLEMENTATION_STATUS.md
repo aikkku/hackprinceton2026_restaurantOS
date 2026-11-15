@@ -4,6 +4,8 @@
 
 **Product target:** [Product refinement brief](PRODUCT_REFINEMENT_BRIEF.md). **Architecture map:** [repository structure](../../STRUCTURE.md). **Navigation guide:** [pages](PAGES.md). **Manual demo:** [walkthrough](FRONTEND_WALKTHROUGH.md).
 
+**Latest increment:** centralized mock data, shared `restaurantos` MongoDB database, protected dataset APIs and live Atlas round-trip verified. See [MongoDB setup/API guide](MONGODB_SETUP.md). The database remains synthetic; browser editor saves are not yet cloud-synchronized.
+
 This is the canonical implementation inventory and backlog. Product specifications describe intended behavior; this file records what the code actually does. Update this inventory when a feature ships, and include the verification that justifies changing its status.
 
 ## Contents
@@ -49,7 +51,7 @@ RestaurantOS currently provides a **working browser-local restaurant layout and 
 | Customer Reviews & Social Media | Demo analytics | Search, rating/theme aggregation, cited mission reviews | Authorized imports, text interpretation, time/source/dish analysis, social relationships |
 | HR | Demo | Eight-person roster, schedule and profiles | Synthetic pay/contact/availability data, labor calculation, job-post draft concept |
 | Supply Management | Demo | Inventory filters, stock indicators, supplier directory | Derived stock status, estimated costs and consistent restock summary |
-| Financial Intelligence | Partial demo | Financial tabs, sample pricing and capacity slider | Validated ledger, channel costs, pricing models, reconciled dashboard, saved finance scenarios |
+| Financial Intelligence | Working mock ledger and simulations | Reconciled ledger totals, channel unit costs, price/volume experiments | Real-data imports, saved pricing scenarios and shared edited assumptions |
 | AI Assistant | Intentionally deferred | Clearly inactive placeholder | No full chat is required now |
 
 **Do not currently claim:** production accounting, real customer sentiment analysis, automated space optimization, observed seating preference, legal/safety compliance assessment, live banking, CoStar interior geometry, Arlequin network analysis, or a functioning restaurant-wide assistant.
@@ -98,24 +100,24 @@ RestaurantOS currently provides a **working browser-local restaurant layout and 
 - Rain owns `src/features/expansion/`. Do not move Tactical implementation into his module.
 - Shared schemas are still a [proposal](SHARED_CONTRACT_PROPOSAL.md), not an agreed contract. Coordinate entity/provenance/handoff changes before promoting local types.
 - Installed UI technology is React/SVG, CSS, Geist and Lucide. Tailwind, shadcn/ui and Recharts are not installed dependencies in the inspected package manifest. They are preferences in the brief, not completed infrastructure or a reason to rewrite working UI.
-- No runtime architecture refactor is performed by this documentation review.
+- MongoDB is now the user-selected shared database. Tactical uses a server-side loader/repository and thin API routes; Rain’s backend remains untouched.
 
 ## 3. Data sources and persistence
 
 ### Where current business data actually lives
 
-| Dataset | Source | Origin and limitation |
-| --- | --- | --- |
-| Restaurant profile, starting geometry, three reviews, one mission, default assumptions | [demo-restaurant.json](../../src/features/tactical/frontend/data/demo-restaurant.json) | Explicit fictional demo; Zod validated |
-| Manual layout alternatives | User edits and browser layout library | User-entered geometry, not independently verified measurements |
-| Financial history, ten transactions, eight menu items, three competitors | Constants in [finance-page.tsx](../../src/features/tactical/frontend/components/finance-page.tsx) | Hardcoded examples; not a normalized financial source |
-| Eight employees and schedules | Constants in [hr-page.tsx](../../src/features/tactical/frontend/components/hr-page.tsx) | Fictional, not payroll or real staff records |
-| Fifteen inventory records and eight suppliers | Constants in [supply-page.tsx](../../src/features/tactical/frontend/components/supply-page.tsx) | Fictional; labels and thresholds are not consistently derived from one rule |
-| Photo sample and blank plan | Constants in [analyze-plan.tsx](../../src/features/tactical/frontend/components/analyze-plan.tsx) | Separate synthetic examples |
-| No-key photo fallback | `MOCK_PLAN` in backend photo handler | Synthetic, explicitly returned as `source: demo` |
-| Photo corrections/lessons | Browser storage | Feedback appended to later prompts; no fine-tuning |
+All synthetic business records now live in [demo-restaurant.json](../../src/features/tactical/frontend/data/demo-restaurant.json), validated by [domain/dataset.ts](../../src/features/tactical/domain/dataset.ts). The same dataset is stored in `restaurantos.tactical_datasets` and selected by the server loader.
 
-**Gap:** the requirement to make mock data easy to edit in a separate file is only fulfilled for the core restaurant fixture. Changing its profile name does not update hardcoded Juniper Table labels across all supporting pages. There is no restaurant picker or editable restaurant-profile workflow.
+| Dataset | Current contents |
+| --- | --- |
+| Core restaurant | Profile, main layout, three reviews, one cited mission and default assumptions |
+| Configurations/history | Versioned layout configuration and a reproducible example turnover snapshot; ready for API upload, not auto-synced with browser saves |
+| Finance | 90 synthetic income/expense summaries, eight menu cost records and three dated sample dish comparisons |
+| HR | Eight fictional employees, reserved-domain contacts, assumed pay, schedule hours, availability and mood |
+| Supply | Fifteen inventory items with costs/thresholds and eight fictional suppliers |
+| Photo examples | Sample, blank and no-key fallback plans |
+
+`TACTICAL_DATA_SOURCE=demo` reads the local fixture. `mongodb` reads the selected restaurant by `TACTICAL_RESTAURANT_ID` and displays source/revision. All six sections receive the selected profile; the UI still has no interactive restaurant picker. All records are explicitly synthetic, including after MongoDB storage. Real staff/banking uploads are not supported by this contract.
 
 ### Current storage contracts
 
@@ -128,14 +130,14 @@ RestaurantOS currently provides a **working browser-local restaurant layout and 
 | Photo correction records | `restaurant-os:tactical:analyze:mistakes:v1` | Global to Tactical browser storage; limited recent history |
 | Unsaved layout edits, current photo plan, photos and page form state | React memory | Lost on reload unless explicitly saved/exported through the supported flow |
 
-Library migration loads the old valid draft into a new in-memory library and persists on the next explicit write. A corrupt library is preserved and writes are disabled. Scenario recovery retains valid snapshots alongside invalid entries and reports an issue. There is no account, database, cloud sync, automatic conflict resolution, or browser-storage backup service.
+Library migration loads the old valid draft into a new in-memory library and persists on the next explicit write. A corrupt library is preserved and writes are disabled. Scenario recovery retains valid snapshots alongside invalid entries and reports an issue. MongoDB dataset persistence is now implemented with optimistic revision checks. There is still no end-user account system, automatic browser-editor cloud sync or browser-storage backup service.
 
 ### Data foundation backlog
 
-- [ ] **DATA-01 · P0:** Move all mock business records into editable fixture files with a clear manifest or a single expanded fixture. Add schemas before components consume them.
-- [ ] **DATA-02 · P0:** Introduce a Tactical-local restaurant dataset boundary; pass identity into HR, Supply and Finance instead of embedding names.
-- [ ] **DATA-03 · P0:** Define source metadata: source ID, origin, demo flag, capture date, dataset ID/version, currency/unit, permission context where relevant.
-- [ ] **DATA-04 · P0:** Keep observed records, manual assumptions and simulated projections distinct in schemas and UI.
+- [x] **DATA-01 · P0:** Centralized business/photo fixture and Zod schema now feed the components and MongoDB API.
+- [x] **DATA-02 · P0:** Server-selected dataset boundary propagates identity into HR, Supply and Finance. Interactive restaurant selection remains a later UX task.
+- [x] **DATA-03 · P0 mock scope:** Dataset version, synthetic provenance, as-of date, source IDs, ISO dates, USD cents and restaurant identity are validated. Permissioned real-data metadata remains future work.
+- [x] **DATA-04 · P0 mock scope:** Synthetic records, editable assumptions and simulated outputs are distinguished; API rejects real-data provenance for this mock contract.
 - [ ] **DATA-05 · P1:** Persist authorized imported datasets separately from demo records; allow reset/export without silently deleting unrelated work.
 - [ ] **DATA-06 · P1:** Define multi-tab conflict handling, storage failure recovery and a user-facing library export/restore flow.
 - [ ] **DATA-07 · Later backend:** Account/workspace ownership, database migrations and access policies only when moving beyond browser-local use.
@@ -265,7 +267,7 @@ This is a second representation: approximate feet, `tables`/`fixtures`/`door`, s
 
 “Teach it” stores text for future prompts; it does not train the model. Lesson storage is not restaurant-scoped, and storage failures are swallowed by its helpers. Editing dimensions marks objects verified in code, but that should not be interpreted as independent measurement verification.
 
-The provider response is parsed/normalized and then validated; this is not a fully reusable provider-independent structured-output service. Schema validity does not guarantee an accurate or geometrically valid room. Some geometric problems remain warnings/checks rather than blocked editing. Current export does not preserve a full provenance record.
+Photo sample/fallback records now come from the central dataset fixture. The provider response is parsed/normalized and then validated; this is not a fully reusable provider-independent structured-output service. Schema validity does not guarantee an accurate or geometrically valid room. Some geometric problems remain warnings/checks rather than blocked editing. Current export does not preserve a full provenance record.
 
 ### Remaining
 
@@ -325,103 +327,74 @@ Sources: [review UI](../../src/features/tactical/frontend/components/review-insi
 
 ## 8. Financial Intelligence
 
-**Priority: P0. Status: demo dashboard and simplified slider, not accounting or a pricing engine.**
+**Priority: P0. Status: reconciled synthetic ledger and deterministic unit-economics experiments.**
 
 ### Implemented
 
-- Overview/Transactions/Menu Pricing/Simulator tabs.
-- Six hardcoded monthly revenue points, with November marked partial.
-- Ten example transaction rows and eight menu items with separate dine-in/delivery prices.
-- Three fictional competitor average-check comparisons.
-- Estimated covers from latest full-month example revenue divided by the fixture average check.
-- Delivery price markup arithmetic; contribution-margin strings and “popular” flags are supplied examples.
-- Additional-seat slider using fixture turns, occupancy, average check, days, contribution margin and investment.
-- Display of assumptions and capacity-model caveats.
-- Nessie placeholder/link, not a connected account or transaction adapter.
+- Overview/Transactions/Menu Pricing/Simulator tabs using the selected restaurant dataset.
+- Ninety dated synthetic ledger records across six months. Income, recorded expenses, net recorded difference and delivery income are calculated from the same filtered rows as the transaction table and chart.
+- Month, channel and income/expense filters; date sorting and empty results.
+- Explicit statement that ledger service summaries are not individual orders; average order value and cash balance are not invented.
+- Eight menu records with integer-cent dine-in/delivery prices, ingredient cost, packaging cost and commission assumptions.
+- Calculated per-channel unit contribution; three dated, source-labeled, approximate fictional competitor dish comparisons.
+- Capacity slider uses the canonical seating function, including zero added seats and unavailable payback.
+- Price/volume experiment with item/channel selection and editable percentage assumptions. Candidate contribution compares altered price and quantity with baseline, not a guaranteed improvement.
 
-Source: [finance-page.tsx](../../src/features/tactical/frontend/components/finance-page.tsx).
+Sources: [finance UI](../../src/features/tactical/frontend/components/finance-page.tsx), [financial domain](../../src/features/tactical/domain/finance.ts), [dataset schema](../../src/features/tactical/domain/dataset.ts).
 
-### Existing inconsistencies to fix before expanding
+### Calculations and limits
 
-1. Revenue chart values are constants, although nearby copy describes a calculation from covers and average check. Those values do not reconcile with the ten transaction rows.
-2. The simulator duplicates capacity arithmetic in the component instead of using `domain/scenario.ts`.
-3. It receives `fixture.assumptions`; it does not consume edited Floor Plan scenario assumptions or the selected layout's actual seat change.
-4. Estimated covers divide by average check without a zero guard, although zero is valid in the general assumption schema.
-5. Menu margins are strings, not calculated from ingredient, packaging or channel costs.
-6. Competitor data compares restaurant average checks, not dated comparable dish prices.
-7. Pricing suggestions are static prose, not a tested cost/demand-sensitive recommendation.
-8. No general expense records, cash/account balance, revenue reconciliation, filters, sorting or saved finance scenarios are implemented.
+```text
+recorded income = sum(selected income amounts)
+recorded expenses = sum(selected expense amounts)
+net recorded difference = income − expenses
+unit contribution = price − ingredient cost − delivery commission − packaging
+scenario contribution change = candidate units × candidate unit contribution
+                               − baseline units × baseline unit contribution
+```
 
-These are code-inspected gaps, not new live-finance test results. Do not present this page as a finished financial model.
+Commission and packaging apply only to delivery. Menu quantities are independent synthetic scenario assumptions, not itemized sales reconciled to the service-summary ledger. Income less recorded expenses is not verified profit or cash flow. No opening balance, tax, tips, refunds, verified COGS or full accounting model is present. Channel filters exclude shared costs unless shared/all is selected; no arbitrary allocation is performed.
 
 ### Financial backlog
 
-- [ ] **FIN-01 · P0:** Validated financial-record schema: ID, ISO date, description, amount/currency, income/expense type, category, source, channel and provenance. Define refund/tax/tip semantics.
-- [ ] **FIN-02 · P0:** Fixture adapter and import interface; derive all dashboard totals/trends from the same selected records.
-- [ ] **FIN-03 · P0:** Transaction source/category/date/channel filters, sorting and filtered totals; editing requires its own validation/audit decision.
-- [ ] **FIN-04 · P0:** Separate revenue, known expenses, gross profit where COGS exists, contribution, operating profit where supported, and cash balance. Unknown is not zero.
-- [ ] **FIN-05 · P0:** Menu records with costs, sales quantities where known, channel fees, packaging and dated price observations.
-- [ ] **FIN-06 · P0:** Dine-in/delivery contribution calculations and candidate price comparison under explicit sales-volume assumptions.
-- [ ] **FIN-07 · P0:** Use canonical capacity math; define shared scenario assumptions and a layout-linked seat-change action.
-- [ ] **FIN-08 · P1:** Persist named pricing/cost/renovation scenarios, compare inputs and outputs and retain model versions.
-- [ ] **FIN-09 · P1:** Comparable competitor dish table with source, collection date and approximate-comparison labels.
-- [ ] **FIN-10 · P1 conditional:** Nessie sandbox adapter after access and endpoint requirements are verified; separate sandbox from real finance.
+- [x] **FIN-01 · P0 mock scope:** Validated ledger IDs, dates, descriptions, integer cents, income/expense type, category, channel and source.
+- [x] **FIN-02 · P0 mock scope:** Fixture/MongoDB dataset adapters and reconciled selected-record totals/trends. Real financial imports remain pending.
+- [x] **FIN-03 · Partial:** Month/channel/type filtering and date sorting. Category/date-range filters and editable audited transactions remain pending.
+- [x] **FIN-04 · Partial:** Recorded income/expenses/net difference are labeled distinctly. Cash balance, gross profit and operating profit remain unavailable until their records/definitions exist.
+- [x] **FIN-05 · P0 mock scope:** Menu cost, channel fee, packaging, assumed quantity and dated comparison records.
+- [x] **FIN-06 · P0 mock scope:** Dine-in/delivery contribution and candidate price/volume experiment.
+- [x] **FIN-07 · Partial:** Canonical capacity math reused. Finance still uses dataset assumptions, not an unsaved Floor Plan scenario or selected layout delta.
+- [ ] **FIN-08 · P1:** Persist named pricing/cost/renovation scenarios with model versions and compare them.
+- [x] **FIN-09 · Mock scope:** Comparable dish table with source/date/approximation labels. Licensed/current observations are still future work.
+- [ ] **FIN-10 · P1 conditional:** Nessie adapter after qualifying access/endpoints are verified; MongoDB does not count as Nessie integration.
 
-### Proposed finance formulas — not implemented yet
-
-```text
-unit contribution = selling price − ingredient/preparation variable cost
-                    − channel fee − packaging − other defined variable costs
-period contribution = sum(quantity × unit contribution)
-scenario contribution change = candidate contribution − baseline contribution
-break-even units = incremental fixed cost / positive unit contribution
-```
-
-Specify whether fees are percentages, fixed amounts or both; handle tax/tips separately. Price changes require editable demand/volume assumptions. A 5% price increase is not automatically a 5% profit increase. Compare candidate and baseline under the same period/currency definitions.
-
-**Acceptance:** import or load a ledger, filter a period, reconcile totals, inspect channel costs, change a candidate price and quantity assumption, save two alternatives and reproduce them after reload. Missing cost data must prevent unsupported profit claims.
+**Next acceptance:** preserve and compare financial experiments across reload, connect intentional shared assumptions, and ingest authorized records without changing source meanings.
 
 ## 9. HR
 
-**Priority: P2, demo only.**
+**Priority: P2, synthetic demo only.**
 
-### Implemented
+Eight employees now come from the central dataset with names, roles, employment type, tenure, fictional ratings, scheduled hours, shift strings, reserved `example.com` contacts, assumed hourly pay, availability and fictional self-reported mood. Profiles expose the added fields. A deterministic base-labor estimate sums scheduled hours × hourly rate and explicitly excludes overtime premiums, taxes and benefits. Fixture hours were reconciled with the displayed example shifts; general structured shift parsing is not yet implemented.
 
-Eight synthetic employees have names, roles, full/part-time status, tenure, a performance label, manually entered weekly hours and seven-day shift strings. The page shows totals, schedule grid and expandable profiles.
-
-Performance labels are not self-reported mood. Weekly hours are separately authored and do not consistently equal the displayed shifts; there is no shift parser, break calculation or payroll computation.
-
-### Remaining
-
-- [ ] **HR-01:** Move records to validated fixtures and pass the selected restaurant's identity.
-- [ ] **HR-02:** Add clearly synthetic contact details using reserved example domains, pay rates, availability and self-reported demo satisfaction.
-- [ ] **HR-03:** Use explicit start/end/break data or clearly label scheduled-hour assumptions; reconcile displayed totals.
-- [ ] **HR-04:** Calculate estimated labor from documented hours and rates; state treatment of taxes, benefits and overtime assumptions rather than imply payroll accuracy.
-- [ ] **HR-05:** Editable job-description draft and preview concept; label template versus actual AI output.
-- [ ] **HR-06:** Keep Indeed publishing, real staff records, payroll and full scheduling outside this hackathon slice.
-
-**Acceptance:** fictional directory, schedule, availability and labor estimate agree; a manager can preview/copy a job draft without any publication or claim of Indeed integration.
+- [x] **HR-01:** Central fixture and selected restaurant identity.
+- [x] **HR-02:** Synthetic contacts/pay/availability/mood.
+- [ ] **HR-03:** Structured start/end/break data and cross-validation for arbitrary edited schedules.
+- [x] **HR-04 · Demo scope:** Base labor estimate with clear excluded costs.
+- [ ] **HR-05:** Editable job-description draft and preview concept.
+- [ ] **HR-06:** Indeed publishing, real employee data and payroll remain out of scope.
 
 ## 10. Supply Management
 
-**Priority: P2, demo only.**
+**Priority: P2, synthetic demo only.**
 
-### Implemented
+Fifteen inventory records and eight suppliers now come from the central dataset. Supplier IDs are validated. The UI displays stock, reorder point, unit costs, status and expected delivery date. Status is derived: below 50% of threshold is critical, below threshold is low, above 150% is overstock, otherwise good. The restock summary derives both item and supplier counts. Delivery count now says “Items awaiting delivery,” not distinct shipments. Contacts use reserved example domains.
 
-Fifteen synthetic items have category, supplier, current quantity, threshold, unit, status, order date and optional delivery date. Inventory/category filters, stock bars, low/critical counts and eight supplier cards are present. No actual orders are placed.
-
-Current statuses are supplied rather than calculated from a single rule. The summary partly hardcodes named critical items. “Deliveries pending” counts items with dates, not distinct shipments. Product costs and displayed reorder thresholds are missing from the current table. Supplier email-like strings should be replaced with reserved example addresses rather than plausible real domains.
-
-### Remaining
-
-- [ ] **SUP-01:** Move inventory/suppliers to validated fixtures with stable supplier IDs and explicit units.
-- [ ] **SUP-02:** Derive stock status and restock count from documented thresholds; distinguish low, critical and overstock rules.
-- [ ] **SUP-03:** Display thresholds and estimated unit/reorder costs; reject inconsistent units.
-- [ ] **SUP-04:** Generate a rule-based summary grouped by supplier using current records; label it rule-based demo analysis.
-- [ ] **SUP-05:** Rename delivery counts accurately or introduce synthetic shipment IDs.
-- [ ] **SUP-06:** Preserve the demo boundary; no purchasing, logistics, stock automation or supplier API is required.
-
-**Acceptance:** editing a fixture quantity changes its status, count and restock summary consistently; no hardcoded item names or live-order claims remain.
+- [x] **SUP-01:** Central validated fixture, stable IDs and units.
+- [x] **SUP-02:** Derived status and restock count.
+- [x] **SUP-03 · Partial:** Unit costs and thresholds displayed; estimated reorder quantity/cost remains pending.
+- [x] **SUP-04:** Rule-based summary computed from below-threshold records and distinct suppliers.
+- [x] **SUP-05:** Delivery count label corrected to item count.
+- [x] **SUP-06:** No live purchasing, ordering or supplier integration is claimed.
 
 ## 11. AI Assistant and contextual AI
 
@@ -483,8 +456,8 @@ No sponsor eligibility is verified by this document. Do not count demo output or
 
 | ID | Priority | Work and reason |
 | --- | --- | --- |
-| QA-01 | P0 | Unified fixtures/provenance and shared restaurant identity; prevents contradictory dashboard records |
-| QA-02 | P0 | Finance reconciliation, zero average-check handling and shared calculations |
+| QA-01 | Delivered for mocks | Central fixture and server-selected restaurant context; real-data ingestion still pending |
+| QA-02 | Delivered for mocks | Ledger reconciliation and canonical capacity math; unsupported average-order metric removed |
 | QA-03 | P1 | Separate library persistence/editor actions into tested helpers or hooks; workspace currently carries many responsibilities |
 | QA-04 | P1 | Avoid treating a hidden mounted panel as an independently loaded page; consider lazy mounting only with explicit state preservation |
 | QA-05 | P1 | Multi-tab/storage error handling; scenario writes currently consume recovered read results without a full conflict policy |
@@ -517,13 +490,13 @@ This sequence implements the brief without rebuilding the app. Owners are Tactic
 
 Small corrections such as finance labeling and zero guards can ship alongside the first steps. Do not delay functional review/finance data work for full 3D, NPCs, generic chat, production HR or purchasing.
 
-### Suggested future file additions — proposed, not present
+### Module follow-ups — proposals unless marked implemented
 
 | Proposed module | Purpose |
 | --- | --- |
 | `domain/restaurant-data.ts` | Dataset/provenance boundaries and normalized restaurant context |
 | `domain/review-import.ts` | Bounded import validation and mapping rules |
-| `domain/finance.ts` | Record aggregation, channel contribution and pricing math |
+| `domain/finance.ts` (now implemented) | Record aggregation, channel contribution and pricing math |
 | `domain/findings.ts` | Evidence-linked structured finding schema |
 | `frontend/data/` fixture manifest or expanded JSON | Editable synthetic restaurant, finance, HR, supply and photo records |
 | `frontend/layout-storage.ts` or extracted storage helpers | Named-library persistence/migration separate from rendering |
@@ -536,14 +509,14 @@ Use the existing frontend/domain/backend separation. Do not create empty directo
 
 ### Last completed code verification
 
-The preceding hydration-fix work ran and passed:
+The MongoDB/data increment ran and passed:
 
-- 68 repository unit tests, including 25 Tactical tests and 43 Expansion tests.
-- 6 Tactical browser runs: three journeys each in Chromium/Chrome and Firefox.
+- 93 repository unit tests, including 28 Tactical tests and 65 Expansion tests.
+- 8 Tactical browser runs: four journeys each in Chromium/Chrome and Firefox, against MongoDB mock data.
 - ESLint, TypeScript typecheck and production build.
-- Browser journeys cover named-layout save/rename/delete/baseline/metadata, photo selection/invalid import/redirects/mobile navigation, and disabled-state reload behavior.
+- Browser journeys cover named-layout save/rename/delete/baseline/metadata, photo selection/invalid import/redirects/mobile navigation, disabled-state reload behavior, and financial filters/pricing with HR/Supply data.
 
-This documentation review does not rerun or claim new live-provider, full accessibility, or exhaustive visual tests. The main suite is stronger around geometry/calculations/storage than around newer financial and supporting-page behavior.
+Live Atlas create/read/validate/update and 401/409 behavior were also verified. This does not claim live AI-provider, full accessibility or exhaustive visual testing. The main suite is stronger around geometry/calculations/storage than around newer financial and supporting-page behavior.
 
 ### Commands
 
@@ -606,15 +579,15 @@ These are not blockers for continuing with labeled fixtures. They determine whet
 
 ### Still required for the full refinement brief
 
-- [ ] Every page consumes one selected restaurant/data context with centralized editable fixtures.
+- [x] Every page consumes a server-selected restaurant/data context with centralized editable fixtures (interactive picker deferred).
 - [ ] Review analysis works on authorized imports, not only authored themes.
 - [ ] Review trends, menu intelligence and evidence-linked contextual findings work with visible sample sizes.
-- [ ] Financial indicators reconcile to validated records and explicit formulas.
-- [ ] Pricing scenarios model dine-in/delivery costs and demand assumptions.
+- [x] Current mock financial indicators reconcile to validated records and explicit formulas.
+- [x] Current unsaved pricing experiments model dine-in/delivery costs and demand assumptions.
 - [ ] Floor Plan and Finance share deliberate assumptions and scenario connections.
 - [ ] Measured operational analytics and richer seating hypotheses are connected where data supports them.
 - [ ] HR and Supply contain their remaining requested demo fields and consistent derived values.
 - [ ] Responsive, keyboard, reduced-motion and failure/recovery journeys have a complete audit.
 - [ ] Conditional external integrations have separate, verifiable proof before being claimed.
 
-**Current next implementation task:** DATA-01 through DATA-04, followed by REV-01/REV-02 and FIN-01/FIN-02. Keep the working editor/scenario path intact while making the surrounding business data credible and replaceable.
+**Current next implementation task:** REV-01/REV-02, saved pricing scenarios and intentional browser-editor/cloud synchronization with proper end-user authorization. DATA-01 through DATA-04 and the mock ledger/unit-economics foundation are delivered. Keep the working editor/scenario path intact while making the surrounding business data credible and replaceable.
