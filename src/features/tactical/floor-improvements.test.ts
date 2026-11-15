@@ -5,10 +5,42 @@ import { layoutCounts, objectClearance, footprintGap, suggestClearPosition, hasO
 import { initialLibrary } from "./domain/layout-library.ts";
 import { applyObjectMeasurements } from "./frontend/layout-edit.ts";
 import { parseLibraryBackup, writeLibrary, maxLibraryBytes } from "./frontend/layout-storage.ts";
+import { floorWarnings, modernFloor, resizeFurniture, resizeFromCorner } from "./domain/floor-editor.ts";
 
 const table: LayoutObject = { id: "table", type: "table_2", seats: 2, x: 1, y: 1, width: 2, depth: 1, rotation: 0 };
 const chair: LayoutObject = { id: "chair", type: "chair", seats: 1, x: 4, y: 1, width: .5, depth: .5, rotation: 0 };
 const plan: Layout = { schemaVersion: 1, restaurantId: "juniper-table", name: "Current", unit: "m", room: { width: 8, depth: 6 }, objects: [table, chair], updatedAt: "2026-11-14T00:00:00.000Z" };
+
+test("resizing preserves the existing seat count as a reference across incremental edits", () => {
+  const wider = resizeFurniture(plan, table, 2.4, 1);
+  assert.equal(wider.seats, 2);
+  const expanded = resizeFurniture(plan, wider, 2.6, 1);
+  assert.equal(expanded.seats, 4);
+  assert.equal(resizeFurniture(plan, expanded, 2, 1).seats, 2);
+  const rotated = resizeFromCorner(plan, { ...table, rotation: 90 }, 1, 2.6);
+  assert.equal(rotated.seats, 4);
+  assert.equal(rotated.width, 2.6);
+  assert.equal(rotated.depth, 1);
+  assert.equal(resizeFromCorner(plan, table, 99, 99).width, 7);
+  assert.equal(resizeFurniture(plan, chair, 2, 2).seats, 1);
+});
+
+test("placement warnings identify overlapping and nearby objects by name", () => {
+  const near = floorWarnings([table, { ...chair, x: 3.1 }]);
+  assert.match(near.get(table.id)![0], /0.10 m from Chair/);
+  const overlapping = floorWarnings([table, { ...chair, x: 2.9 }]);
+  assert.match(overlapping.get(chair.id)![0], /Overlaps Table for 2/);
+  assert.equal(floorWarnings([table, chair]).size, 0);
+  assert.equal(floorWarnings([table, { ...chair, x: 2.9, seatOwnerId: table.id }]).size, 0);
+});
+
+test("legacy floor plans lose kitchen zones and gain a cashier stand when its location is clear", () => {
+  const legacy = { ...plan, room: { width: 12, depth: 7.5 }, objects: [...plan.objects, { id: "kitchen", type: "kitchen_zone" as const, x: .4, y: .45, width: 3.65, depth: 2.45, rotation: 0 as const }] };
+  const migrated = modernFloor(legacy);
+  assert.equal(migrated.objects.some(object => object.type === "kitchen_zone"), false);
+  assert.equal(migrated.objects.some(object => object.type === "cashier_stand"), true);
+  assert.strictEqual(modernFloor(migrated), migrated);
+});
 
 test("legacy seats remain unchanged; assigned chairs count only in their seating group", () => {
   assert.equal(layoutCounts(layoutSchema.parse(plan)).seats, 3);

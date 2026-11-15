@@ -9,9 +9,12 @@ const raw = JSON.parse(readFileSync(new URL("./frontend/data/demo-restaurant.jso
 const dataset = datasetSchema.parse(raw);
 
 test("central mock dataset validates relationships and forbids real-data claims", () => {
-  assert.equal(dataset.operations.transactions.length, 90);
-  assert.equal(dataset.operations.employees.length, 8);
-  assert.equal(dataset.operations.inventory.length, 15);
+  assert.equal(new Set(dataset.operations.transactions.map(row => row.date.slice(0, 7))).size, 6);
+  assert.deepEqual(new Set(dataset.operations.transactions.filter(row => row.kind === "income").map(row => row.channel)), new Set(["dine-in", "delivery", "takeaway"]));
+  assert.ok(dataset.operations.employees.some(employee => employee.type === "Full-time"));
+  assert.ok(dataset.operations.employees.some(employee => employee.type === "Part-time"));
+  const stockStates = new Set(dataset.operations.inventory.map(item => stockStatus(item.current, item.threshold)));
+  assert.deepEqual(stockStates, new Set(["critical", "low", "good", "overstock"]));
   assert.equal(datasetSchema.safeParse({ ...raw, isDemo: false }).success, false);
   assert.equal(datasetSchema.safeParse({ ...raw, provenance: { ...raw.provenance, origin: "observed" } }).success, false);
   assert.equal(datasetSchema.safeParse({ ...raw, operations: { ...raw.operations, inventory: [{ ...raw.operations.inventory[0], supplierId: "missing" }] } }).success, false);
@@ -22,7 +25,9 @@ test("central mock dataset validates relationships and forbids real-data claims"
 test("ledger totals reconcile and channel costs affect contribution", () => {
   const rows = dataset.operations.transactions;
   const totals = summarizeLedger(rows);
-  assert.equal(totals.revenueCents, totals.dineInCents + totals.deliveryCents);
+  const takeaway = summarizeLedger(rows.filter(row => row.channel === "takeaway"));
+  assert.ok(takeaway.revenueCents > 0 && takeaway.expenseCents > 0);
+  assert.equal(totals.revenueCents, totals.dineInCents + totals.deliveryCents + takeaway.revenueCents);
   assert.equal(totals.netRecordedCents, totals.revenueCents - totals.expenseCents);
   assert.equal(summarizeLedger([]).netRecordedCents, 0);
   const item = dataset.operations.menu[0];

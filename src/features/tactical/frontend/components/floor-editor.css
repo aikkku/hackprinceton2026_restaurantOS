@@ -1,0 +1,92 @@
+.tactical-workspace .floor-editor { display: grid; gap: 10px; min-width: 0; }
+.tactical-workspace .floor-topbar, .tactical-workspace .floor-save-group { display: flex; align-items: center; gap: 8px; }
+.tactical-workspace .floor-topbar { justify-content: space-between; flex-wrap: wrap; }
+.tactical-workspace .floor-save-group { min-width: 0; }
+.tactical-workspace .floor-save-group select {
+  width: min(185px, 45vw);
+  min-width: 0;
+  min-height: 34px;
+  padding: 4px 7px;
+  border: 1px solid var(--ros-control-border);
+  border-radius: 7px;
+  background: var(--ros-surface);
+  color: inherit;
+  text-overflow: ellipsis;
+}
+.tactical-workspace .floor-canvas {
+  position: relative;
+  overflow: hidden;
+  background: var(--scene-mat);
+  border: 1px solid var(--ros-border);
+  border-radius: 12px;
+}
+.tactical-workspace .floor-canvas .floor-svg { height: clamp(230px, 49vw, 590px); }
+.tactical-workspace .floor-map-tools {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--ros-border);
+  border-radius: 8px;
+  background: var(--ros-surface);
+  box-shadow: var(--ros-shadow);
+}
+.tactical-workspace .floor-map-tools .icon-button { min-width: 32px; min-height: 32px; padding: 5px; border: 0; }
+.tactical-workspace .floor-palette { position: relative; z-index: 2; }
+.tactical-workspace .floor-palette > summary, .tactical-workspace .floor-tile > summary {
+  cursor: pointer;
+  font-weight: 620;
+  font-size: .86rem;
+}
+.tactical-workspace .floor-palette > summary {
+  display: flex;
+  min-height: 34px;
+  align-items: center;
+  gap: 6px;
+  list-style: none;
+  padding: 4px 8px;
+  border: 1px solid var(--ros-border);
+  border-radius: 7px;
+  background: var(--ros-surface);
+}
+.tactical-workspace .floor-palette > summary::-webkit-details-marker { display: none; }
+.tactical-workspace .floor-palette-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: min(290px, 79vw);
+  padding: 8px;
+  background: var(--ros-surface);
+  border: 1px solid var(--ros-border);
+  border-radius: 9px;
+  box-shadow: var(--ros-shadow);
+}
+.tactical-workspace .floor-palette-search { display: flex; align-items: center; gap: 8px; padding: 4px; }
+.tactical-workspace .floor-palette-search input { width: 100%; min-width: 0; }
+.tactical-workspace .floor-palette-menu ul { list-style: none; padding: 0; margin: 4px 0 0; max-height: 235px; overflow: auto; }
+.tactical-workspace .floor-palette-menu li > button { width: 100%; text-align: left; padding: 8px; border: 0; background: transparent; color: inherit; border-radius: 5px; }
+.tactical-workspace .floor-palette-menu li > button:hover, .tactical-workspace .floor-palette-menu li > button:focus-visible { background: var(--ros-tint); }
+.tactical-workspace .floor-tile { background: var(--ros-surface); border: 1px solid var(--ros-border); border-radius: 8px; min-width: 0; }
+.tactical-workspace .floor-editor .floor-seating { padding: 0; margin: 0; border-color: var(--ai-border); background: var(--ai-surface); }
+.tactical-workspace .floor-tile > summary { padding: 8px 12px; }
+.tactical-workspace .floor-seating > summary svg { vertical-align: text-bottom; margin-inline-end: 4px; }
+.tactical-workspace .floor-seating .ai-workbench, .tactical-workspace .floor-seating .ai-access { margin: 0 8px 8px; }
+.tactical-workspace .floor-detail-content { padding: 0 12px 12px; display: grid; gap: 10px; }
+.tactical-workspace .floor-detail-content form { display: grid; gap: 8px; justify-items: start; }
+.tactical-workspace .floor-detail-content label { display: grid; gap: 4px; }
+.tactical-workspace .floor-detail-content p { font-size: .8rem; color: var(--ros-muted); }
+.tactical-workspace .floor-placement { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: .84rem; padding: 0 8px 8px; }
+.tactical-workspace .floor-message { margin: 0; padding: 6px 8px; font-size: .84rem; }
+.tactical-workspace .floor-screen-reader { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.tactical-workspace .floor-editor .svg-hit.is-floor-warning { stroke: #d69b00; fill: #ffdc481f; stroke-width: 3px; }
+.tactical-workspace .svg-cashier { fill: var(--scene-booth); }
+.tactical-workspace .svg-register { fill: none; stroke: var(--scene-booth); stroke-width: .045; stroke-linecap: round; }
+.tactical-workspace .floor-resize-handle { fill: var(--ros-surface); stroke: var(--scene-select); stroke-width: 2px; vector-effect: non-scaling-stroke; cursor: nwse-resize; touch-action: none; }
+@media (max-width: 520px) {
+  .tactical-workspace .floor-save-group select { width: min(125px, 32vw); }
+  .tactical-workspace .floor-canvas .floor-svg { height: clamp(230px, 60vw, 320px); padding-bottom: 34px; box-sizing: content-box; }
+  .tactical-workspace .floor-map-tools { bottom: 6px; right: 6px; }
+  .tactical-workspace .floor-editor .inspector-fields { grid-template-columns: minmax(0, 1fr); }
+}

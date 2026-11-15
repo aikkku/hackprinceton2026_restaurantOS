@@ -1,0 +1,272 @@
+{
+  "version": 1,
+  "id": "juniper-social-demo",
+  "title": "Juniper Table: prices, waiting and clear expectations",
+  "provenance": "synthetic",
+  "source": {
+    "name": "RestaurantOS fictional conversation fixture",
+    "url": "",
+    "retrievedAt": "2026-11-14T12:00:00.000Z",
+    "method": "Invented messages and explicit reply/repost links for exercising the content-plus-connectivity pipeline. No real guests or accounts.",
+    "limitations": [
+      "Synthetic sample; no observed customer findings or real dissemination claims.",
+      "Small fictional conversation with linked pricing, wait-time and takeaway threads."
+    ]
+  },
+  "actors": [
+    {
+      "id": "a",
+      "label": "Demo participant A"
+    },
+    {
+      "id": "b",
+      "label": "Demo participant B"
+    },
+    {
+      "id": "c",
+      "label": "Demo participant C"
+    },
+    {
+      "id": "d",
+      "label": "Demo participant D"
+    },
+    {
+      "id": "e",
+      "label": "Demo participant E"
+    },
+    {
+      "id": "f",
+      "label": "Demo participant F"
+    },
+    {
+      "id": "g",
+      "label": "Demo participant G"
+    },
+    {
+      "id": "h",
+      "label": "Demo participant H"
+    },
+    {
+      "id": "i",
+      "label": "Demo participant I"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m1",
+      "actorId": "a",
+      "text": "Menu prices should include every service charge so the final bill is clear.",
+      "timestamp": "2026-11-14T12:00:00.000Z",
+      "url": "",
+      "replyTo": null,
+      "repostOf": null
+    },
+    {
+      "id": "m2",
+      "actorId": "b",
+      "text": "Clear menu prices help us budget. Hidden service fees make dinner feel expensive.",
+      "timestamp": "2026-11-14T12:01:00.000Z",
+      "url": "",
+      "replyTo": "m1",
+      "repostOf": null
+    },
+    {
+      "id": "m3",
+      "actorId": "c",
+      "text": "I agree about clear prices. Please show fees before we order.",
+      "timestamp": "2026-11-14T12:02:00.000Z",
+      "url": "",
+      "replyTo": "m2",
+      "repostOf": null
+    },
+    {
+      "id": "m4",
+      "actorId": "a",
+      "text": "We will test showing the full price on the menu instead of adding a service fee.",
+      "timestamp": "2026-11-14T12:03:00.000Z",
+      "url": "",
+      "replyTo": "m3",
+      "repostOf": null
+    },
+    {
+      "id": "m5",
+      "actorId": "d",
+      "text": "The Saturday queue was long. A reservation estimate would make waiting easier.",
+      "timestamp": "2026-11-14T12:04:00.000Z",
+      "url": "",
+      "replyTo": null,
+      "repostOf": null
+    },
+    {
+      "id": "m6",
+      "actorId": "e",
+      "text": "Our group waited for a table too. Reservations need a realistic wait estimate.",
+      "timestamp": "2026-11-14T12:05:00.000Z",
+      "url": "",
+      "replyTo": "m5",
+      "repostOf": null
+    },
+    {
+      "id": "m7",
+      "actorId": "f",
+      "text": "A clear wait estimate and a text when the table is ready would help.",
+      "timestamp": "2026-11-14T12:06:00.000Z",
+      "url": "",
+      "replyTo": "m6",
+      "repostOf": null
+    },
+    {
+      "id": "m8",
+      "actorId": "d",
+      "text": "We will try giving accurate queue updates before guests arrive.",
+      "timestamp": "2026-11-14T12:07:00.000Z",
+      "url": "",
+      "replyTo": "m7",
+      "repostOf": null
+    },
+    {
+      "id": "m9",
+      "actorId": "c",
+      "text": "Clear expectations matter for both menu fees and the queue. Please communicate prices and waits early.",
+      "timestamp": "2026-11-14T12:08:00.000Z",
+      "url": "",
+      "replyTo": "m5",
+      "repostOf": null
+    },
+    {
+      "id": "m10",
+      "actorId": "b",
+      "text": "Sharing this idea: put the full price on the menu and explain all service charges.",
+      "timestamp": "2026-11-14T12:09:00.000Z",
+      "url": "",
+      "replyTo": null,
+      "repostOf": "m1"
+    },
+    {
+      "id": "m11",
+      "actorId": "e",
+      "text": "The same clarity would help reservations: explain the wait before guests travel.",
+      "timestamp": "2026-11-14T12:10:00.000Z",
+      "url": "",
+      "replyTo": "m9",
+      "repostOf": null
+    },
+    {
+      "id": "m12",
+      "actorId": "g",
+      "text": "Our fries were soft by the time we got home. Could takeaway boxes have vents?",
+      "timestamp": "2026-11-14T12:11:00.000Z",
+      "url": "",
+      "replyTo": null,
+      "repostOf": null
+    },
+    {
+      "id": "m13",
+      "actorId": "h",
+      "text": "Vented boxes would help with fries. Keep the salad and dressing in a separate bag.",
+      "timestamp": "2026-11-14T12:12:00.000Z",
+      "url": "",
+      "replyTo": "m12",
+      "repostOf": null
+    },
+    {
+      "id": "m14",
+      "actorId": "i",
+      "text": "Our packaging test put the sauce on the side and used a vented box for the hot food.",
+      "timestamp": "2026-11-14T12:13:00.000Z",
+      "url": "",
+      "replyTo": "m13",
+      "repostOf": null
+    },
+    {
+      "id": "m15",
+      "actorId": "g",
+      "text": "That would also make pickup easier to check. Add a label for sauces and dietary notes.",
+      "timestamp": "2026-11-14T12:14:00.000Z",
+      "url": "",
+      "replyTo": "m14",
+      "repostOf": null
+    },
+    {
+      "id": "m16",
+      "actorId": "h",
+      "text": "Labels would help. My takeaway order was ready, but I could not tell which bag was ours.",
+      "timestamp": "2026-11-14T12:15:00.000Z",
+      "url": "",
+      "replyTo": "m15",
+      "repostOf": null
+    },
+    {
+      "id": "m17",
+      "actorId": "i",
+      "text": "A marked pickup shelf and a clear order number would let the host focus on the queue.",
+      "timestamp": "2026-11-14T12:16:00.000Z",
+      "url": "",
+      "replyTo": "m16",
+      "repostOf": null
+    },
+    {
+      "id": "m18",
+      "actorId": "f",
+      "text": "The crowded pickup shelf and the reservation queue do run into each other on Saturday.",
+      "timestamp": "2026-11-14T12:17:00.000Z",
+      "url": "",
+      "replyTo": "m17",
+      "repostOf": null
+    },
+    {
+      "id": "m19",
+      "actorId": "d",
+      "text": "A separate pickup sign could make it easier for guests to find the reservations line.",
+      "timestamp": "2026-11-14T12:18:00.000Z",
+      "url": "",
+      "replyTo": "m18",
+      "repostOf": null
+    },
+    {
+      "id": "m20",
+      "actorId": "a",
+      "text": "The menu trial will show the full meal price and identify any optional add-ons separately.",
+      "timestamp": "2026-11-14T12:19:00.000Z",
+      "url": "",
+      "replyTo": "m10",
+      "repostOf": null
+    },
+    {
+      "id": "m21",
+      "actorId": "b",
+      "text": "Please use the same price labels on the takeaway menu so people can compare before ordering.",
+      "timestamp": "2026-11-14T12:20:00.000Z",
+      "url": "",
+      "replyTo": "m20",
+      "repostOf": null
+    },
+    {
+      "id": "m22",
+      "actorId": "c",
+      "text": "The menu labels are useful if people can see them before getting to the pickup counter.",
+      "timestamp": "2026-11-14T12:21:00.000Z",
+      "url": "",
+      "replyTo": "m21",
+      "repostOf": null
+    },
+    {
+      "id": "m23",
+      "actorId": "g",
+      "text": "Sharing the vented box test with the takeaway team so we can compare results next weekend.",
+      "timestamp": "2026-11-14T12:22:00.000Z",
+      "url": "",
+      "replyTo": null,
+      "repostOf": "m14"
+    },
+    {
+      "id": "m24",
+      "actorId": "e",
+      "text": "A text with the wait estimate and the pickup directions could save a trip to the host stand.",
+      "timestamp": "2026-11-14T12:23:00.000Z",
+      "url": "",
+      "replyTo": "m19",
+      "repostOf": null
+    }
+  ]
+}

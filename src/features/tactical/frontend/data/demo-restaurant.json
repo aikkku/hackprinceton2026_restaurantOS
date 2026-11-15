@@ -18,12 +18,12 @@
     "updatedAt": "2026-11-14T00:00:00.000Z",
     "objects": [
       {
-        "id": "kitchen",
-        "type": "kitchen_zone",
-        "x": 0.4,
-        "y": 0.45,
-        "width": 3.65,
-        "depth": 2.45,
+        "id": "cashier",
+        "type": "cashier_stand",
+        "x": 1.35,
+        "y": 5.65,
+        "width": 1.15,
+        "depth": 0.65,
         "rotation": 0
       },
       {
@@ -154,6 +154,276 @@
       "themes": [
         "Service"
       ]
+    },
+    {
+      "id": "juniper-review-04",
+      "date": "2026-06-14",
+      "rating": 5,
+      "text": "The House Burger had a great char and the server remembered our side order.",
+      "themes": [
+        "House Burger",
+        "Service"
+      ]
+    },
+    {
+      "id": "juniper-review-05",
+      "date": "2026-06-21",
+      "rating": 4,
+      "text": "The patio was lovely, but the chairs felt a little tight around our four-top.",
+      "themes": [
+        "Seating",
+        "Patio"
+      ]
+    },
+    {
+      "id": "juniper-review-06",
+      "date": "2026-07-03",
+      "rating": 5,
+      "text": "The whipped ricotta and grilled sourdough were perfect while we waited for dinner.",
+      "themes": [
+        "Whipped Ricotta",
+        "Menu"
+      ]
+    },
+    {
+      "id": "juniper-review-07",
+      "date": "2026-07-11",
+      "rating": 2,
+      "text": "Our Saturday wait went from twenty minutes to forty without an update.",
+      "themes": [
+        "Wait time",
+        "Weekend service"
+      ]
+    },
+    {
+      "id": "juniper-review-08",
+      "date": "2026-07-18",
+      "rating": 4,
+      "text": "The Crispy Chicken Sandwich traveled well, but the fries steamed in the box.",
+      "themes": [
+        "Crispy Chicken Sandwich",
+        "Delivery packaging"
+      ]
+    },
+    {
+      "id": "juniper-review-09",
+      "date": "2026-07-29",
+      "rating": 3,
+      "text": "My delivery bag was missing the Caesar Salad. The manager sorted it out by phone.",
+      "themes": [
+        "Order accuracy",
+        "Delivery"
+      ]
+    },
+    {
+      "id": "juniper-review-10",
+      "date": "2026-08-05",
+      "rating": 5,
+      "text": "The Wild Mushroom Risotto was rich, and the bartender suggested a good wine pairing.",
+      "themes": [
+        "Wild Mushroom Risotto",
+        "Service"
+      ]
+    },
+    {
+      "id": "juniper-review-11",
+      "date": "2026-08-14",
+      "rating": 4,
+      "text": "The server found an allergy-friendly option quickly. Having it marked on the menu would help next time.",
+      "themes": [
+        "Dietary information",
+        "Service"
+      ]
+    },
+    {
+      "id": "juniper-review-12",
+      "date": "2026-08-22",
+      "rating": 3,
+      "text": "All the tables for four were taken, although the counter had room for two people.",
+      "themes": [
+        "Seating",
+        "Weekend service"
+      ]
+    },
+    {
+      "id": "juniper-review-13",
+      "date": "2026-08-30",
+      "rating": 5,
+      "text": "The Lemon Ricotta Pancakes were worth coming back for at Sunday brunch.",
+      "themes": [
+        "Lemon Ricotta Pancakes",
+        "Brunch"
+      ]
+    },
+    {
+      "id": "juniper-review-14",
+      "date": "2026-09-03",
+      "rating": 4,
+      "text": "My takeaway order was ready right on time and the packaging kept the salad cool.",
+      "themes": [
+        "Takeaway",
+        "Delivery packaging"
+      ]
+    },
+    {
+      "id": "juniper-review-15",
+      "date": "2026-09-07",
+      "rating": 5,
+      "text": "The Maple Oat Latte was excellent and the staff let us linger before lunch.",
+      "themes": [
+        "Maple Oat Latte",
+        "Service"
+      ]
+    },
+    {
+      "id": "juniper-review-16",
+      "date": "2026-09-12",
+      "rating": 2,
+      "text": "We had a reservation but still stood by the door for thirty-five minutes.",
+      "themes": [
+        "Wait time",
+        "Reservations"
+      ]
+    },
+    {
+      "id": "juniper-review-17",
+      "date": "2026-09-20",
+      "rating": 4,
+      "text": "The Salmon Fillet was well cooked. The menu could be clearer about which sides it comes with.",
+      "themes": [
+        "Salmon Fillet",
+        "Menu clarity"
+      ]
+    },
+    {
+      "id": "juniper-review-18",
+      "date": "2026-09-25",
+      "rating": 4,
+      "text": "The Roasted Squash Bowl was filling. I would order it again if I could add a protein.",
+      "themes": [
+        "Roasted Squash Bowl",
+        "Menu"
+      ]
+    },
+    {
+      "id": "juniper-review-19",
+      "date": "2026-10-02",
+      "rating": 5,
+      "text": "We shared the Crispy Brussels Sprouts and Sweet Potato Fries. Both arrived hot.",
+      "themes": [
+        "Crispy Brussels Sprouts",
+        "Food quality"
+      ]
+    },
+    {
+      "id": "juniper-review-20",
+      "date": "2026-10-04",
+      "rating": 3,
+      "text": "The brunch food was good, but the host had trouble finding our reservation.",
+      "themes": [
+        "Brunch",
+        "Reservations"
+      ]
+    },
+    {
+      "id": "juniper-review-21",
+      "date": "2026-10-09",
+      "rating": 5,
+      "text": "The Braised Short Rib practically fell apart. The server explained the special before we ordered.",
+      "themes": [
+        "Braised Short Rib",
+        "Service"
+      ]
+    },
+    {
+      "id": "juniper-review-22",
+      "date": "2026-10-14",
+      "rating": 3,
+      "text": "The delivery estimate was right, but the dressing had leaked out of the container.",
+      "themes": [
+        "Delivery packaging",
+        "Delivery"
+      ]
+    },
+    {
+      "id": "juniper-review-23",
+      "date": "2026-10-18",
+      "rating": 4,
+      "text": "The window booth was comfortable, though the main dining room got loud when it filled.",
+      "themes": [
+        "Seating",
+        "Noise"
+      ]
+    },
+    {
+      "id": "juniper-review-24",
+      "date": "2026-10-24",
+      "rating": 1,
+      "text": "We gave up after waiting outside for forty-five minutes with no one to check in with.",
+      "themes": [
+        "Wait time",
+        "Weekend service"
+      ]
+    },
+    {
+      "id": "juniper-review-25",
+      "date": "2026-10-27",
+      "rating": 5,
+      "text": "The Apple Crumble came out warm with just enough ice cream. I would order dessert here again.",
+      "themes": [
+        "Apple Crumble",
+        "Food quality"
+      ]
+    },
+    {
+      "id": "juniper-review-26",
+      "date": "2026-11-01",
+      "rating": 4,
+      "text": "The Breakfast Hash was well seasoned. Our coffees took longer than the food.",
+      "themes": [
+        "Breakfast Hash",
+        "Brunch"
+      ]
+    },
+    {
+      "id": "juniper-review-27",
+      "date": "2026-11-04",
+      "rating": 3,
+      "text": "At pickup we had to open the bag to check which burger had the gluten-free bun.",
+      "themes": [
+        "Order accuracy",
+        "Takeaway"
+      ]
+    },
+    {
+      "id": "juniper-review-28",
+      "date": "2026-11-09",
+      "rating": 5,
+      "text": "The host texted when our table was ready, so we could wait out of the rain.",
+      "themes": [
+        "Wait time",
+        "Service"
+      ]
+    },
+    {
+      "id": "juniper-review-29",
+      "date": "2026-11-12",
+      "rating": 4,
+      "text": "The drinks list was clear, and the Citrus Spritz was a good alcohol-free option.",
+      "themes": [
+        "Citrus Spritz",
+        "Menu clarity"
+      ]
+    },
+    {
+      "id": "juniper-review-30",
+      "date": "2026-11-14",
+      "rating": 4,
+      "text": "The table was ready when we arrived. A clearer sign for the pickup queue would keep it from mixing with the host line.",
+      "themes": [
+        "Takeaway",
+        "Seating"
+      ]
     }
   ],
   "mission": {
@@ -186,7 +456,7 @@
     "origin": "synthetic",
     "sourceId": "fixture-operations",
     "asOf": "2026-11-14",
-    "description": "Entirely fictional restaurant dataset for development. Not real banking, staff, reviews, inventory or property data."
+    "description": "Fictional Juniper Table demo with June–November 2026 sales and expenses, sample service feedback, staff schedules, stock, menus and comparable prices."
   },
   "operations": {
     "currency": "USD",
@@ -366,6 +636,182 @@
         "hourlyRateCents": 3550,
         "availability": "Availability supplied in fictional schedule",
         "mood": "Neutral"
+      },
+      {
+        "id": "e9",
+        "name": "Maya Patel",
+        "role": "Floor Manager",
+        "type": "Full-time",
+        "tenure": "2 yrs",
+        "rating": "Excellent",
+        "hoursThisWeek": 40,
+        "schedule": [
+          null,
+          "14–22",
+          "14–22",
+          "14–22",
+          "14–22",
+          "14–22",
+          null
+        ],
+        "email": "staff9@example.com",
+        "hourlyRateCents": 2850,
+        "availability": "Available on the days shown in this fictional schedule",
+        "mood": "Happy"
+      },
+      {
+        "id": "e10",
+        "name": "Elena Brooks",
+        "role": "Line Cook",
+        "type": "Full-time",
+        "tenure": "1 yr",
+        "rating": "Good",
+        "hoursThisWeek": 40,
+        "schedule": [
+          null,
+          null,
+          "14–22",
+          "14–22",
+          "14–22",
+          "14–22",
+          "12–20"
+        ],
+        "email": "staff10@example.com",
+        "hourlyRateCents": 2300,
+        "availability": "Available on the days shown in this fictional schedule",
+        "mood": "Neutral"
+      },
+      {
+        "id": "e11",
+        "name": "Dante Ruiz",
+        "role": "Prep Cook",
+        "type": "Part-time",
+        "tenure": "9 mos",
+        "rating": "Good",
+        "hoursThisWeek": 20,
+        "schedule": [
+          "9–14",
+          null,
+          "9–14",
+          null,
+          "9–14",
+          "9–14",
+          null
+        ],
+        "email": "staff11@example.com",
+        "hourlyRateCents": 1900,
+        "availability": "Available on the days shown in this fictional schedule",
+        "mood": "Happy"
+      },
+      {
+        "id": "e12",
+        "name": "Nina Okafor",
+        "role": "Host",
+        "type": "Part-time",
+        "tenure": "4 mos",
+        "rating": "Developing",
+        "hoursThisWeek": 22,
+        "schedule": [
+          null,
+          null,
+          null,
+          "16–21",
+          "16–22",
+          "16–22",
+          "10–15"
+        ],
+        "email": "staff12@example.com",
+        "hourlyRateCents": 1750,
+        "availability": "Available on the days shown in this fictional schedule",
+        "mood": "Neutral"
+      },
+      {
+        "id": "e13",
+        "name": "Theo Martin",
+        "role": "Barista",
+        "type": "Part-time",
+        "tenure": "1 yr",
+        "rating": "Excellent",
+        "hoursThisWeek": 24,
+        "schedule": [
+          null,
+          "9–14",
+          null,
+          "9–14",
+          null,
+          "8–15",
+          "8–15"
+        ],
+        "email": "staff13@example.com",
+        "hourlyRateCents": 1900,
+        "availability": "Available on the days shown in this fictional schedule",
+        "mood": "Happy"
+      },
+      {
+        "id": "e14",
+        "name": "Iris Bell",
+        "role": "Dishwasher",
+        "type": "Part-time",
+        "tenure": "7 mos",
+        "rating": "Good",
+        "hoursThisWeek": 24,
+        "schedule": [
+          null,
+          null,
+          null,
+          "17–23",
+          "17–23",
+          "17–23",
+          "13–19"
+        ],
+        "email": "staff14@example.com",
+        "hourlyRateCents": 1800,
+        "availability": "Available on the days shown in this fictional schedule",
+        "mood": "Tired"
+      },
+      {
+        "id": "e15",
+        "name": "Jules Kim",
+        "role": "Expediter",
+        "type": "Part-time",
+        "tenure": "6 mos",
+        "rating": "Developing",
+        "hoursThisWeek": 16,
+        "schedule": [
+          null,
+          null,
+          "17–22",
+          null,
+          "17–22",
+          "17–23",
+          null
+        ],
+        "email": "staff15@example.com",
+        "hourlyRateCents": 2000,
+        "availability": "Available on the days shown in this fictional schedule",
+        "mood": "Neutral"
+      },
+      {
+        "id": "e16",
+        "name": "Avery Stone",
+        "role": "Pastry Cook",
+        "type": "Part-time",
+        "tenure": "2 yrs",
+        "rating": "Excellent",
+        "hoursThisWeek": 20,
+        "schedule": [
+          null,
+          "8–13",
+          null,
+          "8–13",
+          "8–13",
+          "8–13",
+          null
+        ],
+        "email": "staff16@example.com",
+        "hourlyRateCents": 2400,
+        "availability": "Available on the days shown in this fictional schedule",
+        "mood": "Happy"
       }
     ],
     "suppliers": [
@@ -432,6 +878,38 @@
         "leadDays": 5,
         "notes": "Free shipping over $200",
         "id": "supplier-8"
+      },
+      {
+        "id": "supplier-9",
+        "name": "Millstone Bakehouse",
+        "contact": "supplier9@example.com",
+        "phone": "(609) 555-0149",
+        "leadDays": 1,
+        "notes": "Same-day cut-off at 2 p.m. for next-morning bread delivery."
+      },
+      {
+        "id": "supplier-10",
+        "name": "Canal Street Dairy",
+        "contact": "supplier10@example.com",
+        "phone": "(609) 555-0150",
+        "leadDays": 2,
+        "notes": "Refrigerated deliveries Tuesday and Friday."
+      },
+      {
+        "id": "supplier-11",
+        "name": "Mercer Service Supply",
+        "contact": "supplier11@example.com",
+        "phone": "(609) 555-0151",
+        "leadDays": 4,
+        "notes": "Case minimum on takeout packaging and cleaning products."
+      },
+      {
+        "id": "supplier-12",
+        "name": "Maple Hollow Produce",
+        "contact": "supplier12@example.com",
+        "phone": "(609) 555-0152",
+        "leadDays": 2,
+        "notes": "Local seasonal produce with substitutions by availability."
       }
     ],
     "inventory": [
@@ -614,6 +1092,270 @@
         "nextDelivery": "2026-11-15",
         "supplierId": "supplier-8",
         "unitCostCents": 2700
+      },
+      {
+        "id": "i16",
+        "name": "Brioche buns",
+        "category": "Bakery",
+        "supplierId": "supplier-9",
+        "current": 18,
+        "threshold": 24,
+        "unit": "each",
+        "lastOrdered": "2026-11-10",
+        "nextDelivery": "2026-11-15",
+        "unitCostCents": 110
+      },
+      {
+        "id": "i17",
+        "name": "Sourdough loaves",
+        "category": "Bakery",
+        "supplierId": "supplier-9",
+        "current": 8,
+        "threshold": 6,
+        "unit": "loaves",
+        "lastOrdered": "2026-11-11",
+        "nextDelivery": "2026-11-16",
+        "unitCostCents": 670
+      },
+      {
+        "id": "i18",
+        "name": "Cultured butter",
+        "category": "Dairy",
+        "supplierId": "supplier-10",
+        "current": 6,
+        "threshold": 5,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-12",
+        "nextDelivery": null,
+        "unitCostCents": 550
+      },
+      {
+        "id": "i19",
+        "name": "Ricotta",
+        "category": "Dairy",
+        "supplierId": "supplier-10",
+        "current": 2.5,
+        "threshold": 8,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-13",
+        "nextDelivery": "2026-11-16",
+        "unitCostCents": 450
+      },
+      {
+        "id": "i20",
+        "name": "Heavy cream",
+        "category": "Dairy",
+        "supplierId": "supplier-10",
+        "current": 12,
+        "threshold": 6,
+        "unit": "quarts",
+        "lastOrdered": "2026-11-09",
+        "nextDelivery": null,
+        "unitCostCents": 430
+      },
+      {
+        "id": "i21",
+        "name": "Whole milk",
+        "category": "Dairy",
+        "supplierId": "supplier-10",
+        "current": 9,
+        "threshold": 8,
+        "unit": "gallons",
+        "lastOrdered": "2026-11-10",
+        "nextDelivery": "2026-11-17",
+        "unitCostCents": 395
+      },
+      {
+        "id": "i22",
+        "name": "Cremini mushrooms",
+        "category": "Produce",
+        "supplierId": "supplier-12",
+        "current": 5,
+        "threshold": 10,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-11",
+        "nextDelivery": "2026-11-16",
+        "unitCostCents": 410
+      },
+      {
+        "id": "i23",
+        "name": "Butternut squash",
+        "category": "Produce",
+        "supplierId": "supplier-12",
+        "current": 32,
+        "threshold": 15,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-12",
+        "nextDelivery": null,
+        "unitCostCents": 160
+      },
+      {
+        "id": "i24",
+        "name": "Brussels sprouts",
+        "category": "Produce",
+        "supplierId": "supplier-12",
+        "current": 7,
+        "threshold": 10,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-13",
+        "nextDelivery": "2026-11-16",
+        "unitCostCents": 285
+      },
+      {
+        "id": "i25",
+        "name": "Honeycrisp apples",
+        "category": "Produce",
+        "supplierId": "supplier-12",
+        "current": 22,
+        "threshold": 18,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-09",
+        "nextDelivery": null,
+        "unitCostCents": 190
+      },
+      {
+        "id": "i26",
+        "name": "Romaine hearts",
+        "category": "Produce",
+        "supplierId": "supplier-3",
+        "current": 14,
+        "threshold": 12,
+        "unit": "heads",
+        "lastOrdered": "2026-11-10",
+        "nextDelivery": "2026-11-17",
+        "unitCostCents": 195
+      },
+      {
+        "id": "i27",
+        "name": "Baby beets",
+        "category": "Produce",
+        "supplierId": "supplier-12",
+        "current": 3,
+        "threshold": 10,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-11",
+        "nextDelivery": "2026-11-16",
+        "unitCostCents": 230
+      },
+      {
+        "id": "i28",
+        "name": "Sweet potatoes",
+        "category": "Produce",
+        "supplierId": "supplier-3",
+        "current": 28,
+        "threshold": 20,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-12",
+        "nextDelivery": null,
+        "unitCostCents": 130
+      },
+      {
+        "id": "i29",
+        "name": "Boneless short ribs",
+        "category": "Proteins",
+        "supplierId": "supplier-1",
+        "current": 11,
+        "threshold": 16,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-13",
+        "nextDelivery": "2026-11-17",
+        "unitCostCents": 1050
+      },
+      {
+        "id": "i30",
+        "name": "Shell eggs",
+        "category": "Dairy",
+        "supplierId": "supplier-10",
+        "current": 5,
+        "threshold": 8,
+        "unit": "dozen",
+        "lastOrdered": "2026-11-09",
+        "nextDelivery": "2026-11-16",
+        "unitCostCents": 360
+      },
+      {
+        "id": "i31",
+        "name": "Rolled oats",
+        "category": "Dry Goods",
+        "supplierId": "supplier-7",
+        "current": 10,
+        "threshold": 6,
+        "unit": "lbs",
+        "lastOrdered": "2026-11-10",
+        "nextDelivery": null,
+        "unitCostCents": 190
+      },
+      {
+        "id": "i32",
+        "name": "Oat milk",
+        "category": "Beverages",
+        "supplierId": "supplier-6",
+        "current": 4,
+        "threshold": 12,
+        "unit": "cartons",
+        "lastOrdered": "2026-11-11",
+        "nextDelivery": "2026-11-17",
+        "unitCostCents": 380
+      },
+      {
+        "id": "i33",
+        "name": "Sparkling water",
+        "category": "Beverages",
+        "supplierId": "supplier-8",
+        "current": 44,
+        "threshold": 24,
+        "unit": "bottles",
+        "lastOrdered": "2026-11-12",
+        "nextDelivery": null,
+        "unitCostCents": 85
+      },
+      {
+        "id": "i34",
+        "name": "Vented takeaway boxes",
+        "category": "Packaging",
+        "supplierId": "supplier-11",
+        "current": 22,
+        "threshold": 60,
+        "unit": "each",
+        "lastOrdered": "2026-11-13",
+        "nextDelivery": "2026-11-18",
+        "unitCostCents": 46
+      },
+      {
+        "id": "i35",
+        "name": "Sauce cups with lids",
+        "category": "Packaging",
+        "supplierId": "supplier-11",
+        "current": 130,
+        "threshold": 100,
+        "unit": "each",
+        "lastOrdered": "2026-11-09",
+        "nextDelivery": null,
+        "unitCostCents": 9
+      },
+      {
+        "id": "i36",
+        "name": "Recycled paper bags",
+        "category": "Packaging",
+        "supplierId": "supplier-11",
+        "current": 41,
+        "threshold": 50,
+        "unit": "each",
+        "lastOrdered": "2026-11-10",
+        "nextDelivery": "2026-11-18",
+        "unitCostCents": 42
+      },
+      {
+        "id": "i37",
+        "name": "Dish sanitizer",
+        "category": "Cleaning",
+        "supplierId": "supplier-11",
+        "current": 3,
+        "threshold": 2,
+        "unit": "gallons",
+        "lastOrdered": "2026-11-11",
+        "nextDelivery": null,
+        "unitCostCents": 1850
       }
     ],
     "menu": [
@@ -704,6 +1446,182 @@
         "packagingCostCents": 150,
         "deliveryCommissionFraction": 0.25,
         "quantity": 91
+      },
+      {
+        "id": "dish-9",
+        "name": "Whipped Ricotta",
+        "category": "Starters",
+        "dineInPriceCents": 1200,
+        "deliveryPriceCents": 1500,
+        "ingredientCostCents": 315,
+        "packagingCostCents": 110,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 57
+      },
+      {
+        "id": "dish-10",
+        "name": "Crispy Brussels Sprouts",
+        "category": "Starters",
+        "dineInPriceCents": 1100,
+        "deliveryPriceCents": 1400,
+        "ingredientCostCents": 285,
+        "packagingCostCents": 120,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 73
+      },
+      {
+        "id": "dish-11",
+        "name": "Bistro Beet Salad",
+        "category": "Starters",
+        "dineInPriceCents": 1400,
+        "deliveryPriceCents": 1700,
+        "ingredientCostCents": 430,
+        "packagingCostCents": 125,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 42
+      },
+      {
+        "id": "dish-12",
+        "name": "Wild Mushroom Risotto",
+        "category": "Mains",
+        "dineInPriceCents": 2400,
+        "deliveryPriceCents": 2900,
+        "ingredientCostCents": 705,
+        "packagingCostCents": 155,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 61
+      },
+      {
+        "id": "dish-13",
+        "name": "Crispy Chicken Sandwich",
+        "category": "Mains",
+        "dineInPriceCents": 1700,
+        "deliveryPriceCents": 2100,
+        "ingredientCostCents": 520,
+        "packagingCostCents": 155,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 108
+      },
+      {
+        "id": "dish-14",
+        "name": "Roasted Squash Bowl",
+        "category": "Mains",
+        "dineInPriceCents": 1900,
+        "deliveryPriceCents": 2300,
+        "ingredientCostCents": 495,
+        "packagingCostCents": 145,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 64
+      },
+      {
+        "id": "dish-15",
+        "name": "Braised Short Rib",
+        "category": "Mains",
+        "dineInPriceCents": 3400,
+        "deliveryPriceCents": 4100,
+        "ingredientCostCents": 1240,
+        "packagingCostCents": 185,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 38
+      },
+      {
+        "id": "dish-16",
+        "name": "Lemon Ricotta Pancakes",
+        "category": "Brunch",
+        "dineInPriceCents": 1600,
+        "deliveryPriceCents": 1900,
+        "ingredientCostCents": 420,
+        "packagingCostCents": 135,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 69
+      },
+      {
+        "id": "dish-17",
+        "name": "Breakfast Hash",
+        "category": "Brunch",
+        "dineInPriceCents": 1800,
+        "deliveryPriceCents": 2200,
+        "ingredientCostCents": 560,
+        "packagingCostCents": 155,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 54
+      },
+      {
+        "id": "dish-18",
+        "name": "Sweet Potato Fries",
+        "category": "Sides",
+        "dineInPriceCents": 700,
+        "deliveryPriceCents": 900,
+        "ingredientCostCents": 185,
+        "packagingCostCents": 100,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 95
+      },
+      {
+        "id": "dish-19",
+        "name": "Apple Crumble",
+        "category": "Desserts",
+        "dineInPriceCents": 1000,
+        "deliveryPriceCents": 1300,
+        "ingredientCostCents": 300,
+        "packagingCostCents": 105,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 43
+      },
+      {
+        "id": "dish-20",
+        "name": "Dark Chocolate Pot de Crème",
+        "category": "Desserts",
+        "dineInPriceCents": 1100,
+        "deliveryPriceCents": 1400,
+        "ingredientCostCents": 338,
+        "packagingCostCents": 115,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 29
+      },
+      {
+        "id": "dish-21",
+        "name": "Maple Oat Latte",
+        "category": "Coffee & Tea",
+        "dineInPriceCents": 600,
+        "deliveryPriceCents": 750,
+        "ingredientCostCents": 178,
+        "packagingCostCents": 70,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 85
+      },
+      {
+        "id": "dish-22",
+        "name": "Cold Brew",
+        "category": "Coffee & Tea",
+        "dineInPriceCents": 500,
+        "deliveryPriceCents": 650,
+        "ingredientCostCents": 145,
+        "packagingCostCents": 65,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 46
+      },
+      {
+        "id": "dish-23",
+        "name": "Citrus Spritz",
+        "category": "Alcohol-free",
+        "dineInPriceCents": 850,
+        "deliveryPriceCents": 1050,
+        "ingredientCostCents": 218,
+        "packagingCostCents": 70,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 52
+      },
+      {
+        "id": "dish-24",
+        "name": "Ginger Fizz",
+        "category": "Alcohol-free",
+        "dineInPriceCents": 750,
+        "deliveryPriceCents": 950,
+        "ingredientCostCents": 185,
+        "packagingCostCents": 70,
+        "deliveryCommissionFraction": 0.25,
+        "quantity": 37
       }
     ],
     "transactions": [
@@ -1606,6 +2524,2226 @@
         "channel": "shared",
         "amountCents": 200000,
         "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-05-sales-takeaway",
+        "date": "2026-06-05",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 18185,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-06-sales-takeaway",
+        "date": "2026-06-06",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 19762,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-06-utilities-shared",
+        "date": "2026-06-06",
+        "description": "Electric, water and gas allocation",
+        "kind": "expense",
+        "category": "utilities",
+        "channel": "shared",
+        "amountCents": 20800,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-08-packaging-takeaway",
+        "date": "2026-06-08",
+        "description": "Takeaway bags, cups and containers",
+        "kind": "expense",
+        "category": "packaging",
+        "channel": "takeaway",
+        "amountCents": 9991,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-11-linen-shared",
+        "date": "2026-06-11",
+        "description": "Linen service and floor mats",
+        "kind": "expense",
+        "category": "linen",
+        "channel": "shared",
+        "amountCents": 15508,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-12-sales-takeaway",
+        "date": "2026-06-12",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 15035,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-13-sales-dine-in",
+        "date": "2026-06-13",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 117122,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-13-sales-delivery",
+        "date": "2026-06-13",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 26874,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-13-sales-takeaway",
+        "date": "2026-06-13",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 16612,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-14-sales-dine-in",
+        "date": "2026-06-14",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 91289,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-14-sales-delivery",
+        "date": "2026-06-14",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 20429,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-16-sales-dine-in",
+        "date": "2026-06-16",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 56574,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-17-sales-dine-in",
+        "date": "2026-06-17",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 59741,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-17-sales-delivery",
+        "date": "2026-06-17",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 15247,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-18-sales-dine-in",
+        "date": "2026-06-18",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 62908,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-19-sales-dine-in",
+        "date": "2026-06-19",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 111075,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-19-sales-delivery",
+        "date": "2026-06-19",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 24858,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-19-sales-takeaway",
+        "date": "2026-06-19",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 11885,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-19-utilities-shared",
+        "date": "2026-06-19",
+        "description": "Electric, water and gas allocation",
+        "kind": "expense",
+        "category": "utilities",
+        "channel": "shared",
+        "amountCents": 22770,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-20-sales-dine-in",
+        "date": "2026-06-20",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 114242,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-20-sales-delivery",
+        "date": "2026-06-20",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 25914,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-20-sales-takeaway",
+        "date": "2026-06-20",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 13462,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-21-sales-dine-in",
+        "date": "2026-06-21",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 88409,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-21-sales-delivery",
+        "date": "2026-06-21",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 19469,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-22-packaging-takeaway",
+        "date": "2026-06-22",
+        "description": "Takeaway bags, cups and containers",
+        "kind": "expense",
+        "category": "packaging",
+        "channel": "takeaway",
+        "amountCents": 10373,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-23-sales-dine-in",
+        "date": "2026-06-23",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 80094,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-24-sales-dine-in",
+        "date": "2026-06-24",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 56861,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-24-sales-delivery",
+        "date": "2026-06-24",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 14287,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-25-sales-dine-in",
+        "date": "2026-06-25",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 60028,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-26-sales-dine-in",
+        "date": "2026-06-26",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 108195,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-26-sales-delivery",
+        "date": "2026-06-26",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 23898,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-26-sales-takeaway",
+        "date": "2026-06-26",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 23135,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-26-marketing-shared",
+        "date": "2026-06-26",
+        "description": "Neighborhood newsletter placement",
+        "kind": "expense",
+        "category": "marketing",
+        "channel": "shared",
+        "amountCents": 19130,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-27-sales-dine-in",
+        "date": "2026-06-27",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 111362,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-27-sales-delivery",
+        "date": "2026-06-27",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 24954,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-27-sales-takeaway",
+        "date": "2026-06-27",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 10312,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-28-sales-dine-in",
+        "date": "2026-06-28",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 85529,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-28-sales-delivery",
+        "date": "2026-06-28",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 18509,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-06-30-sales-dine-in",
+        "date": "2026-06-30",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 77214,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-03-sales-takeaway",
+        "date": "2026-07-03",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 15875,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-04-sales-takeaway",
+        "date": "2026-07-04",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 17452,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-06-utilities-shared",
+        "date": "2026-07-06",
+        "description": "Electric, water and gas allocation",
+        "kind": "expense",
+        "category": "utilities",
+        "channel": "shared",
+        "amountCents": 22500,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-08-packaging-takeaway",
+        "date": "2026-07-08",
+        "description": "Takeaway bags, cups and containers",
+        "kind": "expense",
+        "category": "packaging",
+        "channel": "takeaway",
+        "amountCents": 10755,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-10-sales-takeaway",
+        "date": "2026-07-10",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 12725,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-11-sales-takeaway",
+        "date": "2026-07-11",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 14302,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-11-linen-shared",
+        "date": "2026-07-11",
+        "description": "Linen service and floor mats",
+        "kind": "expense",
+        "category": "linen",
+        "channel": "shared",
+        "amountCents": 15940,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-14-sales-dine-in",
+        "date": "2026-07-14",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 82044,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-15-sales-dine-in",
+        "date": "2026-07-15",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 58811,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-15-sales-delivery",
+        "date": "2026-07-15",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 14937,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-15-maintenance-shared",
+        "date": "2026-07-15",
+        "description": "Kitchen equipment and dining room maintenance",
+        "kind": "expense",
+        "category": "maintenance",
+        "channel": "shared",
+        "amountCents": 43213,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-16-sales-dine-in",
+        "date": "2026-07-16",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 61978,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-17-sales-dine-in",
+        "date": "2026-07-17",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 110145,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-17-sales-delivery",
+        "date": "2026-07-17",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 24548,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-17-sales-takeaway",
+        "date": "2026-07-17",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 23975,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-18-sales-dine-in",
+        "date": "2026-07-18",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 113312,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-18-sales-delivery",
+        "date": "2026-07-18",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 25604,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-18-sales-takeaway",
+        "date": "2026-07-18",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 11152,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-19-sales-dine-in",
+        "date": "2026-07-19",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 87479,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-19-sales-delivery",
+        "date": "2026-07-19",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 19159,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-19-utilities-shared",
+        "date": "2026-07-19",
+        "description": "Electric, water and gas allocation",
+        "kind": "expense",
+        "category": "utilities",
+        "channel": "shared",
+        "amountCents": 24130,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-21-sales-dine-in",
+        "date": "2026-07-21",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 79164,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-22-sales-dine-in",
+        "date": "2026-07-22",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 82331,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-22-sales-delivery",
+        "date": "2026-07-22",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 22777,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-22-packaging-takeaway",
+        "date": "2026-07-22",
+        "description": "Takeaway bags, cups and containers",
+        "kind": "expense",
+        "category": "packaging",
+        "channel": "takeaway",
+        "amountCents": 11137,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-23-sales-dine-in",
+        "date": "2026-07-23",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 59098,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-24-sales-dine-in",
+        "date": "2026-07-24",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 107265,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-24-sales-delivery",
+        "date": "2026-07-24",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 23588,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-24-sales-takeaway",
+        "date": "2026-07-24",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 20825,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-25-sales-dine-in",
+        "date": "2026-07-25",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 110432,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-25-sales-delivery",
+        "date": "2026-07-25",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 24644,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-25-sales-takeaway",
+        "date": "2026-07-25",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 22402,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-26-sales-dine-in",
+        "date": "2026-07-26",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 84599,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-26-sales-delivery",
+        "date": "2026-07-26",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 18199,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-26-marketing-shared",
+        "date": "2026-07-26",
+        "description": "Neighborhood newsletter placement",
+        "kind": "expense",
+        "category": "marketing",
+        "channel": "shared",
+        "amountCents": 19970,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-28-sales-dine-in",
+        "date": "2026-07-28",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 76284,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-28-maintenance-shared",
+        "date": "2026-07-28",
+        "description": "Kitchen equipment and dining room maintenance",
+        "kind": "expense",
+        "category": "maintenance",
+        "channel": "shared",
+        "amountCents": 26780,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-29-sales-dine-in",
+        "date": "2026-07-29",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 79451,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-29-sales-delivery",
+        "date": "2026-07-29",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 21817,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-30-sales-dine-in",
+        "date": "2026-07-30",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 56218,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-31-sales-dine-in",
+        "date": "2026-07-31",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 104385,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-31-sales-delivery",
+        "date": "2026-07-31",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 22628,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-07-31-sales-takeaway",
+        "date": "2026-07-31",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 17675,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-01-sales-takeaway",
+        "date": "2026-08-01",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 13565,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-06-utilities-shared",
+        "date": "2026-08-06",
+        "description": "Electric, water and gas allocation",
+        "kind": "expense",
+        "category": "utilities",
+        "channel": "shared",
+        "amountCents": 23860,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-07-sales-takeaway",
+        "date": "2026-08-07",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 23238,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-08-sales-takeaway",
+        "date": "2026-08-08",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 10415,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-08-packaging-takeaway",
+        "date": "2026-08-08",
+        "description": "Takeaway bags, cups and containers",
+        "kind": "expense",
+        "category": "packaging",
+        "channel": "takeaway",
+        "amountCents": 11519,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-11-linen-shared",
+        "date": "2026-08-11",
+        "description": "Linen service and floor mats",
+        "kind": "expense",
+        "category": "linen",
+        "channel": "shared",
+        "amountCents": 16480,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-13-sales-dine-in",
+        "date": "2026-08-13",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 57881,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-14-sales-dine-in",
+        "date": "2026-08-14",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 106048,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-14-sales-delivery",
+        "date": "2026-08-14",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 23182,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-14-sales-takeaway",
+        "date": "2026-08-14",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 20088,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-15-sales-dine-in",
+        "date": "2026-08-15",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 109215,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-15-sales-delivery",
+        "date": "2026-08-15",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 24238,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-15-sales-takeaway",
+        "date": "2026-08-15",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 21665,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-16-sales-dine-in",
+        "date": "2026-08-16",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 83382,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-16-sales-delivery",
+        "date": "2026-08-16",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 17794,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-18-sales-dine-in",
+        "date": "2026-08-18",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 75067,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-19-sales-dine-in",
+        "date": "2026-08-19",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 78234,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-19-sales-delivery",
+        "date": "2026-08-19",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 21411,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-19-utilities-shared",
+        "date": "2026-08-19",
+        "description": "Electric, water and gas allocation",
+        "kind": "expense",
+        "category": "utilities",
+        "channel": "shared",
+        "amountCents": 25830,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-20-sales-dine-in",
+        "date": "2026-08-20",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 81401,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-21-sales-dine-in",
+        "date": "2026-08-21",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 103168,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-21-sales-delivery",
+        "date": "2026-08-21",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 22222,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-21-sales-takeaway",
+        "date": "2026-08-21",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 16938,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-22-sales-dine-in",
+        "date": "2026-08-22",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 106335,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-22-sales-delivery",
+        "date": "2026-08-22",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 23278,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-22-sales-takeaway",
+        "date": "2026-08-22",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 18515,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-22-packaging-takeaway",
+        "date": "2026-08-22",
+        "description": "Takeaway bags, cups and containers",
+        "kind": "expense",
+        "category": "packaging",
+        "channel": "takeaway",
+        "amountCents": 11901,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-23-sales-dine-in",
+        "date": "2026-08-23",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 80502,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-23-sales-delivery",
+        "date": "2026-08-23",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 16834,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-25-sales-dine-in",
+        "date": "2026-08-25",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 72187,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-26-sales-dine-in",
+        "date": "2026-08-26",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 75354,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-26-sales-delivery",
+        "date": "2026-08-26",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 20451,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-26-marketing-shared",
+        "date": "2026-08-26",
+        "description": "Neighborhood newsletter placement",
+        "kind": "expense",
+        "category": "marketing",
+        "channel": "shared",
+        "amountCents": 21020,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-27-sales-dine-in",
+        "date": "2026-08-27",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 78521,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-28-sales-dine-in",
+        "date": "2026-08-28",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 126688,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-28-sales-delivery",
+        "date": "2026-08-28",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 30062,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-28-sales-takeaway",
+        "date": "2026-08-28",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 13788,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-29-sales-dine-in",
+        "date": "2026-08-29",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 103455,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-29-sales-delivery",
+        "date": "2026-08-29",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 22318,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-29-sales-takeaway",
+        "date": "2026-08-29",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 15365,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-30-sales-dine-in",
+        "date": "2026-08-30",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 77622,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-08-30-sales-delivery",
+        "date": "2026-08-30",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 15874,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-04-sales-takeaway",
+        "date": "2026-09-04",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 19351,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-05-sales-takeaway",
+        "date": "2026-09-05",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 20928,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-06-utilities-shared",
+        "date": "2026-09-06",
+        "description": "Electric, water and gas allocation",
+        "kind": "expense",
+        "category": "utilities",
+        "channel": "shared",
+        "amountCents": 25220,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-08-packaging-takeaway",
+        "date": "2026-09-08",
+        "description": "Takeaway bags, cups and containers",
+        "kind": "expense",
+        "category": "packaging",
+        "channel": "takeaway",
+        "amountCents": 12474,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-11-sales-takeaway",
+        "date": "2026-09-11",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 16201,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-11-linen-shared",
+        "date": "2026-09-11",
+        "description": "Linen service and floor mats",
+        "kind": "expense",
+        "category": "linen",
+        "channel": "shared",
+        "amountCents": 16912,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-12-sales-takeaway",
+        "date": "2026-09-12",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 17778,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-13-sales-dine-in",
+        "date": "2026-09-13",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 79285,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-13-sales-delivery",
+        "date": "2026-09-13",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 16428,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-15-sales-dine-in",
+        "date": "2026-09-15",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 70970,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-15-maintenance-shared",
+        "date": "2026-09-15",
+        "description": "Kitchen equipment and dining room maintenance",
+        "kind": "expense",
+        "category": "maintenance",
+        "channel": "shared",
+        "amountCents": 22950,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-16-sales-dine-in",
+        "date": "2026-09-16",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 74137,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-16-sales-delivery",
+        "date": "2026-09-16",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 20045,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-17-sales-dine-in",
+        "date": "2026-09-17",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 77304,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-18-sales-dine-in",
+        "date": "2026-09-18",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 125471,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-18-sales-delivery",
+        "date": "2026-09-18",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 29657,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-18-sales-takeaway",
+        "date": "2026-09-18",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 13051,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-19-sales-dine-in",
+        "date": "2026-09-19",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 102238,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-19-sales-delivery",
+        "date": "2026-09-19",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 21912,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-19-sales-takeaway",
+        "date": "2026-09-19",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 14628,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-19-utilities-shared",
+        "date": "2026-09-19",
+        "description": "Electric, water and gas allocation",
+        "kind": "expense",
+        "category": "utilities",
+        "channel": "shared",
+        "amountCents": 27190,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-20-sales-dine-in",
+        "date": "2026-09-20",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 76405,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-20-sales-delivery",
+        "date": "2026-09-20",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 15468,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-22-sales-dine-in",
+        "date": "2026-09-22",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 68090,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-22-packaging-takeaway",
+        "date": "2026-09-22",
+        "description": "Takeaway bags, cups and containers",
+        "kind": "expense",
+        "category": "packaging",
+        "channel": "takeaway",
+        "amountCents": 12856,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-23-sales-dine-in",
+        "date": "2026-09-23",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 71257,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-23-sales-delivery",
+        "date": "2026-09-23",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 19085,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-24-sales-dine-in",
+        "date": "2026-09-24",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 74424,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-25-sales-dine-in",
+        "date": "2026-09-25",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 122591,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-25-sales-delivery",
+        "date": "2026-09-25",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 28697,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-25-sales-takeaway",
+        "date": "2026-09-25",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 24301,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-26-sales-dine-in",
+        "date": "2026-09-26",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 125758,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-26-sales-delivery",
+        "date": "2026-09-26",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 29752,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-26-sales-takeaway",
+        "date": "2026-09-26",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 11478,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-26-marketing-shared",
+        "date": "2026-09-26",
+        "description": "Neighborhood newsletter placement",
+        "kind": "expense",
+        "category": "marketing",
+        "channel": "shared",
+        "amountCents": 21860,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-27-sales-dine-in",
+        "date": "2026-09-27",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 73525,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-27-sales-delivery",
+        "date": "2026-09-27",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 14508,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-28-maintenance-shared",
+        "date": "2026-09-28",
+        "description": "Kitchen equipment and dining room maintenance",
+        "kind": "expense",
+        "category": "maintenance",
+        "channel": "shared",
+        "amountCents": 37517,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-29-sales-dine-in",
+        "date": "2026-09-29",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 65210,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-30-sales-dine-in",
+        "date": "2026-09-30",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 68377,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-09-30-sales-delivery",
+        "date": "2026-09-30",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 18125,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-02-sales-takeaway",
+        "date": "2026-10-02",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 17041,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-03-sales-takeaway",
+        "date": "2026-10-03",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 18618,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-06-utilities-shared",
+        "date": "2026-10-06",
+        "description": "Electric, water and gas allocation",
+        "kind": "expense",
+        "category": "utilities",
+        "channel": "shared",
+        "amountCents": 26920,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-08-packaging-takeaway",
+        "date": "2026-10-08",
+        "description": "Takeaway bags, cups and containers",
+        "kind": "expense",
+        "category": "packaging",
+        "channel": "takeaway",
+        "amountCents": 13238,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-09-sales-takeaway",
+        "date": "2026-10-09",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 13891,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-10-sales-takeaway",
+        "date": "2026-10-10",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 15468,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-11-linen-shared",
+        "date": "2026-10-11",
+        "description": "Linen service and floor mats",
+        "kind": "expense",
+        "category": "linen",
+        "channel": "shared",
+        "amountCents": 17344,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-13-sales-dine-in",
+        "date": "2026-10-13",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 70040,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-14-sales-dine-in",
+        "date": "2026-10-14",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 73207,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-14-sales-delivery",
+        "date": "2026-10-14",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 19735,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-15-sales-dine-in",
+        "date": "2026-10-15",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 76374,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-15-maintenance-shared",
+        "date": "2026-10-15",
+        "description": "Kitchen equipment and dining room maintenance",
+        "kind": "expense",
+        "category": "maintenance",
+        "channel": "shared",
+        "amountCents": 27722,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-16-sales-dine-in",
+        "date": "2026-10-16",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 124541,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-16-sales-delivery",
+        "date": "2026-10-16",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 29347,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-16-sales-takeaway",
+        "date": "2026-10-16",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 10741,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-17-sales-dine-in",
+        "date": "2026-10-17",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 101308,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-17-sales-delivery",
+        "date": "2026-10-17",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 21602,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-17-sales-takeaway",
+        "date": "2026-10-17",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 12318,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-18-sales-dine-in",
+        "date": "2026-10-18",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 75475,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-18-sales-delivery",
+        "date": "2026-10-18",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 15158,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-19-utilities-shared",
+        "date": "2026-10-19",
+        "description": "Electric, water and gas allocation",
+        "kind": "expense",
+        "category": "utilities",
+        "channel": "shared",
+        "amountCents": 28890,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-20-sales-dine-in",
+        "date": "2026-10-20",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 67160,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-21-sales-dine-in",
+        "date": "2026-10-21",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 70327,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-21-sales-delivery",
+        "date": "2026-10-21",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 18775,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-22-sales-dine-in",
+        "date": "2026-10-22",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 73494,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-22-packaging-takeaway",
+        "date": "2026-10-22",
+        "description": "Takeaway bags, cups and containers",
+        "kind": "expense",
+        "category": "packaging",
+        "channel": "takeaway",
+        "amountCents": 13620,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-23-sales-dine-in",
+        "date": "2026-10-23",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 121661,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-23-sales-delivery",
+        "date": "2026-10-23",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 28387,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-23-sales-takeaway",
+        "date": "2026-10-23",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 21991,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-24-sales-dine-in",
+        "date": "2026-10-24",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 124828,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-24-sales-delivery",
+        "date": "2026-10-24",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 29442,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-24-sales-takeaway",
+        "date": "2026-10-24",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 23568,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-25-sales-dine-in",
+        "date": "2026-10-25",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 72595,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-25-sales-delivery",
+        "date": "2026-10-25",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 14198,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-26-marketing-shared",
+        "date": "2026-10-26",
+        "description": "Neighborhood newsletter placement",
+        "kind": "expense",
+        "category": "marketing",
+        "channel": "shared",
+        "amountCents": 22910,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-27-sales-dine-in",
+        "date": "2026-10-27",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 64280,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-28-sales-dine-in",
+        "date": "2026-10-28",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 67447,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-28-sales-delivery",
+        "date": "2026-10-28",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 17815,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-28-maintenance-shared",
+        "date": "2026-10-28",
+        "description": "Kitchen equipment and dining room maintenance",
+        "kind": "expense",
+        "category": "maintenance",
+        "channel": "shared",
+        "amountCents": 42289,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-29-sales-dine-in",
+        "date": "2026-10-29",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 70614,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-30-sales-dine-in",
+        "date": "2026-10-30",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 118781,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-30-sales-delivery",
+        "date": "2026-10-30",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 27427,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-30-sales-takeaway",
+        "date": "2026-10-30",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 18841,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-31-sales-dine-in",
+        "date": "2026-10-31",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 121948,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-31-sales-delivery",
+        "date": "2026-10-31",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 28482,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-10-31-sales-takeaway",
+        "date": "2026-10-31",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 20418,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-11-06-sales-takeaway",
+        "date": "2026-11-06",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 24404,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-11-06-utilities-shared",
+        "date": "2026-11-06",
+        "description": "Electric, water and gas allocation",
+        "kind": "expense",
+        "category": "utilities",
+        "channel": "shared",
+        "amountCents": 28280,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-11-07-sales-takeaway",
+        "date": "2026-11-07",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 11581,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-11-08-packaging-takeaway",
+        "date": "2026-11-08",
+        "description": "Takeaway bags, cups and containers",
+        "kind": "expense",
+        "category": "packaging",
+        "channel": "takeaway",
+        "amountCents": 14002,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-11-11-linen-shared",
+        "date": "2026-11-11",
+        "description": "Linen service and floor mats",
+        "kind": "expense",
+        "category": "linen",
+        "channel": "shared",
+        "amountCents": 17884,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-11-13-sales-dine-in",
+        "date": "2026-11-13",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 120444,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-11-13-sales-delivery",
+        "date": "2026-11-13",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 27981,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-11-13-sales-takeaway",
+        "date": "2026-11-13",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 21254,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-11-14-sales-dine-in",
+        "date": "2026-11-14",
+        "description": "Dine-in service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "dine-in",
+        "amountCents": 123611,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-11-14-sales-delivery",
+        "date": "2026-11-14",
+        "description": "Delivery service sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "delivery",
+        "amountCents": 29037,
+        "sourceId": "fixture-operations"
+      },
+      {
+        "id": "juniper-2026-11-14-sales-takeaway",
+        "date": "2026-11-14",
+        "description": "Takeaway counter sales summary",
+        "kind": "income",
+        "category": "sales",
+        "channel": "takeaway",
+        "amountCents": 22831,
+        "sourceId": "fixture-operations"
       }
     ],
     "competitors": [
@@ -1636,6 +4774,126 @@
         "item": "Pasta Primavera",
         "priceCents": 2400,
         "observedOn": "2026-11-01",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "comparison-3",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-9",
+        "item": "Whipped Ricotta",
+        "priceCents": 1300,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "comparison-4",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-10",
+        "item": "Crispy Brussels Sprouts",
+        "priceCents": 1200,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "comparison-5",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-12",
+        "item": "Wild Mushroom Risotto",
+        "priceCents": 2600,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "comparison-6",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-13",
+        "item": "Crispy Chicken Sandwich",
+        "priceCents": 1850,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "comparison-7",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-14",
+        "item": "Roasted Squash Bowl",
+        "priceCents": 2000,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "comparison-8",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-15",
+        "item": "Braised Short Rib",
+        "priceCents": 3600,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "comparison-9",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-16",
+        "item": "Lemon Ricotta Pancakes",
+        "priceCents": 1700,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "comparison-10",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-17",
+        "item": "Breakfast Hash",
+        "priceCents": 1850,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "comparison-11",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-19",
+        "item": "Apple Crumble",
+        "priceCents": 1050,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "comparison-12",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-21",
+        "item": "Maple Oat Latte",
+        "priceCents": 625,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "comparison-13",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-23",
+        "item": "Citrus Spritz",
+        "priceCents": 900,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "comparison-14",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-1",
+        "item": "House Burger",
+        "priceCents": 1900,
+        "observedOn": "2026-11-12",
         "sourceId": "fixture-operations",
         "approximate": true
       }
@@ -1936,12 +5194,12 @@
           "updatedAt": "2026-11-14T00:00:00.000Z",
           "objects": [
             {
-              "id": "kitchen",
-              "type": "kitchen_zone",
-              "x": 0.4,
-              "y": 0.45,
-              "width": 3.65,
-              "depth": 2.45,
+              "id": "cashier",
+              "type": "cashier_stand",
+              "x": 1.35,
+              "y": 5.65,
+              "width": 1.15,
+              "depth": 0.65,
               "rotation": 0
             },
             {

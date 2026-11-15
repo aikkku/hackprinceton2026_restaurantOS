@@ -13,7 +13,7 @@ export function createAiHandler({ load, generate = generateStructured, authorize
     if (!sameOrigin(request)) return aiFailure(403);
     if (!authorize(request)) return aiFailure(401);
     try {
-      const input = aiRequestSchema.parse(await boundedJson(request, 256 * 1024));
+      const input = aiRequestSchema.parse(await boundedJson(request, 1024 * 1024));
       const dataset = await load();
       const { layout, evidence } = buildAiContext(dataset, input);
       const model = aiModel();

@@ -1,21 +1,17 @@
 "use client";
 
-import { useId, useRef, useState, type PointerEvent } from "react";
-import { furniture, displayLength, footprint, gridStep, positionObject } from "../../domain/layout";
-import type { Layout, LayoutObject, ObjectKind } from "../../domain/schemas";
+import { useId, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
+import { furniture, footprint, positionObject } from "../../domain/layout";
+import { floorWarnings, resizeFromCorner } from "../../domain/floor-editor";
+import type { Layout, LayoutObject } from "../../domain/schemas";
 
 type Props = {
   layout: Layout;
-  zoom?: number;
-  unit: "m" | "ft";
   selectedId: string | null;
-  placing: ObjectKind | null;
-  snap: boolean;
-  overlaps: Set<string>;
-  highlightedIds?: string[];
-  proposedObject?: LayoutObject | null;
-  aiPreview?: LayoutObject[];
-  aiHighlights?: boolean;
+  placing: boolean;
+  highlightedIds: string[];
+  aiPreview: LayoutObject[];
+  onKeys: (event: KeyboardEvent<SVGSVGElement>, objectId?: string) => void;
   onSelect: (id: string | null) => void;
   onPlace: (x: number, y: number) => void;
   onMove: (object: LayoutObject) => void;
@@ -28,23 +24,27 @@ type Drag = {
   clientY: number;
   offsetX: number;
   offsetY: number;
+  resizing: boolean;
 };
 
-function FurnitureArt({ object }: { object: LayoutObject }) {
+function FurnitureArt({ object, assigned = 0 }: { object: LayoutObject; assigned?: number }) {
   const { type, rotation } = object;
   const size = footprint(object);
   const swap = rotation === 90 || rotation === 270;
   const scale = swap ? [size.depth, size.width] : [size.width, size.depth];
   const tables = type === "table_2" || type === "table_4";
+  const count = Math.max(0, (object.seats ?? 0) - assigned);
+  const markers = (rows: number, top: number, bottom = top) => Array.from({ length: count }, (_, index) => {
+    const row = index % rows;
+    const slots = Math.ceil((count - row) / rows);
+    const x = (Math.floor(index / rows) + 1) / (slots + 1);
+    const halfWidth = Math.min(.09, .3 / slots, .14 / object.width);
+    return <rect key={index} data-chair-marker="" className="svg-chair" x={x - halfWidth} y={row ? bottom : top} width={halfWidth * 2} height=".14" rx=".035" />;
+  });
   return (
     <g transform={`translate(${size.width / 2} ${size.depth / 2}) rotate(${rotation}) scale(${scale.join(" ")}) translate(-0.5 -0.5)`}>
       {tables && <>
-        {Array.from({ length: Math.min(object.seats ?? 0, 12) }, (_, index) => {
-          const side = index % 4;
-          const countOnSide = Math.ceil((Math.min(object.seats ?? 0, 12) - side) / 4);
-          const offset = (Math.floor(index / 4) + 1) / (countOnSide + 1);
-          return <rect key={index} className="svg-chair" x={side === 0 ? .01 : side === 2 ? .8 : offset - .09} y={side === 1 ? .01 : side === 3 ? .8 : offset - .09} width=".18" height=".18" rx=".05" />;
-        })}
+        {markers(2, .035, .825)}
         <rect className="svg-furniture-shadow" x=".21" y=".25" width=".6" height=".57" rx=".1" />
         <rect className="svg-table" x=".2" y=".19" width=".6" height=".57" rx=".1" />
         <circle className="svg-plate" cx=".5" cy=".48" r=".075" />
@@ -54,21 +54,17 @@ function FurnitureArt({ object }: { object: LayoutObject }) {
         <rect className="svg-booth-seat" x=".11" y=".14" width=".78" height=".22" rx=".08" />
         <rect className="svg-booth-seat" x=".11" y=".64" width=".78" height=".22" rx=".08" />
         <rect className="svg-table" x=".22" y=".32" width=".56" height=".35" rx=".07" />
+        {markers(2, .155, .68)}
       </>}
       {type === "counter" && <>
-        <circle className="svg-chair" cx=".23" cy=".75" r=".14" />
-        <circle className="svg-chair" cx=".5" cy=".75" r=".14" />
-        <circle className="svg-chair" cx=".77" cy=".75" r=".14" />
+        {markers(1, .66)}
         <rect className="svg-table" x=".02" y=".1" width=".96" height=".48" rx=".09" />
         <rect className="svg-plate" x=".12" y=".22" width=".18" height=".21" rx=".03" />
       </>}
-      {type === "kitchen_zone" && <>
-        <rect className="svg-kitchen" x=".02" y=".02" width=".96" height=".96" rx=".08" />
-        <rect className="svg-appliance" x=".09" y=".13" width=".82" height=".23" rx=".04" />
-        <rect className="svg-appliance" x=".09" y=".39" width=".21" height=".45" rx=".035" />
-        <circle className="svg-burner" cx=".2" cy=".245" r=".055" />
-        <circle className="svg-burner" cx=".34" cy=".245" r=".055" />
-        <path className="svg-kitchen-detail" d="M.49 .24H.8M.55 .59H.81M.55 .7H.81" />
+      {type === "cashier_stand" && <>
+        <rect className="svg-cashier" x=".02" y=".08" width=".96" height=".84" rx=".09" />
+        <rect className="svg-appliance" x=".27" y=".23" width=".42" height=".45" rx=".07" />
+        <path className="svg-register" d="M.34 .39H.62M.37 .54h.03m.09 0h.03m.06 0h.03" />
       </>}
       {type === "door" && <>
         <rect className="svg-door" x=".05" y=".56" width=".9" height=".37" rx=".12" />
@@ -89,15 +85,14 @@ function FurnitureArt({ object }: { object: LayoutObject }) {
   );
 }
 
-export function FloorPlan({ layout, zoom = 1, unit, selectedId, placing, snap, overlaps, highlightedIds = [], proposedObject, aiPreview = [], aiHighlights = false, onSelect, onPlace, onMove }: Props) {
+export function FloorPlan({ layout, selectedId, placing, highlightedIds, aiPreview, onKeys, onSelect, onPlace, onMove }: Props) {
   const svg = useRef<SVGSVGElement>(null);
   const drag = useRef<Drag | null>(null);
   const [preview, setPreview] = useState<LayoutObject | null>(null);
-  const gridId = useId();
+  const floorId = useId();
   const { width, depth } = layout.room;
   const scale = Math.max(width, depth * 1.35);
-  const pad = scale * 0.061;
-  const fontSize = scale * 0.026;
+  const pad = scale * .035;
 
   function roomPoint(event: PointerEvent<SVGSVGElement>) {
     const transform = svg.current?.getScreenCTM();
@@ -112,7 +107,10 @@ export function FloorPlan({ layout, zoom = 1, unit, selectedId, placing, snap, o
       onPlace(point.x, point.y);
       return;
     }
-    const id = (event.target as Element).closest("[data-object]")?.getAttribute("data-object") ?? null;
+    const target = event.target as Element;
+    const hit = target.closest<SVGGElement>("[data-object]");
+    const id = hit?.dataset.object ?? null;
+    (hit ?? event.currentTarget).focus({ preventScroll: true });
     onSelect(id);
     const object = layout.objects.find((item) => item.id === id);
     if (!object) return;
@@ -120,6 +118,7 @@ export function FloorPlan({ layout, zoom = 1, unit, selectedId, placing, snap, o
     drag.current = {
       id: object.id, pointerId: event.pointerId, clientX: event.clientX, clientY: event.clientY,
       offsetX: point.x - object.x, offsetY: point.y - object.y,
+      resizing: target.hasAttribute("data-resize"),
     };
   }
 
@@ -130,7 +129,11 @@ export function FloorPlan({ layout, zoom = 1, unit, selectedId, placing, snap, o
     const point = roomPoint(event);
     const object = layout.objects.find((item) => item.id === gesture.id);
     if (!point || !object) return null;
-    return positionObject(object, layout.room, point.x - gesture.offsetX, point.y - gesture.offsetY, snap);
+    if (gesture.resizing) {
+      const bounds = footprint(object);
+      return resizeFromCorner(layout, object, bounds.width + point.x - object.x - gesture.offsetX, bounds.depth + point.y - object.y - gesture.offsetY);
+    }
+    return positionObject(object, layout.room, point.x - gesture.offsetX, point.y - gesture.offsetY, false);
   }
 
   function finishDrag(event: PointerEvent<SVGSVGElement>, commit: boolean) {
@@ -141,16 +144,20 @@ export function FloorPlan({ layout, zoom = 1, unit, selectedId, placing, snap, o
     if (position) onMove(position);
   }
 
-  const format = (value: number) => `${displayLength(value, unit).toFixed(1)} ${unit}`;
+  const objects = layout.objects.map(object => preview?.id === object.id ? preview : object);
+  const warnings = floorWarnings(objects);
+  const assigned = (id: string) => objects.reduce((count, object) => count + (object.seatOwnerId === id ? object.seats ?? 0 : 0), 0);
 
   return (
     <svg
       ref={svg}
-      role="img"
-      aria-label="Top-down restaurant floor plan. Use the furniture list for keyboard selection."
+      role="group"
+      aria-label="Floor plan canvas"
+      tabIndex={0}
+      aria-describedby="floor-shortcuts"
+      onKeyDown={event => onKeys(event, (event.target as Element).closest<SVGGElement>("[data-object]")?.dataset.object)}
       className={`floor-svg ${placing ? "is-placing" : ""}`}
-      style={{ height: `calc(var(--floor-height) * ${zoom})` }}
-      viewBox={`${-pad * 1.3} ${-pad * 1.2} ${width + pad * 2} ${depth + pad * 2.1}`}
+      viewBox={`${-pad} ${-pad} ${width + pad * 2} ${depth + pad * 2}`}
       onPointerDown={pointerDown}
       onPointerMove={(event) => {
         if (drag.current?.pointerId === event.pointerId) setPreview(dragPosition(event));
@@ -160,35 +167,31 @@ export function FloorPlan({ layout, zoom = 1, unit, selectedId, placing, snap, o
       onLostPointerCapture={(event) => finishDrag(event, false)}
     >
       <defs>
-        <pattern id={gridId} width={gridStep * 4} height={gridStep * 2} patternUnits="userSpaceOnUse">
-          <rect width={gridStep * 4} height={gridStep * 2} className="svg-floor" />
-          <rect x={gridStep * 2} y={gridStep} width={gridStep * 2} height={gridStep} className="svg-tile" />
-          <path d="M0 0H1M0 0V.25M0 .25H1M.5 .25V.5" className="svg-grid" />
+        <pattern id={floorId} width="1" height=".5" patternUnits="userSpaceOnUse">
+          <rect width="1" height=".5" className="svg-floor" />
+          <rect x=".5" y=".25" width=".5" height=".25" className="svg-tile" />
         </pattern>
       </defs>
-      <path d={`M0 ${-pad / 2}H${width}M0 ${-pad * .65}v${pad * .3}m${width} 0v${-pad * .3}M${-pad / 2} 0V${depth}M${-pad * .65} 0h${pad * .3}m0 ${depth}h${-pad * .3}`} className="svg-ruler" />
-      <text x={width / 2} y={-pad * .64} textAnchor="middle" fontSize={fontSize} className="svg-label">{format(width)}</text>
-      <text transform={`translate(${-pad * .64} ${depth / 2}) rotate(-90)`} textAnchor="middle" fontSize={fontSize} className="svg-label">{format(depth)}</text>
-      <rect x="0.08" y="0.14" width={width} height={depth} className="svg-room-shadow" />
-      <rect width={width} height={depth} fill={`url(#${gridId})`} className="svg-wall" />
-      {layout.objects.map((storedObject) => {
-        const object = preview?.id === storedObject.id ? preview : storedObject;
+      <rect width={width} height={depth} rx=".04" fill={`url(#${floorId})`} className="svg-wall" />
+      {objects.map(object => {
         const { width, depth } = footprint(object);
         const selected = selectedId === object.id;
-        const warning = overlaps.has(object.id);
+        const warning = warnings.get(object.id);
+        const name = object.name ?? furniture[object.type].label;
+        const handle = Math.min(.19, width / 3, depth / 3);
         return (
-          <g key={object.id} data-object={object.id} transform={`translate(${object.x} ${object.y})`} className="svg-object" aria-label={object.name ?? furniture[object.type].label}>
-            <FurnitureArt object={object} />
-            <rect width={width} height={depth} rx=".08" className={`svg-hit ${selected ? "is-selected" : ""} ${warning ? "is-overlap" : ""} ${highlightedIds.includes(object.id) ? "is-highlighted" : ""} ${object.aiSource || (aiHighlights && highlightedIds.includes(object.id)) ? "is-ai-highlighted" : ""}`} />
-            {object.seats && <text x={width / 2} y={depth * .62} textAnchor="middle" className="svg-seat-label" fontSize={Math.min(.22, width / 3)} pointerEvents="none">{object.seatOwnerId ? "+0" : `${object.seats} seats`}</text>}
+          <g key={object.id} role="button" tabIndex={0} aria-pressed={selected} data-object={object.id}
+            transform={`translate(${object.x} ${object.y})`} className="svg-object"
+            onFocus={() => onSelect(object.id)}
+            aria-label={warning ? `${name}: ${warning.join(". ")}` : name}>
+            <title>{warning ? `${name} · ${warning.join(" · ")}` : name}</title>
+            <FurnitureArt object={object} assigned={assigned(object.id)} />
+            <rect width={width} height={depth} rx=".06" className={`svg-hit ${selected ? "is-selected" : ""} ${warning ? "is-floor-warning" : ""} ${object.aiSource || highlightedIds.includes(object.id) ? "is-ai-highlighted" : ""}`} />
+            {selected && <rect data-resize="" className="floor-resize-handle" x={width - handle} y={depth - handle} width={handle} height={handle}><title>Drag to resize</title></rect>}
           </g>
         );
       })}
-      {proposedObject && <g transform={`translate(${proposedObject.x} ${proposedObject.y})`} pointerEvents="none" className="svg-proposed" aria-label="Proposed furniture position">
-        <FurnitureArt object={proposedObject} />
-        <rect width={footprint(proposedObject).width} height={footprint(proposedObject).depth} className="svg-proposed-outline" />
-      </g>}
-      {aiPreview.map(object => <g key={object.id} transform={`translate(${object.x} ${object.y})`} pointerEvents="none" className="svg-proposed svg-proposed-ai" aria-label="AI proposed furniture position"><FurnitureArt object={object} /><rect width={footprint(object).width} height={footprint(object).depth} className="svg-proposed-outline" /></g>)}
+      {aiPreview.map(object => <g key={object.id} transform={`translate(${object.x} ${object.y})`} pointerEvents="none" className="svg-proposed svg-proposed-ai" aria-label="AI proposed furniture position"><FurnitureArt object={object} assigned={assigned(object.id)} /><rect width={footprint(object).width} height={footprint(object).depth} className="svg-proposed-outline" /></g>)}
     </svg>
   );
 }

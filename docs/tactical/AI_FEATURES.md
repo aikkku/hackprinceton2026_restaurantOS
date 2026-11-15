@@ -80,7 +80,7 @@ Provider references: [Gemini structured output](https://ai.google.dev/gemini-api
 
 ## Remaining product boundaries
 
-Review CSV/JSON imports, social engagement/relationship datasets, sponsor-specific integrations, real operational records, multi-turn memory, durable analysis history and end-user cloud synchronization remain separate work. Photo calibration and conversion to the main editor remain deferred. Adding Gemini does not constitute Nessie, Arlequin, Amazon or CoStar integration.
+Review CSV/JSON imports, production social-provider ingestion and verified sponsor eligibility, real operational records, multi-turn memory, durable analysis history and end-user cloud synchronization remain separate work. Photo calibration and conversion to the main editor remain deferred. Adding Gemini does not constitute Nessie, Arlequin, Amazon or CoStar integration.
 
 ## Verification in this implementation
 
@@ -89,3 +89,11 @@ Review CSV/JSON imports, social engagement/relationship datasets, sponsor-specif
 - A live photo-handler call returned a schema-valid AI estimate from a synthetic floor-plan screenshot after clarifying that door position is a fraction, not a distance. This verifies transport/schema behavior, not accuracy on real restaurant photographs. Invalid provider output was rejected with the exact generic error.
 - Desktop/mobile purple rendering was inspected; the reviewed 390 px page had no horizontal overflow. Controlled browser-test responses are separate from the live-provider verification above.
 - No MongoDB business records or Expansion code were changed by the AI implementation. Secrets were scanned out of tracked/nonignored files.
+
+## Network interpretation
+
+Reviews now includes a purple AI network interpretation panel under Relationship network. It sends only the imported/sample graph and source excerpts on explicit request, computes metrics before prompting, validates source references and returns the same generic failure message. Source-linked hypotheses do not imply real customer findings when the input is synthetic. See [sponsor guide](SPONSOR_INTEGRATIONS.md).
+
+## Arlequin message semantics
+
+Reviews → Content & connectivity now classifies each loaded message into AI topics and tone. The model selects a source-excerpt index; code materializes exact source text and joins the labels to deterministic actor communities and explicit reply/repost paths. Full coverage, valid IDs and source indices are required. Failures remain **Something is wrong**. See [Arlequin Track 2](ARLEQUIN_TRACK2.md) for observed-data verification and limitations.

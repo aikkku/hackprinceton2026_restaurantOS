@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "name": "Juniper Table · fictional neighborhood conversations",
+  "provenance": "synthetic",
+  "permission": "Entirely fictional fixture created for a network-analysis demonstration. No actual customers or social accounts.",
+  "nodes": [
+    { "id": "a:restaurant", "kind": "author", "label": "Demo restaurant" },
+    { "id": "a:one", "kind": "author", "label": "Demo guest A" },
+    { "id": "a:two", "kind": "author", "label": "Demo guest B" },
+    { "id": "a:three", "kind": "author", "label": "Demo guest C" },
+    { "id": "p:brunch", "kind": "post", "label": "Fictional brunch post" },
+    { "id": "p:dinner", "kind": "post", "label": "Fictional dinner post" },
+    { "id": "t:brunch", "kind": "topic", "label": "Brunch" },
+    { "id": "t:local", "kind": "topic", "label": "Neighborhood dining" }
+  ],
+  "edges": [
+    { "id": "e:1", "from": "a:restaurant", "to": "p:brunch", "relation": "authored", "evidenceId": "s:brunch" },
+    { "id": "e:2", "from": "a:restaurant", "to": "p:dinner", "relation": "authored", "evidenceId": "s:dinner" },
+    { "id": "e:3", "from": "a:one", "to": "p:brunch", "relation": "commented", "evidenceId": "s:comment" },
+    { "id": "e:4", "from": "a:two", "to": "p:brunch", "relation": "liked", "evidenceId": "s:like" },
+    { "id": "e:5", "from": "a:three", "to": "p:dinner", "relation": "liked", "evidenceId": "s:dinner-like" },
+    { "id": "e:6", "from": "p:brunch", "to": "t:brunch", "relation": "tagged", "evidenceId": "s:brunch" },
+    { "id": "e:7", "from": "p:brunch", "to": "t:local", "relation": "tagged", "evidenceId": "s:brunch" },
+    { "id": "e:8", "from": "p:dinner", "to": "t:local", "relation": "tagged", "evidenceId": "s:dinner" }
+  ],
+  "evidence": [
+    { "id": "s:brunch", "source": "Fictional social export", "recordId": "demo-post-1", "observedAt": "2026-11-12T12:00:00.000Z", "excerpt": "Invented fixture post: Weekend brunch. #brunch #neighborhood-dining", "url": "" },
+    { "id": "s:dinner", "source": "Fictional social export", "recordId": "demo-post-2", "observedAt": "2026-11-13T18:00:00.000Z", "excerpt": "Invented fixture post: Dinner in the neighborhood. #neighborhood-dining", "url": "" },
+    { "id": "s:comment", "source": "Fictional social export", "recordId": "demo-comment-1", "observedAt": "2026-11-12T13:00:00.000Z", "excerpt": "Invented comment event: Demo guest A commented on demo-post-1.", "url": "" },
+    { "id": "s:like", "source": "Fictional social export", "recordId": "demo-like-1", "observedAt": "2026-11-12T14:00:00.000Z", "excerpt": "Invented like event: Demo guest B liked demo-post-1.", "url": "" },
+    { "id": "s:dinner-like", "source": "Fictional social export", "recordId": "demo-like-2", "observedAt": "2026-11-13T19:00:00.000Z", "excerpt": "Invented like event: Demo guest C liked demo-post-2.", "url": "" }
+  ]
+}

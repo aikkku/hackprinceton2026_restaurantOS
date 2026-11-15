@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { Assumptions } from "../../domain/schemas";
 import type { Operations } from "../../domain/dataset";
 import { channelContribution, summarizeLedger } from "../../domain/finance";
+import { NessiePanel } from "./nessie-panel";
 import { simulateSeating } from "../../domain/scenario";
 
 const money = (cents: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
@@ -27,7 +28,9 @@ export function FinancePage({ assumptions, operations, restaurantName }: { assum
   const candidateQuantity = item ? Math.round(item.quantity * (1 + volumeChange / 100)) : 0;
   return <section className="finance-page">
     <div className="section-header"><div><h2>Financial Intelligence</h2><p>{restaurantName} · synthetic USD ledger</p></div><span className="pill">Demo data</span></div>
-    <div className="tab-bar">{["overview", "transactions", "pricing", "simulator"].map(t => <button className={`tab-btn ${tab === t ? "tab-active" : ""}`} key={t} onClick={() => setTab(t)}>{t === "pricing" ? "Menu Pricing" : t[0].toUpperCase() + t.slice(1)}</button>)}</div>
+    <div className="tab-bar">{["overview", "transactions", "pricing", "simulator", "sandbox"].map(t => <button className={`tab-btn ${tab === t ? "tab-active" : ""}`} key={t} onClick={() => setTab(t)}>{t === "sandbox" ? "Nessie Sandbox" : t === "pricing" ? "Menu Pricing" : t[0].toUpperCase() + t.slice(1)}</button>)}</div>
+    {tab === "sandbox" && <NessiePanel />}
+    <div hidden={tab === "sandbox"}>
     <div className="assumption-grid">
       <label>Month<select value={month} onChange={e => setMonth(e.target.value)}><option value="">All months</option>{months.map(m => <option key={m}>{m}</option>)}</select></label>
       <label>Channel<select value={channel} onChange={e => setChannel(e.target.value)}><option value="">All channels</option>{["dine-in", "delivery", "takeaway", "shared"].map(c => <option key={c}>{c}</option>)}</select></label>
@@ -42,7 +45,7 @@ export function FinancePage({ assumptions, operations, restaurantName }: { assum
         return <div key={m}><span>{m} · {money(value)}</span><progress aria-label={`${m} income`} max={max} value={value} style={{ width: "100%" }} /></div>;
       })}</div>
       <details><summary>Sources and calculations</summary><p>Source: fixture-operations. Revenue is the sum of selected income amounts; expenses are the sum of selected expense amounts. Amounts are stored in integer USD cents. Channel filtering excludes shared expenses unless shared/all is selected; no allocation is assumed. No gross profit is calculated because expense recognition/COGS coverage is not established.</p></details>
-      <p className="section-footnote">Nessie remains unconnected. These records are fictional, including when stored in MongoDB.</p>
+      <p className="section-footnote">These records are fictional, including when stored in MongoDB. Open Nessie Sandbox for separate API-sourced cash planning.</p>
     </>}
     {tab === "transactions" && <div className="transaction-table-wrap"><button className="button secondary compact" onClick={() => setAscending(v => !v)}>Sort date {ascending ? "descending" : "ascending"}</button>
       <table className="transaction-table"><caption>Selected ledger · {rows.length} records</caption><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Channel</th><th>Amount</th></tr></thead><tbody>{rows.map(t => <tr key={t.id}><td>{t.date}</td><td>{t.description}</td><td>{t.category}</td><td>{t.kind}</td><td>{t.channel}</td><td>{money(t.amountCents)}</td></tr>)}</tbody></table>{!rows.length && <p>No records match these filters.</p>}</div>}
@@ -63,5 +66,6 @@ export function FinancePage({ assumptions, operations, restaurantName }: { assum
         <details><summary>Pricing calculation</summary><p>Unit contribution = price − ingredients − (delivery percentage commission + packaging for delivery). Period contribution = unit contribution × assumed units. This is a user-defined candidate, not an AI recommendation or guaranteed profit increase. Menu quantities are separate synthetic scenario assumptions, not reconciled item sales from the summary ledger.</p></details>
       </> : <p>Add menu records to the dataset to compare prices.</p>}</div>
     </>}
+    </div>
   </section>;
 }

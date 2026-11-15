@@ -40,6 +40,11 @@ test("AI panels use purple, show evidence, editable drafts and the exact generic
 test("AI object estimates require explicit use and placement and retain purple provenance after save", async ({ page }) => {
   await page.route("**/api/tactical/ai", async route => route.fulfill({ json: response(route.request().postDataJSON().task) }));
   await page.goto("/tactical");
+  await page.getByText("Furniture", { exact: true }).click();
+  await page.getByRole("button", { name: "Custom object", exact: true }).click();
+  const details = page.locator(".floor-tile").filter({ has: page.getByText("Furniture details", { exact: true }) });
+  if (await details.getAttribute("open") === null) await page.getByText("Furniture details", { exact: true }).click();
+  await page.getByText("AI furniture designer", { exact: true }).click();
   const designer = page.getByRole("region", { name: "AI custom-object designer", exact: true });
   await designer.getByLabel("Describe the object").fill("A refrigerator");
   const initial = await page.locator("[data-object]").count();
@@ -47,11 +52,11 @@ test("AI object estimates require explicit use and placement and retain purple p
   await expect(designer.getByRole("button", { name: "Use object suggestion" })).toBeVisible();
   await expect(page.locator("[data-object]")).toHaveCount(initial);
   await designer.getByRole("button", { name: "Use object suggestion" }).click();
-  await expect(page.getByLabel("New object name")).toHaveValue("AI refrigerator");
+  await expect(page.getByLabel("Object name")).toHaveValue("AI refrigerator");
   await expect(page.locator("[data-object]")).toHaveCount(initial);
   await page.getByRole("button", { name: "Place in clear spot" }).click();
   await expect(page.locator(".svg-hit.is-ai-highlighted")).toHaveCount(1);
-  await page.getByRole("button", { name: "Save draft", exact: true }).click();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
   await page.reload();
   await expect(page.locator(".svg-hit.is-ai-highlighted")).toHaveCount(1);
 });
@@ -71,22 +76,24 @@ test("finance, supply, job and advisor workflows are reachable on narrow screens
 });
 
 test("AI layout proposals stay separate until applied and stale context disables reuse", async ({ page }) => {
-  const object = { id: "table", type: "table_2", seats: 2, x: 1, y: 1, width: 1, depth: 1, rotation: 0 };
   await page.route("**/api/tactical/ai", async route => {
-    const data = response(route.request().postDataJSON().task);
-    await route.fulfill({ json: { ...data, result: { ...data.result, moves: [{ objectId: "table", x: 3, y: 3, reason: "Test alternative position" }] } } });
+    const request = route.request().postDataJSON();
+    expect(request.layout.objects.some((object: { id: string; x: number }) => object.id === "south-two" && object.x === 5.25)).toBe(true);
+    expect(request.layoutVersions.entries[0].layout.objects.length).toBeGreaterThan(1);
+    const data = response(request.task);
+    await route.fulfill({ json: { ...data, result: { ...data.result, moves: [{ objectId: "south-two", x: 3, y: 5.55, reason: "Test alternative position" }] } } });
   });
   await page.goto("/tactical");
-  await expect(page.getByRole("button", { name: "Save draft", exact: true })).toBeEnabled();
-  await page.getByLabel("Import layout JSON file").setInputFiles({ name: "layout.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify({ ...demo.layout, objects: [object] })) });
-  const panel = page.getByRole("region", { name: "AI floor-plan analysis", exact: true });
+  await page.getByRole("region", { name: "Floor plan editor" }).getByText("The Seating Problem", { exact: true }).click();
+  const panel = page.getByRole("region", { name: "AI seating analysis", exact: true });
   await panel.getByRole("button", { name: "Generate with AI" }).click();
   await panel.getByRole("button", { name: "Preview AI layout" }).click();
   await expect(page.locator(".svg-proposed-ai")).toHaveCount(1);
-  await expect(page.locator('[data-object="table"]')).toHaveAttribute("transform", "translate(1 1)");
+  const table = page.locator('[data-object="south-two"]');
+  await expect(table).toHaveAttribute("transform", "translate(5.25 5.55)");
   await page.getByRole("button", { name: "Apply AI layout", exact: true }).click();
-  await expect(page.locator('[data-object="table"]')).toHaveAttribute("transform", "translate(3 3)");
+  await expect(table).toHaveAttribute("transform", "translate(3 5.55)");
   await expect(panel.getByRole("button", { name: "Preview AI layout" })).toBeDisabled();
   await page.getByRole("button", { name: "Undo", exact: true }).click();
-  await expect(page.locator('[data-object="table"]')).toHaveAttribute("transform", "translate(1 1)");
+  await expect(table).toHaveAttribute("transform", "translate(5.25 5.55)");
 });

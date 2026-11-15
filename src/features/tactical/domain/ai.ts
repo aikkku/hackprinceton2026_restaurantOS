@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { layoutSchema, type Layout } from "./schemas.ts";
 import { hasOverlap } from "./layout.ts";
+import { layoutLibrarySchema } from "./layout-library.ts";
 
 export const aiError = "Something is wrong";
 export const aiTaskSchema = z.enum(["floor", "custom-object", "reviews", "reply", "finance", "supply", "job", "advisor"]);
@@ -11,6 +12,7 @@ export const aiRequestSchema = z.object({
   question: z.string().trim().max(3000).default(""),
   reviewId: z.string().max(120).optional(),
   layout: layoutSchema.optional(),
+  layoutVersions: layoutLibrarySchema.optional(),
 }).strict();
 export type AiRequest = z.infer<typeof aiRequestSchema>;
 const text = z.string().min(1).max(2000);

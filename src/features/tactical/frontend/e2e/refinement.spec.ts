@@ -1,44 +1,11 @@
 import { test, expect } from "@playwright/test";
+import demo from "../data/demo-restaurant.json" with { type: "json" };
 
-test("named layouts preserve metadata, baseline and original configuration across reload", async ({ page }) => {
-  page.on("dialog", dialog => dialog.accept());
-  await page.goto("/tactical");
-  const library = page.locator(".layout-library").first();
-  await expect(library.getByRole("button", { name: "Duplicate", exact: true })).toBeEnabled();
-  await library.getByLabel("Name for rename or duplicate").fill("Comfortable Dining");
-  await library.getByRole("button", { name: "Duplicate", exact: true }).click();
-  await expect(library.locator("tbody tr")).toHaveCount(2);
-  await library.locator("tbody tr").last().getByRole("button", { name: "Use as baseline" }).click();
-  await page.getByRole("button", { name: "Custom object", exact: true }).click();
-  await page.getByRole("button", { name: "Place in clear spot" }).click();
-  await page.getByLabel("Object name", { exact: true }).fill("Large refrigerator");
-  await page.getByRole("textbox", { name: "Description", exact: true }).fill("Beside kitchen entrance");
-  await page.getByRole("button", { name: "Apply furniture details" }).click();
-  await page.getByRole("button", { name: "Save draft", exact: true }).click();
-  await page.reload();
-  await expect(library.getByText("Comfortable Dining · Active · Baseline")).toBeVisible();
-  const picker = page.getByLabel("Select furniture");
-  const fridge = picker.locator("option").filter({ hasText: "Large refrigerator" });
-  await expect(fridge).toHaveCount(1);
-  await picker.selectOption((await fridge.getAttribute("value"))!);
-  await expect(page.getByRole("textbox", { name: "Description", exact: true })).toHaveValue("Beside kitchen entrance");
-  await library.locator("tbody tr").first().getByRole("button", { name: "Open", exact: true }).click();
-  await expect(picker.locator("option").filter({ hasText: "Large refrigerator" })).toHaveCount(0);
-  await library.getByLabel("Name for rename or duplicate").fill("Spacious");
-  await library.locator("tbody tr").last().getByRole("button", { name: "Rename", exact: true }).click();
-  await expect(library.getByText("Spacious · Baseline")).toBeVisible();
-  await library.locator("tbody tr").last().getByRole("button", { name: "Delete", exact: true }).click();
-  await expect(library.locator("tbody tr")).toHaveCount(1);
-  await page.reload();
-  await expect(library.locator("tbody tr")).toHaveCount(1);
-});
-
-test("photo selection works, invalid imports preserve the draft, old routes redirect", async ({ page }) => {
+test("photo selection works and invalid imports preserve its draft", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", error => errors.push(error.message));
   await page.goto("/tactical/analyze");
-  await expect(page).toHaveURL(/\/tactical$/);
-  await page.getByText("Estimate a separate draft from photos", { exact: true }).click();
+  await expect(page).toHaveURL(/\/tactical\/analyze$/);
   await page.getByRole("button", { name: "Sample plan", exact: true }).click();
   await page.locator('.draft-svg [data-id="T1"]').click();
   await expect(page.locator(".selected-fields")).toBeVisible();
@@ -65,19 +32,20 @@ test("reload restores React button states without browser-persisted disabled att
   const undo = page.getByRole("button", { name: "Undo", exact: true }).first();
   const redo = page.getByRole("button", { name: "Redo", exact: true }).first();
   const reset = page.getByRole("button", { name: "Reset draft", exact: true });
-  await expect(page.getByRole("button", { name: "Open saved draft" })).toBeEnabled();
+  await expect(page.getByLabel("Saved versions")).toBeEnabled();
   await expect(undo).toBeDisabled();
-  await page.getByRole("button", { name: "Plant", exact: true }).click();
+  await page.getByText("Furniture", { exact: true }).click();
+  await page.locator(".floor-palette-menu").getByRole("button", { name: "Plant", exact: true }).click();
   await page.getByRole("button", { name: "Place in clear spot" }).click();
   await expect(undo).toBeEnabled();
   await expect(reset).toBeEnabled();
   await expect(undo).toHaveAttribute("autocomplete", "off");
   await page.reload();
-  await expect(page.getByRole("button", { name: "Open saved draft" })).toBeEnabled();
+  await expect(page.getByLabel("Saved versions")).toBeEnabled();
   await expect(undo).toBeDisabled();
   await expect(redo).toBeDisabled();
   await expect(reset).toBeDisabled();
-  await expect(page.locator(".layout-library").first().getByRole("button", { name: "Duplicate", exact: true })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
   expect(hydrationErrors).toEqual([]);
 });
 
@@ -87,11 +55,13 @@ test("central mock records feed financial filters, pricing, HR and supply", asyn
   await page.goto("/tactical/finance");
   await page.getByRole("button", { name: "Transactions", exact: true }).click();
   await page.getByRole("combobox", { name: "Month", exact: true }).selectOption("2026-11");
-  await expect(page.locator(".transaction-table tbody tr")).toHaveCount(15);
+  const november = demo.operations.transactions.filter(row => row.date.startsWith("2026-11"));
+  const ledgerRows = page.locator(".finance-page .transaction-table tbody tr");
+  await expect(ledgerRows).toHaveCount(november.length);
   await page.getByRole("combobox", { name: "Record type", exact: true }).selectOption("expense");
-  await expect(page.locator(".transaction-table tbody tr")).toHaveCount(3);
+  await expect(ledgerRows).toHaveCount(november.filter(row => row.kind === "expense").length);
   await page.getByRole("button", { name: "Menu Pricing", exact: true }).click();
-  await expect(page.locator(".pricing-table tbody tr")).toHaveCount(8);
+  await expect(page.locator(".pricing-table tbody tr")).toHaveCount(demo.operations.menu.length);
   await page.getByRole("button", { name: "Simulator", exact: true }).click();
   await expect(page.getByRole("heading", { name: "Price and demand experiment" })).toBeVisible();
   await page.getByRole("combobox", { name: "Pricing channel", exact: true }).selectOption("delivery");
@@ -99,7 +69,7 @@ test("central mock records feed financial filters, pricing, HR and supply", asyn
   await page.goto("/tactical/hr");
   await expect(page.getByText(/Estimated scheduled base labor/)).toBeVisible();
   await page.goto("/tactical/supply");
-  await expect(page.locator(".inventory-table tbody tr")).toHaveCount(15);
+  await expect(page.locator(".inventory-table tbody tr")).toHaveCount(demo.operations.inventory.length);
   await expect(page.getByText(/Rule-based demo summary/)).toBeVisible();
   expect(errors).toEqual([]);
 });

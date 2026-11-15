@@ -12,6 +12,7 @@ export const furniture = {
   table_4: { label: "Table for 4", width: 1.7, depth: 1.7, seats: 4 },
   booth: { label: "Booth", width: 2, depth: 1.35, seats: 4 },
   counter: { label: "Counter", width: 2.4, depth: 1.1, seats: 3 },
+  cashier_stand: { label: "Cashier stand", width: 1.15, depth: 0.65, seats: 0 },
   kitchen_zone: { label: "Kitchen zone", width: 3.1, depth: 2, seats: 0 },
   door: { label: "Door", width: 1.15, depth: 0.45, seats: 0 },
   divider: { label: "Divider", width: 1.6, depth: 0.28, seats: 0 },

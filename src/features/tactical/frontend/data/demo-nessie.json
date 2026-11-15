@@ -1,0 +1,12 @@
+{
+  "source": "demo",
+  "fetchedAt": "2026-11-14T12:00:00.000Z",
+  "account": { "_id": "000000000000000000000001", "nickname": "RestaurantOS fictional cash account", "type": "Checking", "balance": 25000 },
+  "deposits": [
+    { "_id": "000000000000000000000002", "amount": 4500, "transaction_date": "2026-11-12", "status": "completed", "description": "Fictional cash deposit — not verified sales" },
+    { "_id": "000000000000000000000003", "amount": 1200, "transaction_date": "2026-11-14", "status": "pending", "description": "Fictional pending deposit" }
+  ],
+  "withdrawals": [
+    { "_id": "000000000000000000000004", "amount": 900, "transaction_date": "2026-11-13", "status": "completed", "description": "Fictional equipment withdrawal" }
+  ]
+}

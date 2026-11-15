@@ -5,16 +5,20 @@ import { ArrowRight, MessageSquareText, Search } from "lucide-react";
 import { filterReviews, summarizeReviews, themeKey } from "../../domain/reviews";
 import type { Fixture } from "../../domain/schemas";
 import "./review-insights.css";
+import { NetworkPanel } from "./network-panel";
+import { SocialPipeline } from "./social-pipeline";
 
 const percentage = new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 0 });
 const decimal = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 
-export function ReviewInsights({ reviews, mission, onTrySeating }: {
+export function ReviewInsights({ reviews, mission, onTrySeating, restaurantId }: {
+  restaurantId: string;
   reviews: Fixture["reviews"];
   mission: Fixture["mission"];
   onTrySeating: () => void;
 }) {
   const headingId = useId();
+  const [tab, setTab] = useState("reviews");
   const [query, setQuery] = useState("");
   const [selectedTheme, setSelectedTheme] = useState("");
   const [citedOnly, setCitedOnly] = useState(false);
@@ -41,11 +45,15 @@ export function ReviewInsights({ reviews, mission, onTrySeating }: {
         <div className="section-icon"><MessageSquareText size={18} /></div>
         <div>
           <h2 id={headingId}>Customer signals</h2>
-          <p>Explore the example reviews behind your seating mission.</p>
+          <p>Explore review evidence, conversations and connected themes.</p>
         </div>
-        <span className="pill review-demo-label">Demo data</span>
+        <span className="pill review-demo-label">Sources labeled per dataset</span>
       </div>
 
+      <div className="tab-bar"><button className={`tab-btn ${tab === "reviews" ? "tab-active" : ""}`} onClick={() => setTab("reviews")}>Review evidence</button><button className={`tab-btn ${tab === "network" ? "tab-active" : ""}`} onClick={() => setTab("network")}>Relationship network</button><button className={`tab-btn ${tab === "social" ? "tab-active" : ""}`} onClick={() => setTab("social")}>Content & connectivity</button></div>
+      <div hidden={tab !== "social"}><SocialPipeline restaurantId={restaurantId} /></div>
+      <div hidden={tab !== "network"}><NetworkPanel restaurantId={restaurantId} /></div>
+      <div hidden={tab !== "reviews"}>
       {summary.total === 0 ? (
         <p className="review-empty">This demo has no reviews to summarize yet.</p>
       ) : (
@@ -133,6 +141,7 @@ export function ReviewInsights({ reviews, mission, onTrySeating }: {
           </div>
         </div>
       )}
+      </div>
     </section>
   );
 }

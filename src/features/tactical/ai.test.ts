@@ -23,6 +23,20 @@ test("AI context excludes employee contacts, computes canonical ledger values, a
   assert.throws(() => buildAiContext(dataset, { ...input, task: "reply", reviewId: "missing" }));
 });
 
+test("seating and advisor context carry saved-version coordinate changes as evidence", () => {
+  const layout = dataset.layout;
+  const moved = { ...layout.objects[0], x: 1.1 };
+  const changed = { ...layout, name: "Alternative", objects: [moved, ...layout.objects.slice(1)] };
+  const layoutVersions = { ...dataset.layoutConfigurations, entries: [...dataset.layoutConfigurations.entries, { id: "alternative", layout: changed }] };
+  for (const task of ["floor", "advisor"] as const) {
+    const { evidence } = buildAiContext(dataset, { ...input, task, layoutVersions });
+    const version = JSON.parse(evidence.find(item => item.label === "Alternative")!.detail);
+    assert.equal(version.changed[moved.id][1], 1.1);
+    assert.ok(version.basedOn.startsWith("version:"));
+    assert.ok(evidence.some(item => item.id === `object:${moved.id}`));
+  }
+});
+
 test("AI outputs reject fabricated evidence, invalid quotes and incomplete review coverage", () => {
   const { evidence, layout } = buildAiContext(dataset, input);
   assert.deepEqual(validateAiResult(valid, input, evidence, layout), valid);

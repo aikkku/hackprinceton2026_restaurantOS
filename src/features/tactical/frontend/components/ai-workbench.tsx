@@ -7,7 +7,9 @@ import { StateButton } from "./state-button";
 import "./ai.css";
 
 const Access = createContext(false);
-export function AiAccessProvider({ children }: { children: ReactNode }) {
+const AccessControls = createContext<ReactNode>(null);
+export function AiAccessControls() { return useContext(AccessControls); }
+export function AiAccessProvider({ children, renderControls = true }: { children: ReactNode; renderControls?: boolean }) {
   const [unlocked, setUnlocked] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
@@ -25,7 +27,7 @@ export function AiAccessProvider({ children }: { children: ReactNode }) {
       setUnlocked(!lock); setPassword("");
     } catch { setError(true); } finally { setPending(false); }
   }
-  return <Access.Provider value={unlocked}>
+  const controls = (
     <details className="ai-access ai-surface">
       <summary><Sparkles size={16} aria-hidden="true" /> AI workspace · {unlocked ? "Unlocked" : "Locked"}</summary>
       <p>Purple marks AI controls, interpretations and drafts. Generating sends the selected Tactical context to Google Gemini. Nothing is published or applied automatically.</p>
@@ -36,18 +38,24 @@ export function AiAccessProvider({ children }: { children: ReactNode }) {
       </form>}
       {error && <p role="alert">{aiError}</p>}
     </details>
-    {children}
+  );
+  return <Access.Provider value={unlocked}>
+    <AccessControls.Provider value={controls}>
+      {renderControls && controls}
+      {children}
+    </AccessControls.Provider>
   </Access.Provider>;
 }
 export const useAiAccess = () => useContext(Access);
 
 type Props = {
   title: string; description: string; request: AiRequest; inputLabel?: string;
+  compact?: boolean;
   onInspect?: (ids: string[]) => void;
   onPreview?: (moves: AiResult["moves"], source: { model: string; generatedAt: string }) => void;
   onCustomObject?: (object: NonNullable<AiResult["customObject"]>, source: { model: string; generatedAt: string }) => void;
 };
-export function AiWorkbench({ title, description, request, inputLabel = "Instructions for AI (optional)", onInspect, onPreview, onCustomObject }: Props) {
+export function AiWorkbench({ title, description, request, inputLabel = "Instructions for AI (optional)", compact = false, onInspect, onPreview, onCustomObject }: Props) {
   const unlocked = useAiAccess();
   const [question, setQuestion] = useState("");
   const [result, setResult] = useState<AiSuccess | null>(null);
@@ -77,11 +85,13 @@ export function AiWorkbench({ title, description, request, inputLabel = "Instruc
     finally { if (controller.current === current) setPending(false); }
   }
   return <section className="ai-workbench ai-surface" aria-label={title}>
-    <div className="ai-heading"><Sparkles size={19} aria-hidden="true" /><h3>{title}</h3><span className="ai-badge">AI</span></div>
-    <p>{description}</p>
-    <label>{inputLabel}<textarea value={question} maxLength={2500} onChange={event => setQuestion(event.target.value)} rows={2} /></label>
-    <p className="ai-note">Uses mock restaurant data and, where supplied, the current working layout. AI interpretations and estimated dimensions require review.</p>
-    {!unlocked && <p>Unlock AI using the purple AI workspace control above.</p>}
+    {!compact && <div className="ai-heading"><Sparkles size={19} aria-hidden="true" /><h3>{title}</h3><span className="ai-badge">AI</span></div>}
+    {description && <p>{description}</p>}
+    {!compact && <>
+      <label>{inputLabel}<textarea value={question} maxLength={2500} onChange={event => setQuestion(event.target.value)} rows={2} /></label>
+      <p className="ai-note">Uses mock restaurant data and, where supplied, the current working layout. AI interpretations and estimated dimensions require review.</p>
+    </>}
+    {!unlocked && <p>Unlock the AI workspace to generate.</p>}
     <div className="button-row">
       <StateButton className="button ai-button compact" disabled={!unlocked || pending} onClick={() => void generate()}>{pending ? "Generating…" : "Generate with AI"}</StateButton>
       {pending && <button className="button ai-button compact" onClick={() => { controller.current?.abort(); setPending(false); }}>Cancel AI request</button>}

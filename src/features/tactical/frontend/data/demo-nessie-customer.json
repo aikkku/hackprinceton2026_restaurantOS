@@ -1,0 +1,5 @@
+{
+  "first_name": "RestaurantOSDemo",
+  "last_name": "JuniperSandbox",
+  "address": { "street_number": "1", "street_name": "Fictional Demo Lane", "city": "Princeton", "state": "NJ", "zip": "08540" }
+}

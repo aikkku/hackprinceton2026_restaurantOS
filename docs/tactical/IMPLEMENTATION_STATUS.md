@@ -4,9 +4,15 @@
 
 **Product target:** [Product refinement brief](PRODUCT_REFINEMENT_BRIEF.md). **Architecture map:** [repository structure](../../STRUCTURE.md). **Navigation guide:** [pages](PAGES.md). **Manual demo:** [walkthrough](FRONTEND_WALKTHROUGH.md).
 
-**Latest AI increment:** the user requested all Tactical AI workflows and purple provenance. Gemini now serves floor analysis, custom-object suggestions, review research/replies, finance/supply explanations, job drafts, the advisor and existing photo estimation. Failures return only **Something is wrong**, with no demo fallback. See [AI setup and boundaries](AI_FEATURES.md).
+**Latest Floor Plan update:** The editor uses a freeform map, a searchable furniture menu, automatic seat sizing, yellow placement warnings and compact map controls. Saved versions are available beside Save and write to MongoDB when configured. The expandable seating analysis and advisor receive working and saved coordinates. Inline scenarios, the historical library panel and backup controls were removed. See [the floor plan guide](FLOOR_PLAN_GUIDE.md).
 
-**Previous floor-plan increment:** main floor-plan improvements: custom-object creation, explicit chair ownership, footprint-gap measurements, affected-object highlights and reversible move previews, clearer baseline/draft behavior, library backup/recovery and stale-tab checks. Photo work was deferred at the user’s request. The preceding MongoDB increment remains available; Rain’s module is unchanged in this batch. See [MongoDB setup/API guide](MONGODB_SETUP.md). The database remains synthetic; browser editor saves are not yet cloud-synchronized.
+**Previous Arlequin Track 2 increment:** Reviews → Content & connectivity implements the supplied challenge: bounded public Hacker News import or normalized messaging JSON, explicit actor links, greedy modularity groups, AI message themes/tone with exact source spans, deterministic topic-by-group counts, cross-group conversation paths, chronological evidence and report export. An observed 23-message sample, complete Gemini labeling, authenticated browser theme tracing and report export were verified. Current validation: 169 unit tests, 36 Tactical browser checks, lint, typecheck and build. See [track implementation](ARLEQUIN_TRACK2.md).
+
+**Previous sponsor increment:** Finance now includes a separate Nessie sandbox cash planner with a validated server adapter, explicit demo/API provenance, editable reserve assumptions and JSON export. Reviews includes permission-aware graph JSON import, evidence browsing, deterministic connection/topic metrics, browser save/reopen and purple Gemini hypotheses. Nessie is configured and verified live after approved fictional seeding: one customer, one checking account, two deposits and one withdrawal. Authenticated browser refresh, bank evidence, reserve calculations and scenario export pass. Arlequin Track 2 requirements are now supplied and the observed public-data path is verified; see the latest increment above. See [sponsor workflows and remaining gates](SPONSOR_INTEGRATIONS.md).
+
+**Previous AI increment:** the user requested all Tactical AI workflows and purple provenance. Gemini now serves floor analysis, custom-object suggestions, review research/replies, finance/supply explanations, job drafts, the advisor and existing photo estimation. Failures return only **Something is wrong**, with no demo fallback. See [AI setup and boundaries](AI_FEATURES.md).
+
+**Previous floor-plan increment:** main floor-plan improvements: custom-object creation, explicit chair ownership, footprint-gap measurements, affected-object highlights and reversible move previews, clearer baseline/draft behavior, library backup/recovery and stale-tab checks. Photo work was deferred at the user’s request. The preceding MongoDB increment remains available; Rain’s module is unchanged in this batch. See [MongoDB setup/API guide](MONGODB_SETUP.md). The database remains synthetic. See the latest Floor Plan update for version saving.
 
 This is the canonical implementation inventory and backlog. Product specifications describe intended behavior; this file records what the code actually does. Update this inventory when a feature ships, and include the verification that justifies changing its status.
 
@@ -56,7 +62,7 @@ RestaurantOS currently provides a **working browser-local restaurant layout and 
 | Financial Intelligence | Working mock ledger and simulations | Reconciled ledger totals, channel unit costs, price/volume experiments | Real-data imports, saved pricing scenarios and shared edited assumptions |
 | AI Assistant | Working contextual request UI | Single-turn Gemini advisor with evidence and purple results | Durable history, multi-turn context and real business data |
 
-**Do not currently claim:** production accounting, real customer sentiment analysis, automated space optimization, observed seating preference, legal/safety compliance assessment, live banking, CoStar interior geometry, Arlequin network analysis, or a functioning restaurant-wide assistant.
+**Do not currently claim:** production accounting, real customer sentiment analysis, automated space optimization, observed seating preference, legal/safety compliance assessment, live banking, CoStar interior geometry, Arlequin qualification or observed social-network findings, or a functioning restaurant-wide assistant.
 
 ## 2. Architecture and code ownership
 
@@ -112,11 +118,12 @@ All synthetic business records now live in [demo-restaurant.json](../../src/feat
 
 | Dataset | Current contents |
 | --- | --- |
-| Core restaurant | Profile, main layout, three reviews, one cited mission and default assumptions |
+| Core restaurant | Profile, main layout, 30 fictional reviews, one cited mission and default assumptions |
 | Configurations/history | Versioned layout configuration and a reproducible example turnover snapshot; ready for API upload, not auto-synced with browser saves |
-| Finance | 90 synthetic income/expense summaries, eight menu cost records and three dated sample dish comparisons |
-| HR | Eight fictional employees, reserved-domain contacts, assumed pay, schedule hours, availability and mood |
-| Supply | Fifteen inventory items with costs/thresholds and eight fictional suppliers |
+| Finance | 312 synthetic ledger entries from June through November 2026 across dine-in, delivery, takeaway and shared costs, 24 menu items and 15 sample price comparisons |
+| HR | 16 fictional employees with reserved-domain contacts, assumed pay, schedules, availability and mood |
+| Supply | 37 inventory items with costs and thresholds, and 12 fictional suppliers |
+| Social analysis | 24 fictional messages from nine actors in the editable conversation fixture |
 | Photo examples | Manual sample/blank plans and an unused legacy fallback fixture; provider failures never load it |
 
 `TACTICAL_DATA_SOURCE=demo` reads the local fixture. `mongodb` reads the selected restaurant by `TACTICAL_RESTAURANT_ID` and displays source/revision. All six sections receive the selected profile; the UI still has no interactive restaurant picker. All records are explicitly synthetic, including after MongoDB storage. Real staff/banking uploads are not supported by this contract.
@@ -310,7 +317,7 @@ Sources: [review UI](../../src/features/tactical/frontend/components/review-insi
 | Topics and keyword | Working for supplied themes | Classify imported text; preserve original evidence |
 | AI researcher | Gemini findings with validated citations, uncertainty and suggested actions | Real review imports and durable analysis history |
 | Engagement/platform comparison | Missing | Actual post/engagement records with observation dates |
-| Interaction/network analysis | Missing | Observed edges, graph calculations and explanation; sentiment alone is insufficient |
+| Interaction/network analysis | Graph engine and source-linked JSON imports implemented; sample synthetic | Observed public source and message/actor pipeline now available; see ARLEQUIN_TRACK2.md. Graph-only JSON remains supported. |
 | Suggested replies | Gemini draft/edit/copy workflow | No publishing integration |
 
 ### Implementation backlog
@@ -368,7 +375,7 @@ Commission and packaging apply only to delivery. Menu quantities are independent
 - [x] **FIN-07 · Partial:** Canonical capacity math reused. Finance still uses dataset assumptions, not an unsaved Floor Plan scenario or selected layout delta.
 - [ ] **FIN-08 · P1:** Persist named pricing/cost/renovation scenarios with model versions and compare them.
 - [x] **FIN-09 · Mock scope:** Comparable dish table with source/date/approximation labels. Licensed/current observations are still future work.
-- [ ] **FIN-10 · P1 conditional:** Nessie adapter after qualifying access/endpoints are verified; MongoDB does not count as Nessie integration.
+- [x] **FIN-10 implementation:** Nessie adapter, protected read endpoint, sandbox cash planner and source export. Approved sandbox records are configured; live authenticated account/transaction retrieval and browser scenario export are verified. Exact sponsor criteria still need verification.
 
 **Next acceptance:** preserve and compare financial experiments across reload, connect intentional shared assumptions, and ingest authorized records without changing source meanings.
 
@@ -427,9 +434,9 @@ Remaining: production user/role authentication, distributed limits and quotas, d
 | Service/track | Current Tactical implementation | What is still required |
 | --- | --- | --- |
 | Gemini | Shared text/vision adapter and Tactical page workflows; live text requests verified | Real-photo accuracy/measurement validation, account-scoped production controls and durable history |
-| Capital One Nessie | UI placeholder only | Adapter, sandbox credentials/access, source mapping and verifiable request-to-scenario journey |
+| Capital One Nessie | Live sandbox adapter + cash-planning UI; approved records seeded, account configured, authenticated browser journey verified | Confirm official challenge criteria and prepare any required submission artifacts |
 | CoStar | No Tactical adapter | Agreed property/building record handoff with Rain; authorized relevant fields; manual geometry fallback |
-| Arlequin | No graph integration or network analysis | Verify requirements and available relationship data; implement observed edges and graph-derived findings |
+| Arlequin Track 2 | Content + actor-connectivity pipeline implemented; public observed source and complete Gemini annotations verified | Submission video/report and explicit sampling/AI limits; no coordination or causal-spread claims |
 | Amazon AI | No verified Tactical Amazon integration | Verify challenge/service requirements; Gemini use does not prove eligibility |
 | Peri/outreach | No supplied consultation dataset wired here | Team-provided permitted findings and a demonstrable adaptation to that restaurant |
 | Indeed | No posting integration | Draft preview only unless later explicitly implemented/authorized |

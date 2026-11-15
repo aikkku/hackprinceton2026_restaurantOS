@@ -2,29 +2,24 @@
 
 [Documentation index](README.md) · [Detailed inventory and backlog](IMPLEMENTATION_STATUS.md)
 
-All six sections share the persistent Tactical shell and one validated, server-selected synthetic dataset. Choose local fixture or MongoDB mode through server configuration; MongoDB errors remain visible. See [database setup](MONGODB_SETUP.md). Internal links preserve open editor state. Browser reload restores explicitly saved layouts and scenarios.
+All six sections share the persistent Tactical shell and one validated, server-selected synthetic dataset. Choose local fixture or MongoDB mode through server configuration; MongoDB errors remain visible. See [database setup](MONGODB_SETUP.md). Internal links preserve open editor state. Browser reload restores saved floor-plan versions from the configured source.
 
 | Page | Implemented | Next work |
 | --- | --- | --- |
-| Floor Plan — `/tactical` | Existing SVG editor; named persistent configurations; duplicate/rename/open/delete; explicit baseline; AC, chair, wall, window, light, decoration and custom objects; editable names/descriptions; geometry comparison; heuristic insights; seating/turnover scenarios and saved comparisons inline | More expressive art, measured operational data, AI interpretation with evidence, photo-to-layout conversion |
+| Floor Plan — `/tactical` | Freeform map, searchable furniture, keyboard shortcuts, automatic seat sizing, placement warnings, saved versions and expandable Gemini seating analysis | Measured furniture and service data |
 | Customer Reviews & Social Media — `/tactical/reviews` | Fixture review search, rating distribution, supplied theme filters and mission citations | Authorized CSV/JSON imports, source/sentiment/date/dish filters, trends, evidence-linked AI findings and editable response drafts; observed social network analysis only when data exists |
 | HR — `/tactical/hr` | Central fictional directory, schedule, contact/pay/availability/mood profiles and base-labor estimate | Structured shift validation and job-description preview |
 | Supply Management — `/tactical/supply` | Central inventory, category filters, suppliers, costs, thresholds and derived stock/restock indicators | Reorder-cost preview and UI polish |
 | Financial Intelligence — `/tactical/finance` | Reconciled synthetic ledger, month/channel/type filters, channel contribution, dated sample dish prices, price/volume and capacity experiments | Real-data imports, saved pricing scenarios and shared edited assumptions |
 | AI Assistant — `/tactical/ai` | Purple single-turn Gemini advisor with evidence | Durable history, multi-turn context and external data remain deferred |
 
-Legacy `/tactical/scenarios`, `/tactical/decisions`, and `/tactical/analyze` redirect to Floor Plan. Photo analysis is an expandable separate editor inside Floor Plan. It does not update the measured floor plan or financial model.
+Legacy `/tactical/scenarios` and `/tactical/decisions` redirect to Floor Plan. The standalone photo editor is at `/tactical/analyze`. See the [floor plan guide](FLOOR_PLAN_GUIDE.md) for editing, saving and analysis.
 
-## Named layouts
+## Sponsor tools added to existing pages
 
-`restaurant-os:tactical:<restaurantId>:layouts:v1` stores a validated library with active and baseline IDs. On first load, the old single-layout draft is copied into the library in memory; the old key remains intact. The next explicit library save writes the new format. Corrupt libraries are preserved and library writes disabled rather than silently overwriting saved work.
+- **Finance → Nessie Sandbox:** explicit local-demo/API source choice, protected read-only refresh, deposit/withdrawal evidence, editable investment/reserve/burn, deterministic cash cushion and months-to-reserve, downloadable scenario.
+- **Reviews → Relationship network:** synthetic sample or permissioned observed JSON import, relationship/node filters, SVG plus accessible tables, degree/components/topic-engagement metrics, linked evidence, local save/reopen/export, purple AI hypotheses.
 
-Save draft updates the active configuration. Duplicate copies the selected saved configuration. Unsaved edits require confirmation before switching, renaming, duplicating or deleting. Save first to keep them. Baseline selection initializes new scenario assumptions; saved scenario snapshots retain their original inputs. Room area per seat is a density heuristic, not a comfort, accessibility or aesthetics score.
+See [setup, limitations and eligibility gates](SPONSOR_INTEGRATIONS.md). These tabs preserve the existing page routes and do not change Expansion.
 
-## Verification
-
-Use Node >=22.18. Run `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build`. After building, run `PLAYWRIGHT_CHANNEL=chrome npx playwright test --config playwright.tactical.config.ts` for the named-layout and photo-editor regression journeys. The tests run Chrome/Chromium and Firefox on port 3057. Install Firefox with `npx playwright install firefox`; use installed Chrome with the channel variable, or omit it with Playwright Chromium installed. Reload tests check that Firefox does not restore stale disabled button states before hydration.
-
-Floor Plan now also provides manual custom-object categories, explicit chair ownership, selected-footprint gaps, all-object finding highlights, reversible overlap-move previews, saved-baseline refresh and browser-library backup/recovery. See the [floor-plan guide](FLOOR_PLAN_GUIDE.md) for a review sequence and remaining boundaries.
-
-All Tactical sections now have purple AI workflows: floor analysis/custom-object suggestions, review research/replies, financial explanations, supply recommendations, job-description drafts and the advisor. The photo AI path uses Gemini and never falls back to sample output on failure. See [AI features and setup](AI_FEATURES.md).
+- [Arlequin Track 2 implementation](ARLEQUIN_TRACK2.md): Reviews → Content & connectivity, public conversation imports, AI themes joined to actor communities, source-linked paths/timeline, export and submission guide.

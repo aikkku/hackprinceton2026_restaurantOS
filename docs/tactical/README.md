@@ -40,3 +40,7 @@ The later user refinement brief extends the earlier MVP (including demo HR and S
 - [Floor-plan editing and recovery guide](FLOOR_PLAN_GUIDE.md) — seat ownership, object creation, geometry previews, baseline behavior and library backups.
 
 - [Tactical AI features and setup](AI_FEATURES.md) — Gemini workflows, purple provenance, access, evidence validation and generic failure behavior.
+
+- [Sponsor integrations](SPONSOR_INTEGRATIONS.md): Nessie sandbox cash planning, relationship graph imports/analysis, source contracts, setup, demo and remaining eligibility gates.
+
+- [Arlequin Track 2 implementation](ARLEQUIN_TRACK2.md): Reviews → Content & connectivity, public conversation imports, AI themes joined to actor communities, source-linked paths/timeline, export and submission guide.

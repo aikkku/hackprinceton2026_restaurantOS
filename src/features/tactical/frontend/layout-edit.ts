@@ -1,4 +1,5 @@
 import { displayLength, furniture, toMeters } from "../domain/layout.ts";
+import { resizeFurniture } from "../domain/floor-editor.ts";
 import { layoutSchema, type Layout, type LayoutObject } from "../domain/schemas.ts";
 
 export type ObjectMeasurements = {
@@ -41,15 +42,21 @@ export function applyObjectMeasurements(
     width: convert(measurements.width, selected.width),
     depth: convert(measurements.depth, selected.depth),
     rotation: measurements.rotation,
-    seats: furniture[selected.type].seats > 0 ? measurements.seats : undefined,
+    seats: furniture[selected.type].seats > 0 ? measurements.seats ?? selected.seats : undefined,
+    seatSizing: measurements.seats !== undefined && measurements.seats !== selected.seats ? undefined : selected.seatSizing,
   };
+  const autoSized = measurements.seats === undefined
+    ? resizeFurniture(layout, selected, updated.width, updated.depth)
+    : updated;
+  const next = { ...updated, seats: autoSized.seats, seatSizing: autoSized.seatSizing };
+  if (!next.seatSizing) delete next.seatSizing;
   const index = layout.objects.findIndex((object) => object.id === selected.id);
   if (index < 0) throw new Error("Select furniture from the current layout before editing.");
 
   const parsed = layoutSchema.safeParse({
     ...layout,
-    schemaVersion: updated.seatOwnerId ? 2 : layout.schemaVersion,
-    objects: layout.objects.map((object) => object.id === selected.id ? updated : object),
+    schemaVersion: next.seatOwnerId ? 2 : layout.schemaVersion,
+    objects: layout.objects.map((object) => object.id === selected.id ? next : object),
   });
   if (!parsed.success) {
     throw new Error(parsed.error.issues[0].message);

@@ -7,7 +7,7 @@ export const roomSchema = z.object({
   depth: z.number().min(1).max(50),
 });
 
-const kinds = ["table_2", "table_4", "booth", "counter", "kitchen_zone", "door", "divider", "plant", "chair", "wall", "window", "light", "decoration", "ac", "custom"] as const;
+const kinds = ["table_2", "table_4", "booth", "counter", "cashier_stand", "kitchen_zone", "door", "divider", "plant", "chair", "wall", "window", "light", "decoration", "ac", "custom"] as const;
 const objectSchema = z.object({
   id,
   type: z.enum(kinds),
@@ -22,9 +22,13 @@ const objectSchema = z.object({
   depth: z.number().positive(),
   rotation: z.union([z.literal(0), z.literal(90), z.literal(180), z.literal(270)]),
   seats: z.number().int().positive().max(100).optional(),
+  seatSizing: z.object({ width: z.number().positive(), depth: z.number().positive(), seats: z.number().int().min(1).max(100) }).optional(),
 }).refine((object) => Boolean(object.seats) === Boolean(furniture[object.type].seats), {
   path: ["seats"],
   message: "Specify seats for seating furniture only.",
+}).refine(object => !object.seatSizing || Boolean(object.seats) && object.type !== "chair", {
+  path: ["seatSizing"],
+  message: "Automatic sizing applies to seating groups.",
 });
 
 export const objectLimit = 150;
