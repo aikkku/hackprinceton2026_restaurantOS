@@ -94,9 +94,10 @@ export function formFromRevision(revision: ProfileRevision): FormState {
   };
 }
 
+/** `previous: null` (a brand-new profile) validates the form and returns every edit unfiltered. */
 export function buildEdits(
   form: FormState,
-  previous: ProfileRevision,
+  previous: ProfileRevision | null,
 ): {
   edits: RequirementEdit[];
   issues: FieldIssue[];
@@ -185,6 +186,7 @@ export function buildEdits(
     id: "space.ventilation",
     value: form.ventilation.trim() === "" ? null : form.ventilation.trim(),
   });
+  if (!previous) return { edits, issues };
   // Only emit edits that actually differ from the previous revision, so a
   // no-change save never rewrites requirement provenance as "edited".
   const previousById = new Map(

@@ -161,3 +161,12 @@ Build note: `next build` prints Turbopack "dynamic filesystem access causes trac
 - Identity is Expansion-local (anonymous device-bound owners, optional shared access code); no per-user login or cross-device access until a shared RestaurantOS identity is agreed with the Tactical owner.
 - Runs created before Phase 5 under the old `local` session directory are not visible to owners; import their briefs from the browser instead (labeled "run snapshot unverified").
 - Live source probes, real-data journey and two-user browser (UI) tests were not run in this phase; the two-owner checks ran at test and API level.
+
+
+Neighborhood context: set `CENSUS_API_KEY` in the server environment to an activated
+Census Data API key (an empty `.env.local` placeholder does not enable Census).
+`EXPANSION_SOURCE_NETWORK=1` is still required. The neighborhood refresh uses
+`scope=neighborhood` and runs independently of Matterport/Vexcel/property AI.
+OSM requests identify RestaurantOS and use one alternate public Overpass instance
+on connection failure or server outage; access denials/rate limits are preserved.
+Provider reachability is still required; no values are substituted on failure.

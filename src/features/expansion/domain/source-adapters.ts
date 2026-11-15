@@ -5,11 +5,6 @@ import type { SpaceCandidate } from "./matching.ts";
 export const ACS_RELEASE = "2023-acs5";
 export const ACS_VARIABLES = ["B01003_001E", "B01003_001M", "B19013_001E", "B19013_001M"] as const;
 export const ACS_ALLOCATION = "tract-context-only-v1";
-export const HEIGHTS_DEFINITION = {
-  version: "houston-sn15-lookup-v1", name: "Greater Heights (Super Neighborhood 15)",
-  referenceUrl: "https://www.houstontx.gov/superneighborhoods/15.html",
-  limitation: "Greater Heights is a documented possible interpretation of the owner's Heights preference. Membership requires a sourced boundary lookup; address text alone is not membership. Owner confirmation of this definition remains needed.",
-};
 const text = z.string().min(1);
 export type AdapterMode = { synthetic?: boolean };
 export const SYNTHETIC_LIMITATION = "SYNTHETIC FIXTURE — generated test payload mapped by the real adapter. Not a provider record and not live integration proof.";

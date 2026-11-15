@@ -9,7 +9,8 @@ import { expect, test, type Page } from "@playwright/test";
 
 async function needsToReview(page: Page, budget?: string) {
   await page.goto("/expansion");
-  await page.getByRole("button", { name: "Find Locations" }).click();
+  // A fresh e2e owner has no stored profiles: seed a workspace profile from the example.
+  await page.getByRole("button", { name: "Try the example restaurant" }).click();
   await expect(page.getByRole("heading", { name: "Where would you like to expand?" })).toBeVisible();
   await expect(page.getByText("Filled in from the example profile")).toBeVisible();
   await expect(page.getByRole("button", { name: "Heights" })).toHaveAttribute("aria-pressed", "true");
@@ -145,13 +146,43 @@ test("model outage: honest failure, then the labeled basic search", async ({ pag
   await expect(page.getByText(/Basic search: these places weren’t inspected/)).toBeVisible();
 });
 
+test("a new restaurant profile is stored in the workspace and listed on home", async ({ page }) => {
+  await page.goto("/expansion");
+  await expect(page.getByText("No restaurant profiles yet.")).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: "New restaurant profile" }).click();
+  await page.getByLabel("Restaurant name").fill("E2E Noodle Bar");
+  await page.getByLabel("Kind of food").fill("Vietnamese");
+  await page.getByLabel("City you’re in now").fill("Austin");
+  await page.getByLabel("State").fill("TX");
+  await page.getByLabel("Money for the new location").fill("150,000");
+  await page.getByRole("button", { name: "Next: your needs" }).click();
+  await expect(page.getByRole("heading", { name: "Where would you like to expand?" })).toBeVisible();
+  await expect(page.getByText("Filled in from the example profile")).toHaveCount(0);
+  await page.getByRole("button", { name: "Heights" }).click({ timeout: 30_000 });
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByLabel("Monthly rent budget").fill("6,000");
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByLabel("Fewest seats").fill("30");
+  await page.getByLabel("Most seats").fill("45");
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByRole("button", { name: "Next", exact: true }).click();
+  await page.getByRole("button", { name: "Review", exact: true }).click();
+  await page.getByRole("button", { name: "Save and exit" }).click();
+  await expect(page.getByText("Your needs are saved to your workspace.")).toBeVisible();
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Use E2E Noodle Bar" })).toBeVisible({ timeout: 30_000 });
+  await page.getByRole("button", { name: "Find Locations" }).click();
+  await expect(page.getByRole("heading", { name: "Where would you like to expand?" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Heights" })).toHaveAttribute("aria-pressed", "true");
+});
+
 test("corrupt saved needs are preserved until the owner starts over", async ({ page }) => {
   await page.goto("/expansion");
   await page.evaluate(() => localStorage.setItem("restaurantos.expansion.profile.draft.v1", "{broken"));
   await page.reload();
   await expect(page.getByRole("alert").filter({ hasText: "left untouched" })).toBeVisible();
   expect(await page.evaluate(() => localStorage.getItem("restaurantos.expansion.profile.draft.v1"))).toBe("{broken");
-  await page.getByRole("button", { name: "Start over with the example restaurant" }).click();
+  await page.getByRole("button", { name: "Discard the browser copy" }).click();
   expect(await page.evaluate(() => localStorage.getItem("restaurantos.expansion.profile.draft.v1"))).toBeNull();
 });
 
@@ -184,4 +215,52 @@ test("Expansion does not change Tactical styles during navigation", async ({ pag
   await page.getByRole("link", { name: "Manage restaurant" }).click();
   await expect(page.locator(".tactical-workspace .workspace-main")).toBeVisible({ timeout: 30_000 });
   expect(await styles()).toEqual(before);
+});
+
+
+test("location details show neighborhood evidence and unavailable states", async ({ page }) => {
+  test.setTimeout(180_000);
+  await page.route("https://tiles.openfreemap.org/**", route => route.abort());
+  await needsToReview(page);
+  await page.getByRole("button", { name: "Find Locations" }).click();
+  await expect(page.getByRole("heading", { name: /We found 31 places/ })).toBeVisible({ timeout: 90_000 });
+  await page.getByRole("button", { name: "See locations" }).click();
+  await expect(page.getByRole("heading", { name: "31 places in Houston" })).toBeVisible({ timeout: 45_000 });
+  await page.getByRole("button", { name: "Show E2E Synthetic Building · Suite S0 on the map" }).click();
+  await page.getByRole("button", { name: "See details ›" }).click();
+  const context = page.getByRole("region", { name: "Around this location" });
+  await expect(context).toBeVisible();
+  await expect(context.getByText("Not available", { exact: true })).toHaveCount(2);
+  await expect(context).toContainText("This does not mean there are no competitors.");
+
+  // Controlled source-response fixture: test the rendered data, not external availability.
+  await page.route("**/api/expansion/investigations/**", async route => {
+    const query = new URL(route.request().url()).searchParams;
+    expect(query.get("scope")).toBe("neighborhood");
+    const candidateId = query.get("candidateId");
+    const now = "2026-11-15T00:00:00Z";
+    const observations = (["acs", "competition"] as const).map(provider => ({
+      id: `test:${provider}`, provider, candidateId,
+      scope: provider === "acs" ? "tract" : "site", sourceRecordId: `test-${provider}-record`,
+      sourceDate: now, retrievedAt: now, origin: "simulated", isSynthetic: true,
+      label: `Test ${provider} fixture`,
+      details: provider === "acs" ? ["Population: 1000 persons; MOE ±50 persons (90% confidence).", "Median household income: 50000 USD (2023 inflation-adjusted); MOE ±2000 USD."] : ["14 synthetic mapped restaurant objects within 500 m."],
+      limitations: ["Synthetic fixture, not live evidence."],
+      referenceUrl: provider === "acs" ? "https://api.census.gov/data/2023/acs/acs5.html" : "https://www.openstreetmap.org/copyright",
+      viewerUrl: null, facts: [], exportAllowed: false,
+    }));
+    await route.fulfill({ json: {
+      version: "expansion-investigation-evidence-v1", candidateId, refreshedAt: now,
+      observations, gaps: [], statuses: observations.map(o => ({ provider: o.provider, status: "verified", mode: "synthetic", checkedAt: now, capabilities: [], reason: "Labeled source test fixture" })),
+    } });
+  });
+  await context.getByRole("button", { name: "Refresh neighborhood data" }).click();
+  await expect(context).toContainText("Population: 1000 persons");
+  await expect(context).toContainText("Median household income: 50000 USD");
+  await expect(context).toContainText("14 synthetic mapped restaurant objects within 500 m.");
+  await expect(context.getByText("Test data", { exact: true })).toHaveCount(2);
+  await context.getByText("Source and limitations", { exact: true }).first().click();
+  await expect(context.getByRole("link", { name: "Census ACS source" })).toHaveAttribute("href", "https://api.census.gov/data/2023/acs/acs5.html");
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });

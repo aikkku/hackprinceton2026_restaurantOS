@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { ProfileRevision } from "../../domain/requirements.ts";
 import type { FormState } from "../profile-form.ts";
 import { money } from "./model.ts";
 import { Back, Disclosure, MoneyInput, QuestionShell, formatAmount, parseAmount } from "./ui.tsx";
+import { loadNeighborhoodCatalog } from "../data/neighborhoods.ts";
+import { normalizeNeighborhoodName, type NeighborhoodCatalog } from "../../domain/neighborhood.ts";
 
 export const NEEDS_STEPS = 5;
-export const NEIGHBORHOOD_OPTIONS = ["Heights", "Montrose", "Rice Village", "EaDo", "Chinatown", "Midtown", "Washington Ave"];
 
 const splitNeighborhoods = (raw: string) => raw.split(",").map((item) => item.trim()).filter(Boolean);
 
@@ -25,6 +26,14 @@ export function NeedsWizard({ form, onChange, step, onStep, fromExample, returnT
   const [rent, setRent] = useState(() => formatAmount(form.occupancy ? Number(form.occupancy) : null));
   const [seatsMin, setSeatsMin] = useState(form.seatsMin);
   const [seatsMax, setSeatsMax] = useState(form.seatsMax);
+  const [catalog, setCatalog] = useState<NeighborhoodCatalog | null>(null);
+  const [catalogError, setCatalogError] = useState(false);
+  useEffect(() => {
+    if (step !== 0) return;
+    const controller = new AbortController();
+    loadNeighborhoodCatalog(controller.signal).then(setCatalog).catch(() => { if (!controller.signal.aborted) setCatalogError(true); });
+    return () => controller.abort();
+  }, [step]);
 
   const next = () => {
     setError("");
@@ -41,8 +50,10 @@ export function NeedsWizard({ form, onChange, step, onStep, fromExample, returnT
   const nextLabel = returnToReview ? "Done" : step === NEEDS_STEPS - 1 ? "Review" : "Next";
 
   if (step === 0) {
-    const picked = splitNeighborhoods(form.neighborhoods);
-    const options = [...new Set([...NEIGHBORHOOD_OPTIONS, ...picked])];
+    const original = splitNeighborhoods(form.neighborhoods);
+    const names = catalog?.neighborhoods.map(n => n.name) ?? [];
+    const picked = names.filter(name => original.some(item => normalizeNeighborhoodName(item) === normalizeNeighborhoodName(name)));
+    const options = [...names].sort((a, b) => Number(picked.includes(b)) - Number(picked.includes(a)) || a.localeCompare(b));
     const toggle = (name: string) => {
       const nextPicked = picked.includes(name) ? picked.filter((item) => item !== name) : [...picked, name];
       setError("");
@@ -50,7 +61,9 @@ export function NeedsWizard({ form, onChange, step, onStep, fromExample, returnT
     };
     return (
       <QuestionShell step={1} total={NEEDS_STEPS} title="Where would you like to expand?" onSubmit={() => {
-        if (!picked.length) { setError("Pick at least one neighborhood. Other Houston neighborhoods still stay in the search."); return; }
+        if (!catalog) { setError("Wait for the official neighborhood catalog, or retry if the City source is unavailable."); return; }
+        if (!picked.length) { setError("Pick at least one official neighborhood. Other Houston areas stay in the search."); return; }
+        onChange({ ...form, neighborhoods: picked.join(", ") });
         next();
       }} actions={<>{backButton}<span className="sx-spacer" /><button className="sx-btn sx-btn-primary sx-btn-big">{nextLabel}</button></>}>
         <div className="sx-stack">
@@ -59,9 +72,13 @@ export function NeedsWizard({ form, onChange, step, onStep, fromExample, returnT
           <p className="sx-small sx-muted">We have property data for Houston so far. More cities will appear here.</p>
         </div>
         <fieldset className="sx-stack" style={{ border: 0, padding: 0, margin: 0 }}>
-          <legend className="sx-strong" style={{ marginBottom: 12 }}>Favorite neighborhoods <span className="sx-muted" style={{ fontWeight: 400 }}>Other neighborhoods still count</span></legend>
-          <div className="sx-chips">
-            {options.map((name) => <button key={name} type="button" className="sx-chip" aria-pressed={picked.includes(name)} onClick={() => toggle(name)}>{name}</button>)}
+          <legend className="sx-strong" style={{ marginBottom: 12 }}>Top 8 neighborhoods <span className="sx-muted" style={{ fontWeight: 400 }}>Choose your favorites</span></legend>
+          <p className="sx-small sx-muted">Official City of Houston Super Neighborhoods. Informal neighborhood names can have different boundaries.</p>
+          {catalog ? <p className="sx-small sx-muted">Most restaurant-compatible listings in our snapshot · <a href={catalog.sourceUrl} target="_blank" rel="noreferrer">City boundary source</a></p> : <p role="status">{catalogError ? "The City neighborhood source is unavailable. No example list is shown." : "Loading official City neighborhood names…"}</p>}
+          {catalogError && <button type="button" className="sx-btn sx-btn-secondary" onClick={() => { setCatalogError(false); void loadNeighborhoodCatalog().then(setCatalog).catch(() => setCatalogError(true)); }}>Retry official source</button>}
+          {catalog && original.some(item => !names.some(name => normalizeNeighborhoodName(item) === normalizeNeighborhoodName(name))) && <p className="sx-small sx-muted">An earlier preference isn’t in this top eight. Choose from the sourced areas below.</p>}
+          <div className="sx-chips" style={{ maxHeight: 260, overflowY: "auto" }}>
+            {options.map((name) => <button key={name} type="button" className="sx-chip" aria-pressed={picked.includes(name)} onClick={() => toggle(name)}>{name} · {catalog?.neighborhoods.find(n => n.name === name)?.listingCount} listings</button>)}
           </div>
         </fieldset>
         {error && <p className="sx-error" role="alert">{error}</p>}

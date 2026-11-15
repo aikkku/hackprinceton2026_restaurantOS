@@ -7,7 +7,7 @@ import { investigationRunSchema, createDecisionBrief, decisionBriefSchema } from
 import { emptyFinanceInputs, calculateDecisionFinance } from "./domain/decision-finance.ts";
 import { BRIEF_STORAGE_KEY, decodeBriefs, persistBriefs } from "./frontend/brief-storage.ts";
 import { mapMatterport, mapVexcel, parseAcsResponse, acsObservation, ACS_RELEASE, ACS_VARIABLES, contextGaps } from "./domain/source-adapters.ts";
-import { collectCandidateSources } from "./backend/investigation-sources.ts";
+import { collectCandidateSources, collectNeighborhoodSources } from "./backend/investigation-sources.ts";
 import { agentRunRecordSchema, AGENT_RUN_VERSION } from "./domain/agent.ts";
 
 const now = "2026-11-14T18:00:00.000Z";
@@ -138,4 +138,44 @@ test("source schema rejects property facts masquerading as suite verification an
   assert.equal(sourceSnapshotSchema.safeParse({ ...empty, observations: [{ ...observation, facts: [note("verified_present").fact] }] }).success, false);
   assert.equal(sourceSnapshotSchema.safeParse({ ...empty, observations: [{ ...observation, viewerUrl: "https://example.com/" }] }).success, false);
   assert.equal(z.array(investigationNoteSchema).safeParse([note("verified_present")]).success, true);
+});
+
+
+test("neighborhood-only refresh identifies requests, falls back after connection failure, and reports the missing Census key", async () => {
+  const calls: string[] = [];
+  const result = await collectNeighborhoodSources({ ...base.candidate, isDemo: false }, {
+    network: true, censusApiKey: "", now: () => now,
+    probe: async () => { throw new Error("Neighborhood refresh must never probe imagery"); },
+    fetch: (async (url: string | URL | Request, init?: RequestInit) => {
+      calls.push(String(url));
+      assert.match(new Headers(init?.headers).get("User-Agent") ?? "", /RestaurantOS/);
+      if (String(url).includes("overpass-api.de")) throw new TypeError("Connection refused");
+      return Response.json({ osm3s: { timestamp_osm_base: now }, elements: [{ type: "node", id: 1 }] });
+    }) as typeof fetch,
+  });
+  assert.deepEqual(calls.filter(url => url.includes("overpass")), ["https://overpass-api.de/api/interpreter", "https://overpass.private.coffee/api/interpreter"]);
+  assert.match(result.statuses.find(s => s.provider === "acs")!.reason, /CENSUS_API_KEY/);
+  assert.equal(result.observations[0].provider, "competition");
+  assert.match(result.observations[0].details[0], /1 mapped restaurant/);
+});
+
+test("public context preserves rate limits and includes the Census key only in the server request", async () => {
+  const calls: string[] = [];
+  const result = await collectNeighborhoodSources({ ...base.candidate, isDemo: false }, {
+    network: true, censusApiKey: "test-server-key", now: () => now,
+    fetch: (async (url: string | URL | Request) => {
+      const value = String(url); calls.push(value);
+      if (value.includes("geocoding.geo.census.gov")) return Response.json({ result: { geographies: { "Census Tracts": [{ STATE: "48", COUNTY: "201", TRACT: "510100" }] } } });
+      if (value.includes("api.census.gov")) {
+        assert.equal(new URL(value).searchParams.get("key"), "test-server-key");
+        return new Response("Denied", { status: 403 });
+      }
+      return new Response("Busy", { status: 429 });
+    }) as typeof fetch,
+  });
+  assert.equal(calls.filter(url => url.includes("overpass")).length, 1);
+  assert.match(result.statuses.find(s => s.provider === "competition")!.reason, /rate-limited/);
+  assert.match(result.statuses.find(s => s.provider === "acs")!.reason, /activated/);
+  assert.equal(JSON.stringify(result).includes("test-server-key"), false);
+  assert.deepEqual(result.observations, []);
 });

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { originSchema } from "./schemas.ts";
+import { neighborhoodsMatch } from "./neighborhood.ts";
 import {
   REQUIREMENT_IDS,
   searchRequirementsSchema,
@@ -590,13 +591,13 @@ function neighborhoodAssessment(
       requirementId: "market.neighborhoodPreference",
       status: "unknown",
       reasonCode: "neighborhood_unresolved",
-      reason: "This space's neighborhood is unresolved; Heights remains preferred but other Houston neighborhoods stay eligible.",
+      reason: "No sourced neighborhood membership is available for this space. Other areas remain eligible.",
       evidenceIds: fact ? [fact.id] : [],
       sourceValue: fact ? fact.source.label : "Neighborhood unknown",
     };
   }
   const name = fact.value.value;
-  if (preferred.some((p) => p.toLowerCase() === name.toLowerCase())) {
+  if (preferred.some((p) => neighborhoodsMatch(p, name))) {
     return {
       requirementId: "market.neighborhoodPreference",
       status: "pass",

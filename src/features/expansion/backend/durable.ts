@@ -53,7 +53,7 @@ export async function saveProfileEnvelope(repo: ExpansionRepository, ownerId: st
   }
   const latest = ordered[ordered.length - 1];
   const existing = await repo.get("profiles", ownerId, docId(ownerId, profileId));
-  if (!existing || Number(existing.latestRevisionNumber) <= latest.revisionNumber) {
+  if (!existing || Number(existing.latestRevisionNumber) < latest.revisionNumber) {
     await repo.upsert("profiles", {
       _id: docId(ownerId, profileId), ownerId, profileId, restaurantName: latest.intakeSnapshot.restaurant?.name ?? null,
       isDemo: latest.isDemo, latestRevisionNumber: latest.revisionNumber, latestRevisionId: latest.revisionId,
@@ -63,10 +63,45 @@ export async function saveProfileEnvelope(repo: ExpansionRepository, ownerId: st
   return report;
 }
 
+export type ProfileSummary = {
+  profileId: string;
+  restaurantName: string | null;
+  isDemo: boolean;
+  latestRevisionNumber: number;
+  latestRevisionId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+const summaryFrom = (doc: StoredDoc): ProfileSummary => ({
+  profileId: String(doc.profileId),
+  restaurantName: typeof doc.restaurantName === "string" ? doc.restaurantName : null,
+  isDemo: doc.isDemo === true,
+  latestRevisionNumber: Number(doc.latestRevisionNumber),
+  latestRevisionId: String(doc.latestRevisionId),
+  createdAt: String(doc.createdAt ?? doc.updatedAt),
+  updatedAt: String(doc.updatedAt),
+});
+
+/** The owner's stored restaurant profiles, most recently updated first. */
+export async function listProfiles(repo: ExpansionRepository, ownerId: string, limit = 50): Promise<ProfileSummary[]> {
+  const rows = await repo.list("profiles", ownerId, {}, { sort: ["updatedAt", -1], limit });
+  return rows.map(summaryFrom);
+}
+
 /** Rebuild the owner's most recently updated profile envelope from immutable revisions. */
 export async function loadLatestProfile(repo: ExpansionRepository, ownerId: string): Promise<ProfileDraftEnvelope | null> {
   const [profile] = await repo.list("profiles", ownerId, {}, { sort: ["updatedAt", -1], limit: 1 });
-  if (!profile) return null;
+  return profile ? envelopeFor(repo, ownerId, profile) : null;
+}
+
+/** Rebuild one owner profile's envelope; null when the owner has no such profile. */
+export async function loadProfile(repo: ExpansionRepository, ownerId: string, profileId: string): Promise<ProfileDraftEnvelope | null> {
+  const profile = await repo.get("profiles", ownerId, docId(ownerId, profileId));
+  return profile ? envelopeFor(repo, ownerId, profile) : null;
+}
+
+async function envelopeFor(repo: ExpansionRepository, ownerId: string, profile: StoredDoc): Promise<ProfileDraftEnvelope> {
   const revisions = await repo.list("profileRevisions", ownerId, { profileId: String(profile.profileId) }, { sort: ["revisionNumber", 1], limit: 1000 });
   const parsed = profileDraftEnvelopeSchema.safeParse({ schemaVersion: 1, revisions: revisions.map(doc => doc.revision), updatedAt: profile.updatedAt });
   if (!parsed.success) throw new PersistenceError("invalid", "The stored profile revisions are inconsistent; they were preserved unchanged.");

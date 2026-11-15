@@ -1,4 +1,5 @@
-import { PROFILE_DRAFT_SCHEMA_VERSION, intakeSchema, type RestaurantIntake } from "../../domain/intake.ts";
+import { ZodError } from "zod";
+import { INTAKE_SCHEMA_VERSION, PROFILE_DRAFT_SCHEMA_VERSION, intakeSchema, type FollowUpQuestion, type RestaurantIntake } from "../../domain/intake.ts";
 import { ProfileValidationError, UnsupportedProfileError, createProfileRevision, type ProfileRevision, type Requirement } from "../../domain/requirements.ts";
 import { exampleIntake } from "../data/intake-example.ts";
 import { buildEdits, type FormState } from "../profile-form.ts";
@@ -17,6 +18,159 @@ export function exampleEnvelope(now = new Date().toISOString()): ProfileDraftEnv
     editSummary: "Started from the example restaurant profile.",
   });
   return profileDraftEnvelopeSchema.parse({ schemaVersion: PROFILE_DRAFT_SCHEMA_VERSION, updatedAt: now, revisions: [revision] });
+}
+
+// ---------------------------------------------------------------------------
+// New owner profiles (no example data; stored in the owner's workspace)
+
+export type RestaurantBasics = {
+  name: string;
+  cuisine: string;
+  serviceType: string;
+  currentCity: string;
+  currentState: string;
+  /** Raw money inputs ("100,000"); carried into the needs form. */
+  funds: string;
+  reserve: string;
+};
+
+export const SERVICE_TYPES = [
+  { value: "dine_in_and_takeout", label: "Dine-in and takeout" },
+  { value: "dine_in", label: "Dine-in only" },
+  { value: "takeout_and_delivery", label: "Takeout and delivery" },
+  { value: "counter_service", label: "Counter service" },
+] as const;
+
+export const emptyBasics = (): RestaurantBasics => ({
+  name: "", cuisine: "", serviceType: SERVICE_TYPES[0].value, currentCity: "", currentState: "", funds: "", reserve: "",
+});
+
+const amount = (raw: string): number | null => {
+  const cleaned = raw.replace(/,/g, "").trim();
+  if (!cleaned) return null;
+  const value = Number(cleaned);
+  return Number.isFinite(value) && value >= 0 ? value : Number.NaN;
+};
+
+/** First problem with the restaurant basics, or null. */
+export function basicsIssue(basics: RestaurantBasics): string | null {
+  if (!basics.name.trim()) return "Enter your restaurant’s name.";
+  if (!basics.cuisine.trim()) return "Enter the kind of food you serve.";
+  if (!SERVICE_TYPES.some((item) => item.value === basics.serviceType)) return "Pick how you serve customers.";
+  if (!basics.currentCity.trim()) return "Enter the city your restaurant is in now.";
+  if (!/^[A-Za-z]{2}$/.test(basics.currentState.trim())) return "Enter the two-letter state, like TX.";
+  const funds = amount(basics.funds);
+  if (funds === null || Number.isNaN(funds)) return "Enter the money you have for the new location, like 100,000.";
+  const reserve = amount(basics.reserve);
+  if (Number.isNaN(reserve)) return "The emergency reserve must be an amount, like 20,000, or left blank.";
+  if (reserve !== null && reserve > funds) return "The emergency reserve can’t be more than the money you have.";
+  return null;
+}
+
+/** The needs form a new profile starts from: the owner's money, nothing invented. */
+export function blankNeedsForm(basics: RestaurantBasics): FormState {
+  const reserve = amount(basics.reserve);
+  return {
+    occupancy: "", funds: String(amount(basics.funds) ?? ""), reserve: reserve === null || Number.isNaN(reserve) ? "" : String(reserve),
+    seatsMin: "", seatsMax: "", kitchen: true, parking: true, neighborhoods: "", othersAcceptable: true,
+    market: "US-TX-Houston", ventilation: "", baselineNote: "",
+  };
+}
+
+const dollars = (value: number) => `$${new Intl.NumberFormat("en-US", { maximumFractionDigits: 2 }).format(value)}`;
+
+/**
+ * The intake document for an owner-entered profile. Every requirement cites
+ * the owner's own answer (recorded verbatim as the question asked and what
+ * they entered); unknowns stay null. Assumes the form already validated.
+ */
+export function ownerIntake(basics: RestaurantBasics, form: FormState): RestaurantIntake {
+  const funds = Number(form.funds);
+  const reserve = form.reserve.trim() === "" ? null : Number(form.reserve);
+  const occupancy = Number(form.occupancy);
+  const seats = { minimum: Number(form.seatsMin), maximum: Number(form.seatsMax) };
+  const preferred = form.neighborhoods.split(",").map((item) => item.trim()).filter(Boolean);
+  const [targetCity, targetState] = form.market === "US-TX-Houston" ? ["Houston", "TX"] : ["Los Angeles", "CA"];
+  const name = basics.name.trim();
+  const cuisine = basics.cuisine.trim();
+  const currentCity = basics.currentCity.trim();
+  const currentState = basics.currentState.trim().toUpperCase();
+  const service = SERVICE_TYPES.find((item) => item.value === basics.serviceType)?.label ?? basics.serviceType;
+  const ventilation = form.ventilation.trim() || null;
+  const yesNo = (value: boolean) => (value ? "required" : "not required");
+  const followUpQuestions: FollowUpQuestion[] = [
+    ...(reserve === null ? [{ field: "budget.cashReserveToKeep" as const, question: `How much of the ${dollars(funds)} would you like to keep for emergencies?`, blocksInitialSearch: false, neededFor: "upfront_affordability_comparison" }] : []),
+    ...(ventilation === null ? [{ field: "space.ventilationRequirements" as const, question: "What kind of cooking equipment will the new kitchen need?", blocksInitialSearch: false, neededFor: "kitchen_suitability_verification" }] : []),
+    { field: "financialBaseline", question: "Would you like to share a recent sales and expense report so we can check what each location would need to sell?", blocksInitialSearch: false, neededFor: "financial_scenarios" },
+  ];
+  return intakeSchema.parse({
+    schemaVersion: INTAKE_SCHEMA_VERSION,
+    recordType: "expansion_intake",
+    isDemo: false,
+    origin: "owner_entered",
+    description: `Restaurant profile entered by the owner of ${name} in RestaurantOS. Values are the owner's stated needs, not verified records.`,
+    restaurant: { name, cuisine, serviceType: basics.serviceType, currentCity, currentState, currentCountry: "US", sourceAnswerIds: ["owner_0"] },
+    expansion: {
+      goal: "second_location", targetCity, targetState, targetCountry: "US", preferredNeighborhoods: preferred,
+      otherNeighborhoodsAcceptable: form.othersAcceptable, targetOpeningDate: null, sourceAnswerIds: ["owner_1"],
+    },
+    budget: {
+      currency: "USD", totalAvailableFunds: funds, cashReserveToKeep: reserve, maximumUpfrontSpending: null,
+      maximumMonthlyOccupancyCost: occupancy, monthlyOccupancyCostIncludes: "base_rent_and_additional_occupancy_charges",
+      monthlyOccupancyLimitIsHard: true, sourceAnswerIds: ["owner_2", "owner_3"],
+    },
+    space: {
+      preferredSeats: { ...seats, isHardRequirement: false }, areaSqFt: { minimum: null, maximum: null },
+      mustHave: { existingKitchen: form.kitchen, customerParking: form.parking }, minimumCustomerParkingSpaces: null,
+      ventilationRequirements: ventilation, sourceAnswerIds: ["owner_4", "owner_5"],
+    },
+    financialBaseline: {
+      origin: "unavailable", currency: "USD", periodStart: null, periodEnd: null, netSales: null, guestsServed: null,
+      averageSpendPerGuest: null, operatingDays: null, variableCosts: null, fixedLaborCosts: null,
+      otherFixedCostsExcludingOccupancy: null, sourceAnswerIds: [],
+    },
+    sourceAnswers: [
+      { id: "owner_0", question: "Tell us about your restaurant.", answer: `${name}: ${cuisine}, ${service.toLowerCase()}, in ${currentCity}, ${currentState}.` },
+      { id: "owner_1", question: "Where would you like your next restaurant?", answer: `${targetCity}, ${targetState}. Favorite neighborhoods: ${preferred.join(", ")}. Other neighborhoods ${form.othersAcceptable ? "still count" : "do not count"}.` },
+      { id: "owner_2", question: "How much money do you have for the new location?", answer: `${dollars(funds)} total.${reserve === null ? " Emergency reserve not given." : ` Keep ${dollars(reserve)} for emergencies.`}` },
+      { id: "owner_3", question: "What’s your monthly rent budget, including extra building charges?", answer: `${dollars(occupancy)} per month.` },
+      { id: "owner_4", question: "How many seats do you need?", answer: `${seats.minimum} to ${seats.maximum} seats (a preference).` },
+      { id: "owner_5", question: "What does the space absolutely need?", answer: `Existing kitchen: ${yesNo(form.kitchen)}. Customer parking: ${yesNo(form.parking)}.` },
+    ],
+    followUpQuestions,
+    matchingNotes: [
+      `Use ${targetCity} as the search market; favorite neighborhoods are a preference${form.othersAcceptable ? ", not an exclusion of other neighborhoods" : ""}.`,
+      `The ${dollars(occupancy)} limit applies to total monthly occupancy cost, not just quoted base rent. If additional charges are unknown, mark affordability as unverified.`,
+      ...(reserve === null ? [`The ${dollars(funds)} may include an unspecified emergency reserve. Do not treat the entire amount as available for construction, equipment, and deposits.`] : []),
+      "The seat range is a preference, not a square-footage requirement.",
+      "Missing evidence for a must-have means verification is needed; it does not establish that a feature is present or absent.",
+      "Do not estimate profitability or payback from this intake alone; financial baseline and candidate-specific costs are missing.",
+    ],
+  });
+}
+
+/** Revision 0 of a new owner profile (its id is the profile id). Nothing is stored here. */
+export function ownerEnvelope(basics: RestaurantBasics, form: FormState, now = new Date().toISOString()): ReviseResult {
+  const issue = basicsIssue(basics) ?? buildEdits(form, null).issues[0]?.message ?? null;
+  if (issue) return { ok: false, message: issue };
+  try {
+    const intake = ownerIntake(basics, form);
+    const revision = createProfileRevision(intake, {
+      revisionId: crypto.randomUUID(), revisionNumber: 0, createdAt: now, parentRevisionId: null,
+      editSummary: `Created the ${intake.restaurant.name} profile.`,
+    });
+    const envelope = profileDraftEnvelopeSchema.parse({ schemaVersion: PROFILE_DRAFT_SCHEMA_VERSION, updatedAt: now, revisions: [revision] });
+    return { ok: true, envelope, revision, changed: true };
+  } catch (error) {
+    return { ok: false, message: profileErrorMessage(error) };
+  }
+}
+
+function profileErrorMessage(error: unknown): string {
+  if (error instanceof ProfileValidationError) return error.issues[0]?.message ?? "Those needs aren’t valid.";
+  if (error instanceof UnsupportedProfileError) return error.message;
+  if (error instanceof ZodError) return error.issues[0]?.message ?? "Those needs aren’t valid.";
+  return error instanceof Error ? error.message : "Those needs couldn’t be saved.";
 }
 
 const comparable = (requirements: Requirement[]) =>
@@ -59,9 +213,7 @@ export function reviseFromForm(envelope: ProfileDraftEnvelope, form: FormState, 
     const next = profileDraftEnvelopeSchema.parse({ ...envelope, updatedAt: now, revisions: [...envelope.revisions, revision] });
     return { ok: true, envelope: next, revision, changed: true };
   } catch (error) {
-    if (error instanceof ProfileValidationError) return { ok: false, message: error.issues[0]?.message ?? "Those needs aren’t valid." };
-    if (error instanceof UnsupportedProfileError) return { ok: false, message: error.message };
-    return { ok: false, message: error instanceof Error ? error.message : "Those needs couldn’t be saved." };
+    return { ok: false, message: profileErrorMessage(error) };
   }
 }
 

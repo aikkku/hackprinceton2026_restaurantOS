@@ -3,19 +3,27 @@
 import { Sprout } from "lucide-react";
 import { useState } from "react";
 import type { DecisionBrief } from "../../domain/decision-brief.ts";
-import { Disclosure } from "./ui.tsx";
+import type { ProfileSummary } from "../data/account-client.ts";
+import { Disclosure, Tag } from "./ui.tsx";
 
 export type PlanEntry = { brief: DecisionBrief; where: "workspace" | "browser" };
 
 const dateLabel = (iso: string) => new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 
-export function Home({ resume, plans, profileProblem, access, notice, onFind, onResume, onOpenPlan, onResetProfile }: {
+export function Home({ resume, plans, profiles, profilesError, profileProblem, access, notice, onFind, onUseProfile, onNewProfile, onTryExample, onRetryProfiles, onResume, onOpenPlan, onResetProfile }: {
   resume: { cityLabel: string; placesFound: number; saved: number } | null;
   plans: PlanEntry[];
+  /** null while the workspace list is loading. */
+  profiles: ProfileSummary[] | null;
+  profilesError: string;
   profileProblem: string | null;
   access: { required: boolean; onUnlock: (code: string) => Promise<string | null> } | null;
   notice: string;
   onFind: () => void;
+  onUseProfile: (profileId: string) => void;
+  onNewProfile: () => void;
+  onTryExample: () => void;
+  onRetryProfiles: () => void;
   onResume: () => void;
   onOpenPlan: (brief: DecisionBrief) => void;
   onResetProfile: () => void;
@@ -30,16 +38,51 @@ export function Home({ resume, plans, profileProblem, access, notice, onFind, on
           <h1 className="sx-title">Thinking about opening another location?</h1>
           <p className="sx-lead">Let’s find a place that fits your restaurant.</p>
         </div>
-        <div><button type="button" className="sx-btn sx-btn-primary sx-btn-big" onClick={onFind}>Find Locations</button></div>
+        <div className="sx-stack">
+          <div><button type="button" className="sx-btn sx-btn-primary sx-btn-big" onClick={onFind}>Find Locations</button></div>
+          {profiles?.[0] && <p className="sx-small sx-muted">For {profiles[0].restaurantName ?? "your restaurant"}. Pick another restaurant below.</p>}
+        </div>
       </div>
 
       {notice && <p className="sx-notice sx-notice-good" role="status">{notice}</p>}
+
+      <section className="sx-stack" aria-labelledby="sx-profiles-title">
+        <h2 id="sx-profiles-title" className="sx-strong">Your restaurants</h2>
+        {profiles === null && !profilesError && <p className="sx-small sx-muted" role="status">Loading your restaurant profiles…</p>}
+        {profiles?.length === 0 && <p className="sx-small sx-muted">No restaurant profiles yet. Set one up and we’ll save it to your workspace.</p>}
+        {profiles && profiles.length > 0 && (
+          <ul className="sx-list">
+            {profiles.map((profile) => {
+              const name = profile.restaurantName ?? "Unnamed restaurant";
+              const versions = profile.latestRevisionNumber + 1;
+              return (
+                <li key={profile.profileId}>
+                  <span className="sx-list-main">
+                    <span className="sx-list-value">{name} {profile.isDemo && <Tag kind="example">Example</Tag>}</span>
+                    <span className="sx-list-label">Updated {dateLabel(profile.updatedAt)} · {versions} {versions === 1 ? "version" : "versions"} of your needs</span>
+                  </span>
+                  <button type="button" className="sx-btn sx-btn-secondary" onClick={() => onUseProfile(profile.profileId)} aria-label={`Use ${name}`}>Use</button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+        {profilesError && (
+          <div className="sx-notice sx-notice-bad" role="alert">
+            <div className="sx-stack"><p>{profilesError}</p><div><button type="button" className="sx-btn sx-btn-secondary" onClick={onRetryProfiles}>Try again</button></div></div>
+          </div>
+        )}
+        <div className="sx-row">
+          <button type="button" className="sx-btn sx-btn-secondary" onClick={onNewProfile}>New restaurant profile</button>
+          {profiles !== null && !profiles.some((profile) => profile.isDemo) && <button type="button" className="sx-btn sx-btn-text" onClick={onTryExample}>Try the example restaurant</button>}
+        </div>
+      </section>
 
       {profileProblem && (
         <div className="sx-notice" role="alert">
           <div className="sx-stack">
             <p>{profileProblem}</p>
-            <div><button type="button" className="sx-btn sx-btn-secondary" onClick={onResetProfile}>Start over with the example restaurant</button></div>
+            <div><button type="button" className="sx-btn sx-btn-secondary" onClick={onResetProfile}>Discard the browser copy</button></div>
           </div>
         </div>
       )}
@@ -56,7 +99,7 @@ export function Home({ resume, plans, profileProblem, access, notice, onFind, on
             <input id="sx-access" className="sx-textinput" type="password" autoComplete="current-password" value={code} onChange={(event) => setCode(event.target.value)} required maxLength={256} />
           </div>
           {codeError && <p className="sx-error" role="alert">{codeError}</p>}
-          <p className="sx-small sx-muted">Your needs, searches and plans are private to your workspace. Without unlocking, they stay on this browser only.</p>
+          <p className="sx-small sx-muted">Your restaurant profiles, searches and plans are private to your workspace. Unlock it to create or use a profile.</p>
           <div><button className="sx-btn sx-btn-primary">Unlock</button></div>
         </form>
       )}

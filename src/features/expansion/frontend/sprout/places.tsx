@@ -3,6 +3,8 @@
 import { Bookmark } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { AssessedCandidate } from "../../domain/matching.ts";
+import type { SourceSnapshot, InvestigationNote } from "../../domain/evidence.ts";
+import { calculatePropertyScore } from "../../domain/property-score.ts";
 import {
   bestMatches,
   budgetCap,
@@ -20,8 +22,9 @@ import { PlacesMap, type MapPlace } from "./places-map.tsx";
 import { MAX_SAVED_PLACES } from "./session.ts";
 import { Dot, Tag, Thumb } from "./ui.tsx";
 import type { Workspace } from "./workspace.ts";
+import { ScoreBadge } from "./property-score.tsx";
 
-export type PlaceView = { assessed: AssessedCandidate; image: string | null };
+export type PlaceView = { assessed: AssessedCandidate; image: string | null; sources?: SourceSnapshot; notes?: InvestigationNote[] };
 
 export function placeTitle(candidate: AssessedCandidate["candidate"]) {
   return candidate.name;
@@ -44,6 +47,7 @@ export function Places({ workspace, views, saved, selectedId, notice, onSelect, 
   onNewSearch: () => void;
 }) {
   const [showAll, setShowAll] = useState(false);
+  const scores = useMemo(() => new Map(views.map(view => [view.assessed.candidate.id, calculatePropertyScore({ candidate: view.assessed.candidate, requirements: workspace.requirements, sources: view.sources ?? workspace.evidence.get(view.assessed.candidate.id), notes: view.notes })])), [views, workspace.requirements, workspace.evidence]);
   // Display order: group order preserved; listed-rent candidates ahead of
   // no-rent ones inside a group; estimate-within-budget no-rent first. This
   // is a display concern only and never changes the assessment.
@@ -55,8 +59,9 @@ export function Places({ workspace, views, saved, selectedId, notice, onSelect, 
       budgetCap(workspace.requirements),
     )
       .map((a) => byId.get(a.candidate.id))
-      .filter((v): v is PlaceView => Boolean(v));
-  }, [views, workspace.rentEstimates, workspace.requirements]);
+      .filter((v): v is PlaceView => Boolean(v))
+      .sort((a, b) => (scores.get(b.assessed.candidate.id)?.score ?? -1) - (scores.get(a.assessed.candidate.id)?.score ?? -1) || (scores.get(b.assessed.candidate.id)?.coverage ?? 0) - (scores.get(a.assessed.candidate.id)?.coverage ?? 0));
+  }, [views, workspace.rentEstimates, workspace.requirements, scores]);
   const best = useMemo(() => bestMatches(orderedViews.map((v) => v.assessed)).map((a) => a.candidate.id), [orderedViews]);
   const bestViews = orderedViews.filter((v) => best.includes(v.assessed.candidate.id));
   const rest = orderedViews.filter((v) => !best.includes(v.assessed.candidate.id));
@@ -69,7 +74,7 @@ export function Places({ workspace, views, saved, selectedId, notice, onSelect, 
     const cost = monthlyCost(candidate);
     const estimate = workspace.rentEstimates.get(candidate.id);
     const neighborhood = assessed.assessments.find((a) => a.requirementId === "market.neighborhoodPreference");
-    const area = neighborhood?.status === "pass" ? neighborhood.sourceValue : null;
+    const area = neighborhood && ["neighborhood_member", "neighborhood_other"].includes(neighborhood.reasonCode) ? neighborhood.sourceValue : null;
     const suite = candidate.suite ? `Suite ${candidate.suite}` : null;
     // The card shows the suite in the eyebrow, so strip it from the name.
     const cleanName = suite && candidate.name.endsWith(` · ${suite}`) ? candidate.name.slice(0, -` · ${suite}`.length) : candidate.name;
@@ -82,11 +87,12 @@ export function Places({ workspace, views, saved, selectedId, notice, onSelect, 
     return {
       id: candidate.id,
       name: cleanName,
-      location: [area, suite].filter(Boolean).join(" · ") || "Neighborhood not confirmed",
+      location: [area, suite].filter(Boolean).join(" · ") || "Neighborhood unavailable",
       address: candidate.address ?? "Address not listed",
       lat: candidate.latitude,
       lng: candidate.longitude,
       fit: fitForGroup(assessed.group),
+      score: scores.get(candidate.id)!,
       price: cost.kind === "unknown" && estimate ? estimatePin(estimate) : costPin(cost),
       priceLabel: cost.kind === "unknown" && estimate ? estimateCostLabel(estimate) : costLabel(cost),
       size,
@@ -94,7 +100,7 @@ export function Places({ workspace, views, saved, selectedId, notice, onSelect, 
       image,
       saved: saved.includes(candidate.id),
     };
-  }), [orderedViews, workspace.rentEstimates, saved]);
+  }), [orderedViews, workspace.rentEstimates, saved, scores]);
 
   const card = ({ assessed, image }: PlaceView) => {
     const id = assessed.candidate.id;
@@ -110,7 +116,9 @@ export function Places({ workspace, views, saved, selectedId, notice, onSelect, 
         <Thumb src={image} alt={assessed.candidate.name} />
         <div className="sx-pcard-main">
           <span className="sx-pcard-name">{placeTitle(assessed.candidate)}</span>
+          <ScoreBadge result={scores.get(id)!} />
           <span className="sx-small sx-muted">{placeSubtitle(assessed.candidate)}</span>
+          {assessed.assessments.some(a => a.requirementId === "market.neighborhoodPreference" && ["neighborhood_member", "neighborhood_other"].includes(a.reasonCode)) && <span className="sx-small sx-muted">{assessed.assessments.find(a => a.requirementId === "market.neighborhoodPreference")?.sourceValue}</span>}
           <span className="sx-row" style={{ gap: 8 }}>
             <span className="sx-pcard-cost">{costUnknown && estimate ? estimateCostLabel(estimate) : costLabel(cost)}</span>
             {costUnknown && (estimate ? <Tag kind="estimate">Estimate</Tag> : <Tag kind="unknown">Rent not listed</Tag>)}
@@ -132,7 +140,7 @@ export function Places({ workspace, views, saved, selectedId, notice, onSelect, 
       <section className="sx-panel" aria-label="Places">
         <div className="sx-stack" style={{ gap: 4 }}>
           <h1 className="sx-title-sm">{views.length} {views.length === 1 ? "place" : "places"} in {workspace.cityLabel}</h1>
-          <p className="sx-muted">Tap a place to see if it fits.</p>
+          <p className="sx-muted">Fit scores out of 10. Unverified findings don’t affect the score.</p>
         </div>
         {workspace.source === "deterministic" && <p className="sx-notice sx-small">Basic search: these places weren’t inspected by the specialists, and plans can’t be saved from this search.</p>}
         {workspace.source === "saved_plan" && <p className="sx-notice sx-small">You’re looking at a saved plan’s snapshot. Listings may have changed since.</p>}

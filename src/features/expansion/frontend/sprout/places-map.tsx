@@ -4,10 +4,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Map as LibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { FIT_ICON, FIT_LABEL, type Fit } from "./model.ts";
+import { propertyScoreLabel, type PropertyScore } from "../../domain/property-score.ts";
 
 export type MapPlace = {
   id: string; name: string; location: string; address: string;
   lat: number | null; lng: number | null; fit: Fit;
+  score?: PropertyScore;
   /** Short label inside the pin. */
   price: string;
   /** Full price line for the card, e.g. "$4,875/mo" or "≈ $2.3k–3.4k/mo + building charges". */
@@ -20,9 +22,6 @@ export type MapPlace = {
   saved: boolean;
 };
 type Spot = { key: string; lat: number; lng: number; places: MapPlace[] };
-
-const FIT_ORDER: Fit[] = ["meets", "verify", "other", "fails"];
-const bestFit = (places: MapPlace[]) => FIT_ORDER.find((fit) => places.some((p) => p.fit === fit)) ?? "other";
 
 /** Group listings that share a map position so they never hide each other. */
 function toSpots(places: MapPlace[]): Spot[] {
@@ -39,22 +38,25 @@ function toSpots(places: MapPlace[]): Spot[] {
 
 function pinElement(spot: Spot, selectedId: string | null, onPick: (id: string, spotKey: string) => void): HTMLButtonElement {
   const selectedHere = spot.places.find((p) => p.id === selectedId);
-  const lead = selectedHere ?? spot.places[0];
-  const fit = spot.places.length > 1 ? bestFit(spot.places) : lead.fit;
+  const lead = selectedHere ?? spot.places.reduce((best, p) => (p.score?.score ?? -1) > (best.score?.score ?? -1) ? p : best);
+  const score = lead.score ? propertyScoreLabel(lead.score) : "Not scored";
   const button = document.createElement("button");
   button.type = "button";
-  button.className = `sx-pin${!selectedHere && fit === "fails" ? " sx-pin-dim" : ""}`;
+  button.className = "sx-pin sx-score-pin";
+  button.dataset.tone = lead.score?.score === null || !lead.score ? "unknown" : lead.score.score >= 8 ? "good" : lead.score.score >= 6 ? "mixed" : "low";
   button.setAttribute("aria-pressed", String(Boolean(selectedHere)));
   const label = spot.places.length > 1
-    ? `${spot.places.length} places at one address${selectedHere ? `, showing ${selectedHere.name}` : ""}`
-    : `${lead.name}, ${lead.price}${lead.fit === "verify" ? "" : `, ${FIT_LABEL[lead.fit]}`}`;
+    ? `${spot.places.length} places at one address, ${selectedHere ? "selected" : "best"} fit score ${score}, ${lead.name}`
+    : `${lead.name}, fit score ${score}`;
   button.setAttribute("aria-label", label);
-  const dot = document.createElement("span");
-  dot.className = `sx-dot sx-s-${fit}`;
-  dot.setAttribute("aria-hidden", "true");
-  dot.textContent = FIT_ICON[fit];
-  if (fit !== "verify") button.append(dot);
-  button.append(document.createTextNode(spot.places.length > 1 && !selectedHere ? `${spot.places.length} places` : lead.price));
+  button.title = `${label}. ${lead.score?.includedCount ?? 0} of ${lead.score?.activeCount ?? 0} applicable factors included. Click to inspect${spot.places.length > 1 ? " or cycle through spaces" : ""}.`;
+  button.append(document.createTextNode(lead.score?.score !== null && lead.score?.score !== undefined ? lead.score.score.toFixed(1) : "—"));
+  if (spot.places.length > 1) {
+    const count = document.createElement("small");
+    count.className = "sx-pin-count";
+    count.textContent = `×${spot.places.length}`;
+    button.append(count);
+  }
   if (spot.places.some((p) => p.saved)) {
     const saved = document.createElement("span");
     saved.className = "sx-pin-saved";
@@ -65,7 +67,7 @@ function pinElement(spot: Spot, selectedId: string | null, onPick: (id: string, 
     event.stopPropagation();
     // Clicking a shared address cycles through the places there.
     const index = selectedHere ? spot.places.indexOf(selectedHere) : -1;
-    onPick(spot.places[(index + 1) % spot.places.length].id, spot.key);
+    onPick(selectedHere ? spot.places[(index + 1) % spot.places.length].id : lead.id, spot.key);
   });
   return button;
 }
@@ -124,6 +126,10 @@ function cardElement(place: MapPlace, onDetails: (id: string) => void, onToggleS
   body.append(eyebrow, name, address);
   if (place.fit !== "verify") body.append(pill);
   body.append(price);
+  const scoreLine = document.createElement("span");
+  scoreLine.className = "sx-score";
+  scoreLine.textContent = `Fit score ${place.score ? propertyScoreLabel(place.score) : "Not scored"} · ${place.score?.includedCount ?? 0}/${place.score?.activeCount ?? 0} factors`;
+  body.append(scoreLine);
   if (place.question) {
     const question = document.createElement("span");
     question.className = "sx-map-card-question";
@@ -266,7 +272,7 @@ export function PlacesMap({ places, selectedId, onSelect, onOpen, onToggleSave, 
         </div>
       )}
       <div className="sx-map-legend" aria-label="Map legend">
-        {(["meets", "fails"] as const).map((fit) => <span key={fit}><span className={`sx-dot sx-s-${fit}`} aria-hidden="true">{FIT_ICON[fit]}</span>{FIT_LABEL[fit]}</span>)}
+        <span>Fit score 1–10 · higher is better</span><span>×N = spaces at this address · best score shown</span>
       </div>
       <p className="sx-map-note">{state === "fallback" ? "Map tiles couldn’t load. Pins show relative positions only." : note}{missing ? ` · ${missing} without a map location` : ""}</p>
     </div>

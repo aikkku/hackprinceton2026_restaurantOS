@@ -645,6 +645,26 @@ class SearchArtifact(StrictModel):
     excludedTruncated: bool = False
 
 
+class InspectionMarketObservation(StrictModel):
+    id: str = ID
+    provider: Literal["acs", "competition"]
+    scope: Literal["site", "tract"]
+    sourceRecordId: str = Field(min_length=1)
+    sourceDate: str | None
+    retrievedAt: str = ISO_DT
+    origin: Literal["observed", "derived"]
+    label: str = Field(min_length=1)
+    details: list[str]
+    limitations: list[str]
+    referenceUrl: str | None
+
+
+class InspectionMarketContext(StrictModel):
+    version: Literal["expansion-inspection-market-context-v1"]
+    observations: list[InspectionMarketObservation] = Field(max_length=2)
+    gaps: list[str]
+
+
 class InspectionEntry(StrictModel):
     candidateId: str = ID
     name: str = Field(min_length=1)
@@ -652,6 +672,7 @@ class InspectionEntry(StrictModel):
     assessments: list[Assessment] = Field(default_factory=list)
     gaps: list[Assessment] = Field(default_factory=list)
     verificationTasks: list[str] = Field(default_factory=list)
+    marketContext: InspectionMarketContext | None = None
 
 
 class InspectionArtifact(StrictModel):

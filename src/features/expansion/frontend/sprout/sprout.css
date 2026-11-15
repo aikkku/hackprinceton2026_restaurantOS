@@ -224,6 +224,17 @@
 .sx-pin .sx-dot { width: 24px; height: 24px; }
 .sx-pin[aria-pressed="true"] { background: var(--sx-primary); color: #fff; transform: scale(1.12); }
 .sx-pin-dim { opacity: .6; }
+.sx-score { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; font-weight: 800; color: var(--sx-primary); font-size: 14px; }
+.sx-score-coverage { font-weight: 500; font-size: 11px; color: var(--sx-muted); }
+.sx-score[data-tone="good"] { color: var(--sx-good); }
+.sx-score[data-tone="mixed"] { color: var(--sx-check); }
+.sx-score[data-tone="low"] { color: var(--sx-no); }
+.sx-score[data-tone="unknown"] { color: var(--sx-unknown); }
+.sx-score-pin { padding: 7px 11px; font-variant-numeric: tabular-nums; }
+.sx-score-pin[data-tone="good"] { border-color: var(--sx-good); }
+.sx-score-pin[data-tone="mixed"] { border-color: var(--sx-check); }
+.sx-score-pin[data-tone="low"] { border-color: var(--sx-no); }
+.sx-pin-count { font-size: 10px; font-weight: 600; opacity: .75; }
 .sx-pin-saved { position: absolute; top: -6px; right: -6px; width: 18px; height: 18px; border-radius: 999px; background: var(--sx-accent); border: 2px solid #FFFFFF; }
 .sx-plane-pin { position: absolute; transform: translate(-50%, -100%); }
 .sx-map-ctrl { position: absolute; right: 16px; top: 16px; display: flex; flex-direction: column; border-radius: 14px; background: var(--sx-surface); box-shadow: 0 2px 10px #00000026; overflow: hidden; z-index: 2; }

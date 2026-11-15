@@ -14,7 +14,9 @@ import { createProfileRevision } from "./domain/requirements.ts";
 import { createAgentRun, getAgentRun, staleRunReason, AGENT_RUN_HARD_STALE_MS, WORKER_START_GRACE_MS } from "./backend/agent.ts";
 import { OWNER_COOKIE, ownerCookieValue, resolveOwner, verifyOwnerCookie, OwnerError } from "./backend/owner.ts";
 import { contentHash, createFileRepository, createMemoryRepository, docId, setRepositoryForTests, type ExpansionRepository } from "./backend/store.ts";
-import { durableArtifact, durableRun, importBrowserData, listBriefs, loadLatestProfile, saveBrief, saveProfileEnvelope, syncAgentRun } from "./backend/durable.ts";
+import { durableArtifact, durableRun, importBrowserData, listBriefs, listProfiles, loadLatestProfile, loadProfile, saveBrief, saveProfileEnvelope, syncAgentRun } from "./backend/durable.ts";
+import { GET as profilesGetRoute, POST as profilesPostRoute } from "../../app/api/expansion/profiles/route.ts";
+import { GET as profileGetRoute } from "../../app/api/expansion/profiles/[profileId]/route.ts";
 import { POST as createAgentRunRoute } from "../../app/api/expansion/agent-runs/route.ts";
 import { GET as getAgentRunRoute } from "../../app/api/expansion/agent-runs/[id]/route.ts";
 import { POST as cancelAgentRoute } from "../../app/api/expansion/agent-runs/[id]/cancel/route.ts";
@@ -165,6 +167,49 @@ test("profile revisions persist immutably and restore as a validated envelope", 
   const altered = structuredClone(r0) as typeof r0 & { editSummary: string };
   altered.editSummary = "Rewritten history";
   await assert.rejects(saveProfileEnvelope(repo, A, { ...envelope, revisions: [altered] }, "app"), /immutable/);
+});
+
+test("owners list their own profiles, load one by id, and re-saving does not reorder them", async () => {
+  const repo = createMemoryRepository();
+  const envelopeFor = (id: string, at: string) => ({
+    schemaVersion: 1 as const, updatedAt: at,
+    revisions: [createProfileRevision(intake, { revisionId: id, revisionNumber: 0, createdAt: at, parentRevisionId: null, editSummary: "Synthetic." })],
+  });
+  const first = envelopeFor("p5-list-first", "2026-11-15T00:00:00.000Z");
+  await saveProfileEnvelope(repo, A, first, "app");
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  await saveProfileEnvelope(repo, A, envelopeFor("p5-list-second", "2026-11-15T00:01:00.000Z"), "app");
+  await saveProfileEnvelope(repo, B, envelopeFor("p5-list-other-owner", "2026-11-15T00:02:00.000Z"), "app");
+  assert.deepEqual((await listProfiles(repo, A)).map((item) => item.profileId), ["p5-list-second", "p5-list-first"]);
+  // Re-saving an unchanged envelope is idempotent and does not bump it to the top.
+  await new Promise((resolve) => setTimeout(resolve, 5));
+  await saveProfileEnvelope(repo, A, first, "app");
+  const listed = await listProfiles(repo, A);
+  assert.deepEqual(listed.map((item) => item.profileId), ["p5-list-second", "p5-list-first"]);
+  assert.equal(listed[1].restaurantName, intake.restaurant.name);
+  assert.equal(listed[1].isDemo, true);
+  assert.equal(listed[1].latestRevisionNumber, 0);
+  assert.equal((await loadProfile(repo, A, "p5-list-first"))?.revisions[0].revisionId, "p5-list-first");
+  assert.equal(await loadProfile(repo, B, "p5-list-first"), null, "another owner's profile id never resolves");
+});
+
+test("profile routes create, list and load per owner", async () => {
+  const C = "o_ownerC_synthetic";
+  const D = "o_ownerD_synthetic";
+  const at = "2026-11-15T00:03:00.000Z";
+  const envelope = { schemaVersion: 1, updatedAt: at, revisions: [createProfileRevision(intake, { revisionId: "p5-route-profile", revisionNumber: 0, createdAt: at, parentRevisionId: null, editSummary: "Synthetic." })] };
+  const created = await profilesPostRoute(new Request("http://test.local/api/expansion/profiles", { method: "POST", headers: { "Content-Type": "application/json", cookie: cookieFor(C) }, body: JSON.stringify({ envelope }) }));
+  assert.equal(created.status, 200);
+  assert.equal((await created.json()).profileId, "p5-route-profile");
+  const list = await profilesGetRoute(new Request("http://test.local/x", { headers: { cookie: cookieFor(C) } }));
+  assert.deepEqual((await list.json()).profiles.map((item: { profileId: string }) => item.profileId), ["p5-route-profile"]);
+  const loaded = await profileGetRoute(new Request("http://test.local/x", { headers: { cookie: cookieFor(C) } }), { params: Promise.resolve({ profileId: "p5-route-profile" }) });
+  assert.equal(loaded.status, 200);
+  assert.equal((await loaded.json()).envelope.revisions[0].revisionId, "p5-route-profile");
+  const foreign = await profileGetRoute(new Request("http://test.local/x", { headers: { cookie: cookieFor(D) } }), { params: Promise.resolve({ profileId: "p5-route-profile" }) });
+  assert.equal(foreign.status, 404);
+  const empty = await profilesGetRoute(new Request("http://test.local/x", { headers: { cookie: cookieFor(D) } }));
+  assert.deepEqual((await empty.json()).profiles, []);
 });
 
 // --- A finished synthetic run on disk for durable sync + briefs -------------

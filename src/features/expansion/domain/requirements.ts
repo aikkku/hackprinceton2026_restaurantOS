@@ -297,6 +297,8 @@ export function normalizeRequirements(
   meta: { revisionId: string; revisionNumber: number; createdAt: string },
 ): SearchRequirements {
   assertSupportedIntake(intake);
+  // The fictional example is simulated; an owner's own answers are their stated assumptions.
+  const stated: Requirement["origin"] = intake.isDemo ? "simulated" : "assumed";
   const budget = intake.budget;
   const space = intake.space;
   return searchRequirementsSchema.parse({
@@ -318,7 +320,7 @@ export function normalizeRequirements(
           },
         },
         unit: null,
-        origin: "simulated",
+        origin: stated,
         sourceAnswerIds: intake.expansion.sourceAnswerIds,
         note: "Search market. Unsupported markets are rejected explicitly, never re-interpreted.",
       }),
@@ -332,9 +334,9 @@ export function normalizeRequirements(
           othersAcceptable: intake.expansion.otherNeighborhoodsAcceptable,
         },
         unit: null,
-        origin: "simulated",
+        origin: stated,
         sourceAnswerIds: intake.expansion.sourceAnswerIds,
-        note: "Heights is preferred; other Houston neighborhoods remain eligible.",
+        note: "Owner-selected neighborhoods are preferences; other Houston areas remain eligible. Membership uses sourced boundaries.",
       }),
       requirement({
         id: "occupancy.monthlyLimit",
@@ -342,7 +344,7 @@ export function normalizeRequirements(
         label: "Total monthly occupancy limit",
         value: { kind: "number", value: budget.maximumMonthlyOccupancyCost },
         unit: "USD/month",
-        origin: "simulated",
+        origin: stated,
         sourceAnswerIds: budget.sourceAnswerIds,
         note: "Hard TOTAL monthly occupancy cap. Base rent alone does not establish affordability.",
       }),
@@ -352,7 +354,7 @@ export function normalizeRequirements(
         label: "What the occupancy limit covers",
         value: { kind: "text", value: budget.monthlyOccupancyCostIncludes },
         unit: null,
-        origin: "simulated",
+        origin: stated,
         sourceAnswerIds: budget.sourceAnswerIds,
         note: "The $5,000 limit covers base rent and additional building charges.",
       }),
@@ -362,7 +364,7 @@ export function normalizeRequirements(
         label: "Total available funds",
         value: { kind: "number", value: budget.totalAvailableFunds },
         unit: "USD",
-        origin: "simulated",
+        origin: stated,
         sourceAnswerIds: budget.sourceAnswerIds,
         note: "$100,000 total funds is not the available opening spend; the emergency reserve is unspecified.",
       }),
@@ -375,7 +377,7 @@ export function normalizeRequirements(
             ? { kind: "unknown" }
             : { kind: "number", value: budget.cashReserveToKeep },
         unit: "USD",
-        origin: "simulated",
+        origin: stated,
         sourceAnswerIds: budget.sourceAnswerIds,
         note: "The unspecified reserve stays unknown; it is not zero.",
       }),
@@ -389,7 +391,7 @@ export function normalizeRequirements(
           maximum: space.preferredSeats.maximum,
         },
         unit: "seats",
-        origin: "simulated",
+        origin: stated,
         sourceAnswerIds: space.sourceAnswerIds,
         note: "Preference, not a hard square-footage filter. Seats are never converted into an area bound.",
       }),
@@ -409,7 +411,7 @@ export function normalizeRequirements(
         label: "Existing kitchen",
         value: { kind: "boolean", value: space.mustHave.existingKitchen },
         unit: null,
-        origin: "simulated",
+        origin: stated,
         sourceAnswerIds: space.sourceAnswerIds,
         note: "Mandatory. Missing evidence means verification is needed; it does not establish presence or absence.",
       }),
@@ -419,7 +421,7 @@ export function normalizeRequirements(
         label: "Customer parking",
         value: { kind: "boolean", value: space.mustHave.customerParking },
         unit: null,
-        origin: "simulated",
+        origin: stated,
         sourceAnswerIds: space.sourceAnswerIds,
         note: "Mandatory. Missing evidence means verification is needed.",
       }),
@@ -432,7 +434,7 @@ export function normalizeRequirements(
             ? { kind: "unknown" }
             : { kind: "number", value: space.minimumCustomerParkingSpaces },
         unit: "spaces",
-        origin: "simulated",
+        origin: stated,
         sourceAnswerIds: space.sourceAnswerIds,
         note: "No numeric parking minimum was supplied; none is inferred.",
       }),
@@ -445,7 +447,7 @@ export function normalizeRequirements(
             ? { kind: "unknown" }
             : { kind: "text", value: space.ventilationRequirements },
         unit: null,
-        origin: "simulated",
+        origin: stated,
         sourceAnswerIds: space.sourceAnswerIds,
         note: "Optional follow-up question; the initial search does not require it.",
       }),
