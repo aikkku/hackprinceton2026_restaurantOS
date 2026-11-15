@@ -197,12 +197,13 @@ export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, 
           )}
         </Disclosure>
 
-        <Disclosure title="Inside the space" hint={scans.length ? (scans[0].sourceDate ? `Scan from ${dateText(scans[0].sourceDate)}` : "Interior scan available") : "No scan yet"}>
+        <Disclosure title="Inside the space" open={scans.some((scan) => scan.viewerUrl) || undefined} hint={scans.length ? (scans[0].sourceDate ? `Scan from ${dateText(scans[0].sourceDate)}` : "Interior scan available") : "No scan yet"}>
           {scans.length ? scans.map((scan) => (
             <div key={scan.id} className="sx-stack">
               {scan.isSynthetic && <Tag kind="example">Test example, not a real scan</Tag>}
               {scan.viewerUrl
-                ? <iframe className="sx-viewer" title={`Interior scan of ${candidate.name}`} src={scan.viewerUrl} loading="lazy" allowFullScreen sandbox="allow-scripts allow-same-origin allow-presentation" />
+                // play=1 starts the tour without the splash/play button; qs=1 skips the fly-in intro.
+                ? <iframe className="sx-viewer" title={`Interior scan of ${candidate.name}`} src={`${scan.viewerUrl}&play=1&qs=1`} allow="fullscreen; xr-spatial-tracking" allowFullScreen sandbox="allow-scripts allow-same-origin allow-presentation" />
                 : <p className="sx-muted">{scan.label}</p>}
               <ul className="sx-small sx-muted">{[...scan.details, ...scan.limitations].map((line, i) => <li key={i}>{line}</li>)}</ul>
             </div>
