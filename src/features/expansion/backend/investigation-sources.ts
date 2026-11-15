@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync } from "node:fs";
 import { resolve, sep } from "node:path";
 import { promisify } from "node:util";
 import { z } from "zod";
@@ -145,9 +145,11 @@ export async function collectCandidateSources(candidate: SpaceCandidate, options
     gaps: [...inferenceGaps, ...contextGaps(options.currentAddress, options.priceLevel), ...statuses.filter(x => x.status !== "verified").map(x => `${x.provider}: ${x.reason}`)] });
 }
 
-function readEvidenceImage(imageFile: string): Uint8Array {
-  const file = resolve(imageFile);
-  if (!file.startsWith(resolve("src/features/expansion/data/data/evidence-images") + sep)) throw new Error("Invalid image reference.");
+export function readEvidenceImage(imageFile: string, imageDirectory = "src/features/expansion/data/data/evidence-images"): Uint8Array {
+  // The Python helper resolves symlinks, including Docker's repository-data -> /data.
+  // Resolve both sides so valid volume images pass and links outside the cache fail.
+  const file = realpathSync(imageFile);
+  if (!file.startsWith(realpathSync(imageDirectory) + sep)) throw new Error("Invalid image reference.");
   const bytes = readFileSync(file);
   if (bytes.byteLength > 15_000_000) throw new Error("Image exceeds limit.");
   return bytes;
