@@ -74,7 +74,7 @@ export async function collectCandidateSources(candidate: SpaceCandidate, options
   if (sourceCallsAllowed && candidate.latitude !== null && candidate.longitude !== null) {
     try {
       const geoUrl = new URL("https://geocoding.geo.census.gov/geocoder/geographies/coordinates");
-      geoUrl.search = new URLSearchParams({ x: String(candidate.longitude), y: String(candidate.latitude), benchmark: "Public_AR_Current", vintage: "Census2020_Census2020", format: "json" }).toString();
+      geoUrl.search = new URLSearchParams({ x: String(candidate.longitude), y: String(candidate.latitude), benchmark: "Public_AR_Current", vintage: "Current_Current", format: "json" }).toString();
       const tract = geoSchema.parse(await boundedJson(fetcher, geoUrl.toString())).result.geographies["Census Tracts"][0];
       const url = new URL("https://api.census.gov/data/2023/acs/acs5");
       url.search = new URLSearchParams({ get: `NAME,${ACS_VARIABLES.join(",")}`, for: `tract:${tract.TRACT}`, in: `state:${tract.STATE} county:${tract.COUNTY}` }).toString();

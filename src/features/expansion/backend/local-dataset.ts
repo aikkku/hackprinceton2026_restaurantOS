@@ -134,7 +134,11 @@ function propertyRecord(raw:Raw,settings:LocalConfig):NormalizedRecord {
 }
 function spaceRecord(raw:Raw,listing:Raw,parent:NormalizedRecord,settings:LocalConfig,report:ImportReport):NormalizedRecord {
   const id=sourceId(raw.id),listingId=sourceId(listing.id);if(!id||!listingId)throw new Error("invalid_space_or_listing_id");
-  const low=positive(raw.rateLow),high=positive(raw.rateHigh),basis=numeric(raw.rateBasis),currency=numeric(raw.monetaryUnit),measurement=numeric(object(listing.forLeaseSummary).askingRateMeasurementType),service=numeric(raw.serviceType);
+  // A listing may explicitly carry no asking rate ("call for pricing"):
+  // askingRateHasValue:false means no quoted rent exists, so 0 rates are
+  // "not listed", never $0/SF. positive() also keeps any quoted 0 out.
+  const hasAskingRate=raw.askingRateHasValue!==false;
+  const low=hasAskingRate?positive(raw.rateLow):null,high=hasAskingRate?positive(raw.rateHigh):null,basis=numeric(raw.rateBasis),currency=numeric(raw.monetaryUnit),measurement=numeric(object(listing.forLeaseSummary).askingRateMeasurementType),service=numeric(raw.serviceType);
   if((numeric(raw.rateLow)??0)<0||(numeric(raw.rateHigh)??0)<0||(low!==null&&high!==null&&low>high))throw new Error("invalid_rent_range");
   const status=numeric(listing.listingStatus);
   if(low===null)warning(report,"missing_rent");
@@ -148,7 +152,7 @@ function spaceRecord(raw:Raw,listing:Raw,parent:NormalizedRecord,settings:LocalC
   const floorAreaSqFt=min!==null&&max!==null&&min===max?min:null;
   if(min===null||max===null)warning(report,"missing_floor_area");
   const spaceUse=numeric(raw.spaceUse),availabilityCode=numeric(raw.availabilityType);
-  const sourceRent={low:numeric(raw.rateLow),high:numeric(raw.rateHigh),rateBasisCode:basis,measurementCode:measurement,currencyCode:currency,serviceTypeCode:service,availabilityTypeCode:availabilityCode,availableOnDate:date(raw.availableOnDate),listingStatusCode:status,certifiedFreshDate:date(listing.certifiedFreshDate),dateOnMarket:date(raw.dateOnMarket)};
+  const sourceRent={low,high,rateBasisCode:basis,measurementCode:measurement,currencyCode:currency,serviceTypeCode:service,availabilityTypeCode:availabilityCode,availableOnDate:date(raw.availableOnDate),listingStatusCode:status,certifiedFreshDate:date(listing.certifiedFreshDate),dateOnMarket:date(raw.dateOnMarket)};
   return normalizedRecordSchema.parse({...parent,id:`costar-space:${id}`,sourceSpaceId:id,sourceListingId:listingId,recordKind:"listing",name:`${parent.name}${text(raw.suite)?` · Suite ${text(raw.suite)}`:` · Space ${id}`}`,floorAreaSqFt,askingRent,originalRentUnit:`currency=${currency??"unknown"}; measurement=${measurement??"unknown"}; rateBasis=${basis??"unknown"}`,rentBasis:`${low??"unknown"}${high!==null&&high!==low?`–${high}`:""} ${currency===1?"USD":`currency code ${currency??"unknown"}`} / ${measurement===1?"SF":`measurement code ${measurement??"unknown"}`} / ${basis===1?"month":basis===2?"year":"unknown period"}; ${SERVICES[service??0]??"Unknown service"}; ${status===1?"marketed Active in snapshot":status===3?"OffMarket in snapshot":`listing status ${status??"unknown"}`}; ${floorAreaSqFt===null?`area range ${min??"unknown"}–${max??"unknown"} SF; exact scenario area unknown`:"exact offered area"}`,availability:"unknown",recordDate:date(listing.certifiedFreshDate),datasetDate:settings.datasetDate??null,sourceRent,spaceUseCode:spaceUse,sizeRangeSqFt:{minimum:min,maximum:max},sourceIds:[...parent.sourceIds,`costar:listing:${listingId}`],isDemo:false});
 }
 function initialize(db:DatabaseSync) {

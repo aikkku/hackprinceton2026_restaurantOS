@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { monthlyOccupancyRange, serviceInclusion, type SpaceCandidate } from "./matching.ts";
+import { rentEstimateSchema } from "./rent-estimate.ts";
 import { requiredSalesMonthly } from "./scenario.ts";
 
 export const DECISION_FINANCE_VERSION = "expansion-decision-finance-v1";
@@ -26,6 +27,14 @@ export const decisionFinanceInputsSchema = z.object({
   assumedSalesMonthly: amount.nullable(),
   /** Fields currently holding ILLUSTRATIVE_VALUES (absent in pre-illustrative saves → []). */
   illustrative: z.array(z.enum(illustrativeKeys)).max(illustrativeKeys.length).default([]),
+  /**
+   * Opted-in derived base-rent estimate (D-033 precedent: additive optional
+   * field with a default, like `illustrative`). Old saved inputs without the
+   * field parse unchanged and recompute identically: the field defaults to
+   * null and the calculation is unchanged when null. An estimate is base
+   * rent only and NEVER changes the matching assessment.
+   */
+  occupancyEstimate: rentEstimateSchema.nullable().default(null),
 }).superRefine((value, ctx) => {
   if (new Set(value.illustrative).size !== value.illustrative.length)
     ctx.addIssue({ code: "custom", path: ["illustrative"], message: "Duplicate illustrative field." });
@@ -42,6 +51,7 @@ export const emptyFinanceInputs = (): DecisionFinanceInputs => ({
   contributionMargin: null, totalFunds: null, reserve: null,
   upfront: upfrontCategories.map(category => ({ category, amount: null })),
   averageSpend: null, operatingDays: null, assumedSalesMonthly: null, illustrative: [],
+  occupancyEstimate: null,
 });
 /** Fill only blank illustrative-eligible fields; existing owner inputs are never overwritten. */
 export function applyIllustrative(inputs: DecisionFinanceInputs): DecisionFinanceInputs {
@@ -53,13 +63,17 @@ export function applyIllustrative(inputs: DecisionFinanceInputs): DecisionFinanc
 export type MoneyRange = { low: number; high: number | null };
 /**
  * Display-only split of the occupancy total (not part of saved results):
- * base rent from the quoted rent, plus nonincluded charges once.
+ * base rent from the quoted rent — or, when the quote is unknown and the
+ * owner opted into a derived estimate, the estimate's monthly range — plus
+ * nonincluded charges once. The estimate is base rent only; it never
+ * changes the matching assessment.
  */
-export function occupancyBreakdown(candidate: SpaceCandidate, additionalOccupancyMonthly: number | null): { baseRent: MoneyRange | null; additional: { status: "included_in_rent" | "known" | "unknown"; monthly: number | null } } {
+export function occupancyBreakdown(candidate: SpaceCandidate, additionalOccupancyMonthly: number | null, estimateMonthly: { low: number; high: number } | null = null): { baseRent: MoneyRange | null; additional: { status: "included_in_rent" | "known" | "unknown"; monthly: number | null } } {
   const inclusion = serviceInclusion(candidate.rent?.serviceTypeCode ?? null);
   const base = monthlyOccupancyRange(candidate, 0, "not_included");
+  const baseRent = "known" in base ? base.known : estimateMonthly !== null ? { ...estimateMonthly } : null;
   return {
-    baseRent: "known" in base ? base.known : null,
+    baseRent,
     additional: inclusion === "included" ? { status: "included_in_rent", monthly: null } : additionalOccupancyMonthly === null ? { status: "unknown", monthly: null } : { status: "known", monthly: additionalOccupancyMonthly },
   };
 }
@@ -79,10 +93,21 @@ export type DecisionFinanceResult = z.infer<typeof decisionFinanceResultSchema>;
 export function calculateDecisionFinance(candidate: SpaceCandidate, raw: DecisionFinanceInputs): DecisionFinanceResult {
   const input = decisionFinanceInputsSchema.parse(raw);
   const occupancyResult = monthlyOccupancyRange(candidate, input.additionalOccupancyMonthly, serviceInclusion(candidate.rent?.serviceTypeCode ?? null));
-  const occupancy = "known" in occupancyResult ? occupancyResult.known : null;
+  let occupancy = "known" in occupancyResult ? occupancyResult.known : null;
   const gaps: string[] = [];
   const notes = ["All edited finance inputs are user planning assumptions. No demand or payback prediction is made."];
   if (input.illustrative.length) notes.push(`Illustrative (not sourced, not the owner's figures): ${input.illustrative.map(key => `${key} = ${ILLUSTRATIVE_VALUES[key]}`).join(", ")}. Results using them are illustrations only.`);
+  // Opted-in derived estimate replaces an unknown quoted base rent only.
+  // Base-rent-only rule: while extra charges are unknown the high bound
+  // stays null, and the estimate NEVER changes the matching assessment.
+  if (!("known" in occupancyResult) && input.occupancyEstimate?.monthly) {
+    const estimate = input.occupancyEstimate.monthly;
+    occupancy = {
+      low: estimate.low + (input.additionalOccupancyMonthly ?? 0),
+      high: input.additionalOccupancyMonthly === null ? null : estimate.high + input.additionalOccupancyMonthly,
+    };
+    notes.push(`Base rent uses the market estimate (${input.occupancyEstimate.comparableCount} comparable listings, ${input.occupancyEstimate.method}); it is derived, not this listing's price.`);
+  }
   if (!occupancy || occupancy.high === null) gaps.push("Total monthly occupancy is incomplete.");
   if ("notes" in occupancyResult) notes.push(...occupancyResult.notes);
   let fixedCosts: { low: number; high: number | null } | null = null;

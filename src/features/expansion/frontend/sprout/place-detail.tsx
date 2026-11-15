@@ -5,7 +5,7 @@ import type { BriefChoice } from "../../domain/decision-brief.ts";
 import { investigationNoteSchema, type InvestigationNote, type SourceObservation } from "../../domain/evidence.ts";
 import type { AssessedCandidate, CandidateFact, RequirementAssessment } from "../../domain/matching.ts";
 import {
-  FACTOR_NAME, FACTOR_REQUIREMENT, FIT_LABEL, chargesLabel, checkQuestion, costLabel, fitForGroup, fitForStatus, friendlyReason,
+  FACTOR_NAME, FACTOR_REQUIREMENT, FIT_LABEL, chargesLabel, checkQuestion, costLabel, estimateCostLabel, estimateMethodText, fitForGroup, fitForStatus, friendlyReason,
   money, monthlyCost, quotedRate, rangeLabel, ruleLabel, verdict, occupancyBreakdown, type FactorKey,
 } from "./model.ts";
 import { placeSubtitle } from "./places.tsx";
@@ -76,7 +76,20 @@ export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, 
   const scans = observations.filter((o) => o.provider === "matterport");
   const aerials = observations.filter((o) => o.provider === "vexcel");
   const statusFor = (provider: SourceObservation["provider"]) => choice.assessment.sources.statuses.find((s) => s.provider === provider);
-  const split = occupancyBreakdown(candidate, choice.financeInputs.additionalOccupancyMonthly);
+  // Owner-friendly wording for missing scans/aerials; the exact provider status
+  // and reason stay visible in "Source status" under Listing details.
+  const gapText = (provider: "matterport" | "vexcel") => {
+    const status = statusFor(provider);
+    const none = provider === "matterport" ? "No interior scan exists for this space." : "No aerial photo is available for this place.";
+    if (!status || status.reason.includes("Configure EXPANSION_SOURCE_NETWORK") || status.status === "configured") return none;
+    if (status.status === "outside_coverage") return provider === "matterport" ? none : "No aerial photo is in our imagery source's coverage for this area.";
+    if (status.status === "denied") return provider === "matterport" ? "We couldn’t reach the scan source right now (access was denied)." : "We couldn’t reach the imagery source right now (access was denied).";
+    return provider === "matterport" ? "We couldn’t reach the scan source right now." : "We couldn’t reach the imagery source right now.";
+  };
+  // Live workspaces carry estimates in workspace.rentEstimates; saved plans
+  // carry the opted-in estimate in the choice's financeInputs (provenance).
+  const estimate = choice.financeInputs.occupancyEstimate ?? workspace.rentEstimates.get(candidate.id) ?? null;
+  const split = occupancyBreakdown(candidate, choice.financeInputs.additionalOccupancyMonthly, choice.financeInputs.occupancyEstimate?.monthly ?? null);
   const factors = (["cost", "parking", "kitchen", "space"] as FactorKey[]).map((key) => ({ key, assessment: byId(FACTOR_REQUIREMENT[key]) })).filter((x): x is { key: FactorKey; assessment: RequirementAssessment } => Boolean(x.assessment));
 
   return (
@@ -159,6 +172,16 @@ export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, 
               </div>
             );
           })}
+          {estimate && (
+            <div className="sx-ev">
+              <span className="sx-strong">Estimated rent method</span>
+              <div className="sx-ev-head"><Tag kind="estimate">Estimate</Tag></div>
+              <ul>
+                <li>{candidate.isDemo ? `Synthetic ${estimateMethodText(estimate)}` : estimateMethodText(estimate)}</li>
+                <li>Base rent only; extra building charges aren’t included.</li>
+              </ul>
+            </div>
+          )}
           {inspectorTasks.length > 0 && (
             <div className="sx-ev">
               <span className="sx-strong">Space inspector’s follow-ups</span>
@@ -174,7 +197,7 @@ export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, 
           )}
         </Disclosure>
 
-        <Disclosure title="Inside the space" hint={scans.length ? `Scan from ${dateText(scans[0].sourceDate)}` : "No scan yet"}>
+        <Disclosure title="Inside the space" hint={scans.length ? (scans[0].sourceDate ? `Scan from ${dateText(scans[0].sourceDate)}` : "Interior scan available") : "No scan yet"}>
           {scans.length ? scans.map((scan) => (
             <div key={scan.id} className="sx-stack">
               {scan.isSynthetic && <Tag kind="example">Test example, not a real scan</Tag>}
@@ -183,10 +206,10 @@ export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, 
                 : <p className="sx-muted">{scan.label}</p>}
               <ul className="sx-small sx-muted">{[...scan.details, ...scan.limitations].map((line, i) => <li key={i}>{line}</li>)}</ul>
             </div>
-          )) : <p className="sx-muted">No interior scan is available for this space. {statusFor("matterport")?.reason ?? ""}</p>}
+          )) : <p className="sx-muted">{gapText("matterport")}</p>}
         </Disclosure>
 
-        <Disclosure title="From above" hint={aerials.length ? `Aerial photo, ${dateText(aerials[0].sourceDate)}` : "No aerial photo yet"}>
+        <Disclosure title="From above" hint={aerials.length ? (aerials[0].sourceDate ? `Aerial photo, ${dateText(aerials[0].sourceDate)}` : "Aerial photo available") : "No aerial photo yet"}>
           {aerials.length ? aerials.map((aerial) => (
             <div key={aerial.id} className="sx-stack">
               {aerial.isSynthetic && <Tag kind="example">Test example, not a real photo</Tag>}
@@ -195,13 +218,16 @@ export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, 
               <ul className="sx-small sx-muted">{[...aerial.details, ...aerial.limitations].map((line, i) => <li key={i}>{line}</li>)}</ul>
               <p className="sx-small sx-muted">Visible parking spaces don’t show who may use them.</p>
             </div>
-          )) : <p className="sx-muted">No aerial photo is available for this space. {statusFor("vexcel")?.reason ?? ""}</p>}
+          )) : <p className="sx-muted">{gapText("vexcel")}</p>}
         </Disclosure>
 
         <Disclosure title="Listing details and sources" last>
           <dl className="sx-facts">
             <div><dt>Space available</dt><dd>{candidate.floorAreaSqFt !== null ? `${candidate.floorAreaSqFt.toLocaleString("en-US")} sq ft` : candidate.sizeRangeSqFt.minimum !== null ? `${candidate.sizeRangeSqFt.minimum.toLocaleString("en-US")}–${candidate.sizeRangeSqFt.maximum?.toLocaleString("en-US") ?? "?"} sq ft` : "Not listed"}</dd></div>
             <div><dt>Quoted rent</dt><dd>{quotedRate(candidate) ?? "Not listed in a supported unit"}</dd></div>
+            {quotedRate(candidate) === null && (
+              <div><dt>Estimated base rent</dt><dd>{estimate ? estimateCostLabel(estimate) : "Not available"}</dd></div>
+            )}
             <div><dt>Base rent</dt><dd>{rangeLabel(split.baseRent, "/mo") ?? "Can’t work out"}</dd></div>
             <div><dt>Extra building charges</dt><dd>{split.additional.status === "known" && split.additional.monthly !== null ? `${money(split.additional.monthly)}/mo (your number)` : chargesLabel(candidate)}</dd></div>
             <div><dt>Total monthly cost</dt><dd>{rangeLabel(choice.financeResults.occupancy, "/mo") ?? "Not known yet"}</dd></div>

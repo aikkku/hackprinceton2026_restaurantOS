@@ -363,6 +363,30 @@ test("ordering separates groups before any other signal", () => {
   );
 });
 
+test("spaces without a listed rent stay needs-verification and rank after real quoted rents", () => {
+  // No rent supplied: unknown ("ambiguous_basis"), never a $0 pass.
+  const noRent = evaluateCandidate(candidate({ id: "costar-space:1", rent: null }), requirements, []);
+  assert.equal(noRent.find((a) => a.requirementId === "occupancy.monthlyLimit")!.status, "unknown");
+  assert.equal(noRent.find((a) => a.requirementId === "occupancy.monthlyLimit")!.reasonCode, "ambiguous_basis");
+  assert.equal(groupFor(noRent), "needs_verification");
+  // A listed rent with unknown extras stays needs-verification too, but its
+  // known lower bound ranks it ahead of the no-rent space.
+  const listed = evaluateCandidate(
+    candidate({ id: "costar-space:2", rent: { ...base.rent, low: 2, high: 2, serviceTypeCode: 13 } }),
+    requirements,
+    [],
+  );
+  assert.equal(groupFor(listed), "needs_verification");
+  const ordered = orderCandidates([
+    { candidate: candidateSchema.parse(candidate({ id: "costar-space:2" })), assessments: listed, group: groupFor(listed), rank: 0, orderingNotes: [] },
+    { candidate: candidateSchema.parse(candidate({ id: "costar-space:1", rent: null })), assessments: noRent, group: groupFor(noRent), rank: 0, orderingNotes: [] },
+  ]);
+  assert.deepEqual(
+    ordered.map((item) => item.candidate.id),
+    ["costar-space:2", "costar-space:1"],
+  );
+});
+
 test("assessCandidates counts unknown-use candidates separately and preserves soft seats mismatch", () => {
   const report = assessCandidates(
     [candidate({ spaceUseCode: 0 }), candidate({ id: "costar-space:2", spaceUseCode: null })],

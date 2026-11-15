@@ -1,7 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { calculateDecisionFinance, decisionFinanceInputsSchema, emptyFinanceInputs, upfrontCategories } from "./domain/decision-finance.ts";
+import { calculateDecisionFinance, decisionFinanceInputsSchema, emptyFinanceInputs, occupancyBreakdown, upfrontCategories } from "./domain/decision-finance.ts";
 import { candidateSchema } from "./domain/matching.ts";
+import { rentEstimateSchema, RENT_ESTIMATE_MODEL_VERSION } from "./domain/rent-estimate.ts";
+import type { RentEstimate } from "./domain/rent-estimate.ts";
 
 // Explicit synthetic inputs. These are not CoStar records or measured finances.
 const candidate = candidateSchema.parse({ id: "synthetic:space-a", name: "Synthetic test suite", address: "1 Test St", suite: "A", cityId: "houston", latitude: 29.8, longitude: -95.4, h3Index: null, floorAreaSqFt: 1000, sizeRangeSqFt: { minimum: 1000, maximum: 1000 }, rent: { low: 48, high: 48, rateBasisCode: 2, currencyCode: 1, measurementCode: 1, serviceTypeCode: 13 }, spaceUseCode: 5, listingStatusCode: 1, propertyId: "synthetic:building", sourceIds: ["synthetic-test-input"], recordDate: null, datasetDate: null, isDemo: true });
@@ -60,4 +62,65 @@ test("zero margin, missing fixed costs and invalid spend never produce finance d
   assert.equal(calculateDecisionFinance(candidate, { ...emptyFinanceInputs(), contributionMargin: 0.4 }).requiredSales, null);
   assert.equal(decisionFinanceInputsSchema.safeParse({ ...emptyFinanceInputs(), averageSpend: 0 }).success, false);
   assert.equal(decisionFinanceInputsSchema.safeParse({ ...emptyFinanceInputs(), operatingDays: 0 }).success, false);
+});
+
+// ---------------------------------------------------------------------------
+// Derived rent-estimate opt-in (base rent only; never a matching result)
+
+const noRent = candidateSchema.parse({ id: "synthetic:space-no-rent", name: "No-rent test suite", address: "1 Test St", suite: "B", cityId: "houston", latitude: 29.8, longitude: -95.4, h3Index: null, floorAreaSqFt: 1000, sizeRangeSqFt: { minimum: 1000, maximum: 1000 }, rent: null, spaceUseCode: 5, listingStatusCode: 1, propertyId: "synthetic:building", sourceIds: ["synthetic-test-input"], recordDate: null, datasetDate: null, isDemo: true });
+
+function estimate(monthly: { low: number; high: number }): RentEstimate {
+  return rentEstimateSchema.parse({
+    modelVersion: RENT_ESTIMATE_MODEL_VERSION,
+    method: "city_fallback",
+    comparableCount: 6,
+    radiusKm: 5,
+    medianAnnualPerSqFt: 30,
+    p25AnnualPerSqFt: 24,
+    p75AnnualPerSqFt: 36,
+    monthly,
+    sizeBasis: "exact",
+    sourceIds: ["costar-space:1"],
+    datasetId: "synthetic-test",
+    datasetDate: null,
+    origin: "derived",
+    generatedAt: "2026-11-15T00:00:00.000Z",
+    notes: ["a", "b"],
+  });
+}
+
+test("estimate opt-in: null estimate changes nothing; known charges add once; unknown charges keep the gap", () => {
+  const baseline = calculateDecisionFinance(noRent, emptyFinanceInputs());
+  assert.equal(baseline.occupancy, null);
+  // A null estimate (the default) recomputes exactly like the pre-change shape.
+  assert.deepEqual(
+    calculateDecisionFinance(noRent, { ...emptyFinanceInputs(), occupancyEstimate: null }),
+    baseline,
+  );
+  const optedIn = { ...emptyFinanceInputs(), occupancyEstimate: estimate({ low: 2000, high: 3000 }) };
+  const unknownCharges = calculateDecisionFinance(noRent, optedIn);
+  assert.deepEqual(unknownCharges.occupancy, { low: 2000, high: null });
+  assert.ok(unknownCharges.gaps.includes("Total monthly occupancy is incomplete."));
+  assert.ok(unknownCharges.notes.some((note) => note.includes("market estimate")));
+  const knownCharges = calculateDecisionFinance(noRent, { ...optedIn, additionalOccupancyMonthly: 700 });
+  assert.deepEqual(knownCharges.occupancy, { low: 2700, high: 3700 });
+});
+
+test("estimate opt-in: old saves without the field parse unchanged and recompute identically", () => {
+  const oldSave = {
+    additionalOccupancyMonthly: null, fixedCostsMonthly: null, fixedCostBasis: "excludes_occupancy" as const,
+    contributionMargin: null, totalFunds: null, reserve: null,
+    upfront: [], averageSpend: null, operatingDays: null, assumedSalesMonthly: null, illustrative: [],
+  };
+  const parsed = decisionFinanceInputsSchema.parse(oldSave);
+  assert.equal(parsed.occupancyEstimate, null);
+  const expected = calculateDecisionFinance(noRent, { ...oldSave, occupancyEstimate: null });
+  assert.equal(JSON.stringify(calculateDecisionFinance(noRent, parsed)), JSON.stringify(expected));
+});
+
+test("occupancyBreakdown: estimate used only when the quoted rent is unknown", () => {
+  assert.deepEqual(occupancyBreakdown(noRent, 800, { low: 2000, high: 3000 }).baseRent, { low: 2000, high: 3000 });
+  assert.equal(occupancyBreakdown(noRent, 800).baseRent, null);
+  // A quoted rent wins over any estimate.
+  assert.deepEqual(occupancyBreakdown(candidate, 800, { low: 2000, high: 3000 }).baseRent, { low: 4000, high: 4000 });
 });

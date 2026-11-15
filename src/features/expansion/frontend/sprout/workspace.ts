@@ -1,10 +1,12 @@
 import type { DecisionBrief, InvestigationRun } from "../../domain/decision-brief.ts";
 import type { SourceSnapshot } from "../../domain/evidence.ts";
 import type { AssessedCandidate } from "../../domain/matching.ts";
+import type { RentEstimate } from "../../domain/rent-estimate.ts";
 import type { SearchRequirements } from "../../domain/requirements.ts";
 import { loadAgentEvidence } from "../data/account-client.ts";
 import { loadInvestigationRun } from "../data/investigation-client.ts";
 import { getProfileRun, getRunCandidatesRequest } from "../data/local-market.ts";
+import { loadRentEstimates } from "../data/rent-estimates.ts";
 
 /**
  * One read model for every screen after the search: built from a finished
@@ -26,6 +28,8 @@ export type Workspace = {
   bundle: InvestigationRun | null;
   evidence: Map<string, SourceSnapshot>;
   tasks: Map<string, string[]>;
+  /** Derived base-rent estimates for unlisted-rent candidates (enhancement only). */
+  rentEstimates: Map<string, RentEstimate>;
   datasetId: string | null;
   datasetDate: string | null;
   executionMode: "live" | "scripted" | null;
@@ -40,7 +44,12 @@ const cityLabelFor = (requirements: SearchRequirements, fallback: string) => {
 };
 const byRank = (items: AssessedCandidate[]) => [...items].sort((a, b) => a.rank - b.rank);
 
-export function workspaceFromBundle(bundle: InvestigationRun, evidence: Map<string, SourceSnapshot>, source: Workspace["source"] = "agent"): Workspace {
+export function workspaceFromBundle(
+  bundle: InvestigationRun,
+  evidence: Map<string, SourceSnapshot>,
+  source: Workspace["source"] = "agent",
+  rentEstimates: Map<string, RentEstimate> = new Map(),
+): Workspace {
   const requirements = bundle.profile.requirements;
   return {
     source,
@@ -55,6 +64,7 @@ export function workspaceFromBundle(bundle: InvestigationRun, evidence: Map<stri
     bundle,
     evidence,
     tasks: new Map((bundle.inspection?.candidates ?? []).map((item) => [item.candidateId, item.verificationTasks])),
+    rentEstimates,
     datasetId: bundle.run.datasetId,
     datasetDate: bundle.run.datasetDate,
     executionMode: bundle.run.executionMode,
@@ -65,12 +75,20 @@ export function workspaceFromBundle(bundle: InvestigationRun, evidence: Map<stri
 }
 
 export async function loadAgentWorkspace(runId: string, signal?: AbortSignal): Promise<Workspace> {
-  const [bundle, evidence] = await Promise.all([loadInvestigationRun(runId, signal), loadAgentEvidence(runId, signal)]);
-  return workspaceFromBundle(bundle, evidence);
+  const [bundle, evidence, rentEstimates] = await Promise.all([
+    loadInvestigationRun(runId, signal),
+    loadAgentEvidence(runId, signal),
+    // Estimates are an enhancement, never a gate: failures yield an empty map.
+    loadRentEstimates(runId, "agent", signal).catch(() => new Map<string, RentEstimate>()),
+  ]);
+  return workspaceFromBundle(bundle, evidence, "agent", rentEstimates);
 }
 
 export async function loadDeterministicWorkspace(runId: string, signal?: AbortSignal): Promise<Workspace> {
-  const run = await getProfileRun(runId, signal);
+  const [run, rentEstimates] = await Promise.all([
+    getProfileRun(runId, signal),
+    loadRentEstimates(runId, "deterministic", signal).catch(() => new Map<string, RentEstimate>()),
+  ]);
   if (run.status !== "completed" && run.status !== "completed_with_gaps") throw new Error("This search hasn’t finished.");
   const candidates: AssessedCandidate[] = [];
   for (let offset = 0; offset < 2000;) {
@@ -93,6 +111,7 @@ export async function loadDeterministicWorkspace(runId: string, signal?: AbortSi
     bundle: null,
     evidence: new Map(),
     tasks: new Map(),
+    rentEstimates,
     datasetId: run.datasetId,
     datasetDate: run.datasetDate,
     executionMode: null,
@@ -104,5 +123,7 @@ export async function loadDeterministicWorkspace(runId: string, signal?: AbortSi
 
 export function workspaceFromBrief(brief: DecisionBrief): Workspace {
   const evidence = new Map(brief.choices.map((choice) => [choice.candidateId, choice.assessment.sources]));
-  return workspaceFromBundle(brief.runSnapshot, evidence, "saved_plan");
+  // Frozen plans never re-fetch: a plan's estimate provenance lives in its
+  // choices' financeInputs.occupancyEstimate, not in this live-only map.
+  return workspaceFromBundle(brief.runSnapshot, evidence, "saved_plan", new Map());
 }

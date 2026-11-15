@@ -33,6 +33,7 @@ import { POST as createAgentRunRoute } from "../../app/api/expansion/agent-runs/
 import { GET as getAgentRunRoute } from "../../app/api/expansion/agent-runs/[id]/route.ts";
 import { POST as cancelAgentRoute } from "../../app/api/expansion/agent-runs/[id]/cancel/route.ts";
 import { GET as eventsRoute } from "../../app/api/expansion/agent-runs/[id]/events/route.ts";
+import { GET as rentEstimatesRoute } from "../../app/api/expansion/agent-runs/[id]/rent-estimates/route.ts";
 import { POST as toolBridgeRoute } from "../../app/api/expansion/agent-tools/route.ts";
 import { GET as capabilitiesRoute } from "../../app/api/expansion/agent-capabilities/route.ts";
 import { OWNER_COOKIE, ownerCookieValue } from "./backend/owner.ts";
@@ -95,9 +96,12 @@ await mkdir(join(testDb, "data"));
 await writeFile(join(testDb, "data/commercial-property.jsonl"), JSON.stringify(property(1)));
 await writeFile(
   join(testDb, "data/commercial-listing-summary.jsonl"),
-  JSON.stringify(listing(10, [space(1), space(2, { rateLow: 8, rateHigh: 8 }), space(3, { spaceUse: 1 })])),
+  JSON.stringify(listing(10, [space(1), space(2, { rateLow: 8, rateHigh: 8 }), space(3, { spaceUse: 1 }), space(4, { askingRateHasValue: false, rateLow: 0, rateHigh: 0 })])),
 );
 await importLocalDataset(settings);
+// The rent-estimates route resolves its dataset through the env when a
+// config is not passed explicitly (the route handler always uses {}).
+process.env.EXPANSION_DB_PATH = settings.dbPath;
 
 const intake = exampleIntake();
 const createInput = (runId: string, mode: "live" | "scripted" = "scripted") => ({
@@ -297,13 +301,13 @@ test("scout/inspector/finance tools stay run-scoped and validated", async () => 
     cityId: "houston",
   })) as { candidateIds: string[]; counts: Record<string, number> };
   assert.ok(scout.candidateIds.length > 0);
-  assert.equal(scout.counts.included, 2);
+  assert.equal(scout.counts.included, 3);
   assert.equal(scout.counts.incompatibleUse, 1);
 
   const stored = searchArtifactSchema.parse(
     JSON.parse(await readFile(join(testRunsDir, "local", "agent-bridge-run-3", "candidates.json"), "utf8")),
   );
-  assert.equal(stored.candidates.length, 2);
+  assert.equal(stored.candidates.length, 3);
 
   const inspector = (await invokeAgentTool(config, "local", "bridge-run-3", "inspector.evidence", {
     candidateIds: [scout.candidateIds[0], "not-a-candidate"],
@@ -529,4 +533,59 @@ test("artifact route validates stored artifacts", async () => {
   const profile = getAgentArtifact({ runsDir: testRunsDir }, "local", "artifact-run-1", "profile");
   assert.equal((profile as { revisionId: string }).revisionId, "agent-test-revision");
   assert.throws(() => getAgentArtifact({ runsDir: testRunsDir }, "local", "artifact-run-1", "summary"));
+});
+
+test("agent rent-estimates route: owner-scoped, unlisted-rent candidates only", async () => {
+  // Build a completed scripted run with a real scout artifact.
+  await createAgentRun({ runsDir: testRunsDir, spawn: false }, createInput("rent-run-1"));
+  await writeToken("rent-run-1", "rent-token-1");
+  await invokeAgentTool({ runsDir: testRunsDir, db: settings, spawn: false }, "local", "rent-run-1", "scout.search_city", {
+    cityId: "houston",
+  });
+  const path = join(testRunsDir, "local", "agent-rent-run-1", "run.json");
+  const record = agentRunRecordSchema.parse(JSON.parse(await readFile(path, "utf8")));
+  await writeFile(path, JSON.stringify({ ...record, status: "completed", completedAt: "2026-11-14T12:00:03.000Z" }));
+
+  const call = (cookie?: string) =>
+    rentEstimatesRoute(
+      new Request("http://test.local/api/expansion/agent-runs/rent-run-1/rent-estimates", {
+        headers: cookie ? { cookie } : {},
+      }),
+      { params: Promise.resolve({ id: "rent-run-1" }) },
+    );
+
+  // Anonymous → 401; a different owner → 404.
+  assert.equal((await call()).status, 401);
+  assert.equal((await call(ownerCookie("other-owner"))).status, 404);
+
+  // Owner → 200 with exactly the no-rent candidate and a derived estimate.
+  const ok = await call(ownerCookie("local"));
+  assert.equal(ok.status, 200);
+  const body = (await ok.json()) as {
+    modelVersion: string;
+    datasetId: string;
+    estimates: Array<{ candidateId: string; estimate: { comparableCount: number; monthly: { low: number; high: number } } | null }>;
+  };
+  assert.equal(body.modelVersion, "expansion-rent-estimates-v1");
+  assert.equal(body.datasetId, "synthetic-agent-tests");
+  assert.equal(body.estimates.length, 1);
+  assert.equal(body.estimates[0].candidateId, "costar-space:4");
+  assert.ok(body.estimates[0].estimate);
+  assert.equal(body.estimates[0].estimate?.comparableCount, 2);
+  // Comparables $2 and $8/SF/month → annual 24/96 → p25 42, p75 78 → ×1200/12.
+  assert.equal(body.estimates[0].estimate?.monthly.low, 4200);
+  assert.equal(body.estimates[0].estimate?.monthly.high, 7800);
+
+  // A run that has not finished answers a conflict envelope.
+  await createAgentRun({ runsDir: testRunsDir, spawn: false }, createInput("rent-run-2"));
+  const pending = await rentEstimatesRoute(
+    new Request("http://test.local/api/expansion/agent-runs/rent-run-2/rent-estimates", {
+      headers: { cookie: ownerCookie("local") },
+    }),
+    { params: Promise.resolve({ id: "rent-run-2" }) },
+  );
+  assert.equal(pending.status, 409);
+  const pendingBody = (await pending.json()) as { error: { code: string; message: string } };
+  assert.equal(pendingBody.error.code, "conflict");
+  assert.ok(pendingBody.error.message.length > 0);
 });

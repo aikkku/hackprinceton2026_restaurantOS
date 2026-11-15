@@ -36,11 +36,16 @@ test("streaming import verifies space relationships, deduplicates ids, preserves
 });
 
 test("invalid geography is rejected, absent geography and unsupported rent units remain unknown",async()=>{
-  await fixture([property(1),property(2,{primaryAddress:{researchMarketId:14}}),property(3,{primaryAddress:{researchMarketId:14,latitude:300,longitude:-95}}),null], [listing(10,[space(100,{rateBasis:0}),space(101,{monetaryUnit:0}),space(102,{rateLow:0,rateHigh:0}),space(103,{rateLow:1,rateHigh:2}),space(104,{squareFeetMin:500,squareFeetMax:1000}),space(105,{squareFeetMin:2000,squareFeetMax:1000})])],async config=>{
+  await fixture([property(1),property(2,{primaryAddress:{researchMarketId:14}}),property(3,{primaryAddress:{researchMarketId:14,latitude:300,longitude:-95}}),null], [listing(10,[space(100,{rateBasis:0}),space(101,{monetaryUnit:0}),space(102,{rateLow:0,rateHigh:0}),space(103,{rateLow:1,rateHigh:2}),space(104,{squareFeetMin:500,squareFeetMax:1000}),space(105,{squareFeetMin:2000,squareFeetMax:1000}),space(106,{rateLow:5,rateHigh:6,askingRateHasValue:false})])],async config=>{
     const report=await importLocalDataset(config);assert.equal(report.reasons.invalid_coordinates,1);assert.equal(report.reasons.invalid_property_id,1);assert.equal(report.reasons.invalid_area_range,1);assert.equal(report.warnings.missing_coordinates,1);
-    const markets=getMarkets(config);assert.equal(markets.metadata.propertyCount,2);assert.equal(markets.metadata.mappableCount,6);
-    for(const id of [100,101,102,103])assert.equal(getPropertyDetail(`costar-space:${id}`,config)!.property.askingRent,null);
-    assert.equal(getPropertyDetail("costar-space:102",config)!.property.sourceRent!.low,0);
+    const markets=getMarkets(config);assert.equal(markets.metadata.propertyCount,2);assert.equal(markets.metadata.mappableCount,7);
+    for(const id of [100,101,102,103,106])assert.equal(getPropertyDetail(`costar-space:${id}`,config)!.property.askingRent,null);
+    // A quoted 0 is never stored as a price: it is "not listed".
+    assert.equal(getPropertyDetail("costar-space:102",config)!.property.sourceRent!.low,null);
+    assert.equal(getPropertyDetail("costar-space:102",config)!.property.sourceRent!.high,null);
+    // askingRateHasValue:false means "call for pricing" even when raw rates exist.
+    const noValue=getPropertyDetail("costar-space:106",config)!.property.sourceRent!;
+    assert.equal(noValue.low,null);assert.equal(noValue.high,null);
     assert.equal(getPropertyDetail("costar-space:104",config)!.property.floorAreaSqFt,null);
     assert.equal(getPropertyDetail("costar-property:2",config),null);
     const db=new DatabaseSync(config.dbPath,{readOnly:true});try{assert.equal(db.prepare("SELECT COUNT(*) n FROM properties WHERE lat IS NULL AND h3 IS NULL").get()!.n,1);}finally{db.close();}

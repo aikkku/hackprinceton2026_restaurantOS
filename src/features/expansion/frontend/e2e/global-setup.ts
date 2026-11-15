@@ -56,6 +56,9 @@ export default async function globalSetup() {
       rateHigh: 2 + (index % 5),
     }),
   );
+  // One active retail space with NO asking rent ("call for pricing"): its
+  // derived rent estimate comes from the other listed spaces' snapshot.
+  activeSpaces.push(space(400, { suite: "NE", rateLow: 0, rateHigh: 0, askingRateHasValue: false }));
   for (let index = 0; index < 5; index += 1) activeSpaces.push(space(200 + index, { spaceUse: 7 }));
   const activeListing = {
     id: 10,

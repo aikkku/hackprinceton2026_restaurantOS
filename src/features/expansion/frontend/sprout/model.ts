@@ -11,6 +11,7 @@ import {
   type SpaceCandidate,
 } from "../../domain/matching.ts";
 import type { Requirement, SearchRequirements } from "../../domain/requirements.ts";
+import type { RentEstimate } from "../../domain/rent-estimate.ts";
 
 /**
  * Pure presentation model for the sprout Expansion UI (Rain-owned, no React).
@@ -90,6 +91,78 @@ export function chargesLabel(candidate: SpaceCandidate): string {
 }
 
 // ---------------------------------------------------------------------------
+// Derived rent estimates (never a matching result, never "within budget")
+
+/** "≈ $2.3k–3.4k/mo + building charges" (short) or the money() long form. */
+export function estimateCostLabel(estimate: RentEstimate, short = false): string {
+  const format = short ? moneyShort : money;
+  if (estimate.monthly === null) return `≈ ${money(estimate.medianAnnualPerSqFt)}/sq ft/yr (no size to price)`;
+  return `≈ ${format(estimate.monthly.low)}–${format(estimate.monthly.high)}/mo + building charges`;
+}
+
+/** Compact pin price for an estimated rent. */
+export function estimatePin(estimate: RentEstimate): string {
+  if (estimate.monthly === null) return `≈ ${moneyShort(estimate.medianAnnualPerSqFt)}/sq ft`;
+  return `≈ ${moneyShort(estimate.monthly.low)}–${moneyShort(estimate.monthly.high)}`;
+}
+
+/**
+ * Plain-language estimate method line. The radius claim is honest: a city
+ * fallback never says "within X km". Callers prefix "Synthetic " for demo
+ * candidates; this function stays pure about the text.
+ */
+export function estimateMethodText(estimate: RentEstimate): string {
+  const basis =
+    estimate.method === "nearest_neighbors"
+      ? `${estimate.comparableCount} listed retail spaces within ${estimate.radiusKm} km`
+      : `${estimate.comparableCount} listed retail spaces across the city (fallback)`;
+  return `${basis}, median ${money(estimate.medianAnnualPerSqFt)}/sq ft/yr, CoStar snapshot${estimate.datasetDate ? ` ${estimate.datasetDate}` : ""}`;
+}
+
+const DISPLAY_GROUP_RANK: Record<CandidateGroup, number> = {
+  meets_assessed_requirements: 0,
+  needs_verification: 1,
+  does_not_meet: 2,
+};
+
+const hasListedRent = (item: AssessedCandidate) =>
+  item.candidate.rent !== null &&
+  (item.candidate.rent.low !== null || item.candidate.rent.high !== null);
+
+/**
+ * Pure display ordering. Group order is preserved (meets → needs_verification
+ * → does_not_meet); inside a group, listed-rent candidates keep their
+ * existing relative order ahead of no-rent candidates. Among no-rent
+ * candidates, those with an estimate whose monthly.high is within the cap
+ * sort first (no cap → keep relative order). Final tie-break is the original
+ * relative order. This NEVER reorders across groups and NEVER moves a
+ * no-rent candidate ahead of a listed-rent candidate in the same group.
+ */
+export function displayOrder(
+  assessed: AssessedCandidate[],
+  estimates: Map<string, RentEstimate>,
+  cap: number | null,
+): AssessedCandidate[] {
+  const indexed = assessed.map((item, index) => ({ item, index }));
+  const sorted = [...indexed].sort((a, b) => {
+    const byGroup = DISPLAY_GROUP_RANK[a.item.group] - DISPLAY_GROUP_RANK[b.item.group];
+    if (byGroup) return byGroup;
+    const aListed = hasListedRent(a.item);
+    const bListed = hasListedRent(b.item);
+    if (aListed !== bListed) return aListed ? -1 : 1;
+    if (!aListed && !bListed && cap !== null) {
+      const aEstimate = estimates.get(a.item.candidate.id)?.monthly;
+      const bEstimate = estimates.get(b.item.candidate.id)?.monthly;
+      const aUnder = aEstimate !== null && aEstimate !== undefined && aEstimate.high <= cap;
+      const bUnder = bEstimate !== null && bEstimate !== undefined && bEstimate.high <= cap;
+      if (aUnder !== bUnder) return aUnder ? -1 : 1;
+    }
+    return a.index - b.index;
+  });
+  return sorted.map(({ item }) => item);
+}
+
+// ---------------------------------------------------------------------------
 // Requirements
 
 export const requirementValue = (requirements: SearchRequirements, id: Requirement["id"]) =>
@@ -159,7 +232,7 @@ export function friendlyReason(code: AssessmentReasonCode, requirements: SearchR
     case "exceeds_cap": return `Costs more than ${capText}`;
     case "range_crosses_cap": return `Might go over ${capText}`;
     case "missing_charges": return "Extra building charges aren’t listed yet";
-    case "ambiguous_basis": return "The rent isn’t listed in a way we can add up";
+    case "ambiguous_basis": return "The asking rent isn’t listed";
     case "unsupported_units": return "The rent uses units we can’t compare";
     case "kitchen_verified": return "Kitchen confirmed for this space";
     case "kitchen_absent": return "No kitchen in this space";
@@ -182,7 +255,13 @@ export function friendlyReason(code: AssessmentReasonCode, requirements: SearchR
 export function checkQuestion(assessment: RequirementAssessment): string | null {
   if (assessment.status !== "unknown") return null;
   switch (assessment.requirementId) {
-    case "occupancy.monthlyLimit": return "What are the extra building charges (taxes, insurance, upkeep) each month?";
+    case "occupancy.monthlyLimit": {
+      // A missing rent needs the broker's number; unknown extra charges need
+      // the charges. Never ask about charges when the rent itself is missing.
+      if (assessment.reasonCode === "ambiguous_basis") return "What is the asking rent? Ask the broker.";
+      if (assessment.reasonCode === "missing_charges" || assessment.reasonCode === "range_crosses_cap") return "What are the extra building charges (taxes, insurance, upkeep) each month?";
+      return assessment.reason;
+    }
     case "space.existingKitchen": return "Does a working kitchen (hood, grease trap) come with this space?";
     case "space.customerParking": return "Can your customers use the parking? Check the lease or ask the landlord.";
     case "space.seats": return "How many seats fit in the dining room?";
