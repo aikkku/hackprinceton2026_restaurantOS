@@ -2,4 +2,5 @@
 
 .sprout-theme .sprout-brand { display: inline-flex; align-items: center; gap: 11px; color: var(--sp-primary); text-decoration: none; font-weight: 750; font-size: 29px; letter-spacing: -.065em; line-height: 1; flex-shrink: 0; }
 .sprout-theme .sprout-brand-dot { color: var(--sp-accent); }
+.sprout-theme .sprout-brand-mark { display: block; width: 48px; height: auto; flex-shrink: 0; }
 .sprout-theme :focus-visible { outline: 2px solid var(--sp-primary); outline-offset: 4px; }

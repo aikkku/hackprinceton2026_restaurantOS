@@ -90,7 +90,7 @@ export function AiWorkbench({ title, description, request, inputLabel = "Instruc
     {description && <p>{description}</p>}
     {!compact && <>
       <label>{inputLabel}<textarea value={question} maxLength={2500} onChange={event => setQuestion(event.target.value)} rows={2} /></label>
-      <p className="ai-note">Uses mock restaurant data and, where supplied, the current working layout. AI interpretations and estimated dimensions require review.</p>
+      <p className="ai-note">Uses restaurant data and, where supplied, the current working layout. AI interpretations and estimated dimensions require review.</p>
     </>}
     {!unlocked && <p>Unlock the AI workspace to generate.</p>}
     <div className="button-row">

@@ -392,7 +392,7 @@ export function FloorEditor({ template, saved, cloud, analysisRequested, onConte
                   <button type="submit" className="button secondary compact">Apply room settings</button>
                 </form>
                 <div className="button-row">
-                  <button className="button quiet compact" onClick={() => { if (commit(modernFloor(template))) setSelectedId(null); }}>Demo template</button>
+                  <button className="button quiet compact" onClick={() => { if (commit(modernFloor(template))) setSelectedId(null); }}>Default layout</button>
                   <button className="button quiet compact" onClick={() => { if (commit({ ...layout, name: "Blank layout", objects: [] })) setSelectedId(null); }}>Blank layout</button>
                 </div>
                 <p>Arrow keys move selected furniture. Shift moves farther. R rotates, D duplicates, Delete removes.</p>

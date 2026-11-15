@@ -8,11 +8,11 @@ test.beforeEach(async ({ page }) => {
 
 test("Nessie source, assumptions, evidence, export and failure remain distinct", async ({ page }) => {
   await page.route("**/api/tactical/integrations/nessie", route => route.fulfill({ json: { ok: true, snapshot: { ...bank, source: "nessie-sandbox" } } }));
-  await page.goto("/tactical/finance"); await page.getByRole("button", { name: "Nessie Sandbox", exact: true }).click();
+  await page.goto("/tactical/finance"); await page.getByRole("button", { name: "Nessie", exact: true }).click();
   const panel = page.getByRole("region", { name: "Nessie sandbox finance" });
-  await expect(panel.getByText("Local demo · no API call", { exact: true })).toBeVisible();
+  await expect(panel.getByText("Saved snapshot", { exact: true })).toBeVisible();
   await panel.getByRole("button", { name: "Refresh from Nessie" }).click();
-  await expect(panel.getByText("Live API · simulated funds", { exact: true })).toBeVisible();
+  await expect(panel.getByText("Nessie API", { exact: true })).toBeVisible();
   await panel.getByLabel("Proposed investment (USD)").fill("30000");
   await expect(panel.getByRole("heading", { name: "Below the assumed cash reserve" })).toBeVisible();
   await panel.getByLabel("Assumed monthly net cash burn (USD)").fill("0");
@@ -24,15 +24,15 @@ test("Nessie source, assumptions, evidence, export and failure remain distinct",
   await page.unroute("**/api/tactical/integrations/nessie"); await page.route("**/api/tactical/integrations/nessie", route => route.fulfill({ status: 503, json: { error: "private" } }));
   await panel.getByRole("button", { name: "Refresh from Nessie" }).click();
   await expect(panel.getByRole("alert")).toContainText("Nessie is unavailable");
-  await expect(panel.getByText("Live API · simulated funds", { exact: true })).toHaveCount(0);
-  await panel.getByRole("button", { name: "Use local demo" }).click();
-  await expect(panel.getByText("Local demo · no API call", { exact: true })).toBeVisible();
+  await expect(panel.getByText("Nessie API", { exact: true })).toHaveCount(0);
+  await panel.getByRole("button", { name: "Reset snapshot" }).click();
+  await expect(panel.getByText("Saved snapshot", { exact: true })).toBeVisible();
 });
 
 test("network import, validation, evidence, local save/reopen and AI failure", async ({ page }) => {
   await page.goto("/tactical/reviews"); await page.getByRole("button", { name: "Relationship network", exact: true }).click();
   const panel = page.getByRole("region", { name: "Relationship network", exact: true });
-  await expect(panel.getByText("Demo · synthetic relationships", { exact: true })).toBeVisible();
+  await expect(panel.getByRole("heading", { name: "From conversations to connected evidence" })).toBeVisible();
   await expect(panel.getByText("8 relationships", { exact: true })).toBeVisible();
   await panel.getByLabel("Inspect node").selectOption("a:one");
   await panel.getByText("Relationship evidence · 1 edges", { exact: true }).click();
@@ -43,7 +43,7 @@ test("network import, validation, evidence, local save/reopen and AI failure", a
   await expect(panel.getByRole("alert")).toHaveText("Confirm permission before importing observed relationship data.");
   await panel.getByLabel(/I have permission/).check();
   await panel.getByLabel("Import network JSON").setInputFiles({ name: "network.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(imported)) });
-  await expect(panel.getByText("Observed · user-attested import", { exact: true })).toBeVisible();
+  await expect(panel.getByText(imported.name, { exact: true })).toBeVisible();
   await panel.getByRole("button", { name: "Save network locally" }).click();
   await page.reload(); await page.getByRole("button", { name: "Relationship network", exact: true }).click();
   await panel.getByText("Import, save and export a network", { exact: true }).click();
@@ -69,7 +69,7 @@ test("network import, validation, evidence, local save/reopen and AI failure", a
 
 test("network and sandbox tools fit a narrow reduced-motion viewport", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 }); await page.emulateMedia({ reducedMotion: "reduce" });
-  for (const [route, name] of [["reviews", "Relationship network"], ["finance", "Nessie Sandbox"]]) {
+  for (const [route, name] of [["reviews", "Relationship network"], ["finance", "Nessie"]]) {
     await page.goto(`/tactical/${route}`); await page.getByRole("button", { name, exact: true }).click();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   }

@@ -66,8 +66,8 @@ export function WorkspaceShell({ profile, dataSource, revision, dirty, children 
       <header className="sprout-topbar">
         <div className="sprout-breadcrumb"><span>{profile.name}</span><ChevronRight size={13} aria-hidden="true" /><span>Manage restaurant</span></div>
         <details className="sprout-source" ref={sourceDetails} onKeyDown={event => { if (event.key === "Escape") { event.currentTarget.open = false; event.currentTarget.querySelector("summary")?.focus(); } }}>
-          <summary><span className="sprout-demo-dot" />Demo data<ChevronDown size={13} aria-hidden="true" /></summary>
-          <div className="sprout-source-panel"><Database size={18} aria-hidden="true" /><strong>Restaurant data</strong><dl><div><dt>Source</dt><dd>{dataSource}</dd></div><div><dt>Restaurant</dt><dd>{profile.name}</dd></div><div><dt>Storage</dt><dd>{revision !== null ? "MongoDB" : "Local mock fixture"}</dd></div>{revision !== null && <div><dt>Revision</dt><dd>{revision}</dd></div>}</dl><p>Fictional restaurant data. Saved changes remain in their existing browser or database storage.</p></div>
+          <summary><span className="sprout-source-dot" />Data<ChevronDown size={13} aria-hidden="true" /></summary>
+          <div className="sprout-source-panel"><Database size={18} aria-hidden="true" /><strong>Restaurant data</strong><dl><div><dt>Source</dt><dd>{dataSource.includes("MongoDB") ? "MongoDB" : "Local workspace"}</dd></div><div><dt>Restaurant</dt><dd>{profile.name}</dd></div><div><dt>Storage</dt><dd>{revision !== null ? "MongoDB" : "Local workspace"}</dd></div>{revision !== null && <div><dt>Revision</dt><dd>{revision}</dd></div>}</dl></div>
         </details>
       </header>
       <main className="sprout-main" id="tactical-content" tabIndex={-1}>

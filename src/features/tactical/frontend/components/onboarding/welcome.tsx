@@ -12,8 +12,8 @@ export function Welcome() {
         <span className="ob-eyebrow"><span /> A little clarity. A lot of possibility.</span>
         <h1>Your restaurant.<br />Its next <em>chapter.</em></h1>
         <p>Make room for what’s next. Understand your business, explore better decisions, and grow with confidence.</p>
-        <div className="ob-hero-actions"><Link className="ob-button" href="/onboarding">Let’s get started <ArrowRight size={18} /></Link><Link className="ob-text-link" href="/tactical">Explore the demo</Link></div>
-        <span className="ob-hero-note">Start small. No account or documents needed for the demo.</span>
+        <div className="ob-hero-actions"><Link className="ob-button" href="/onboarding">Let’s get started <ArrowRight size={18} /></Link><Link className="ob-text-link" href="/tactical">Open workspace</Link></div>
+        <span className="ob-hero-note">Start small. No account or documents needed.</span>
       </div>
       <div className="ob-hero-art">
         <RestaurantIllustration />

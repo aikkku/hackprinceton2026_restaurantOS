@@ -67,14 +67,14 @@ test("laptop finance keeps pricing, ledger and bank edits across every view",asy
  await cash.getByRole("button",{name:"Next cash month",exact:true}).focus();await page.keyboard.press("Enter");
  await expect(cash.locator(".cash-calendar-bar h4")).toHaveText("December 2026");
  await expect(cash.getByRole("complementary",{name:"Selected cash day"})).toBeVisible();
- await navigation.getByRole("button",{name:"Nessie Sandbox",exact:true}).click();
+ await navigation.getByRole("button",{name:"Nessie",exact:true}).click();
  await page.getByLabel("Proposed investment (USD)").fill("6000");
  await navigation.getByRole("button",{name:"Report",exact:true}).click();
  await expect(page.getByLabel("Record type",{exact:true})).toHaveValue("expense");
  await navigation.getByRole("button",{name:"Price playground",exact:true}).click();await expect(raise).toHaveValue("1.50");
  await page.getByRole("region",{name:"Price experiment items"}).focus();
  await expect(page.getByRole("region",{name:"Price experiment items"})).toBeFocused();
- await navigation.getByRole("button",{name:"Nessie Sandbox",exact:true}).click();
+ await navigation.getByRole("button",{name:"Nessie",exact:true}).click();
  await expect(page.getByLabel("Proposed investment (USD)")).toHaveValue("6000");
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });

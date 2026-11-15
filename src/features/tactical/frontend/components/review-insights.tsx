@@ -74,7 +74,7 @@ export function ReviewInsights({ reviews, onTrySeating, restaurantId, active = t
         <StateButton className="button review-ai-button compact" disabled={analysis.pending} onClick={analysis.refresh} aria-label={analysis.error ? "Retry review analysis" : "Refresh review analysis"}><RefreshCw size={14} />{analysis.error ? "Retry" : "Refresh"}</StateButton>
       </div>
       {summary.total === 0 ? (
-        <p className="review-empty">This demo has no reviews to summarize yet.</p>
+        <p className="review-empty">No reviews to summarize yet.</p>
       ) : (
         <div className="review-insights-body">
           <div className="review-summary">
@@ -83,7 +83,7 @@ export function ReviewInsights({ reviews, onTrySeating, restaurantId, active = t
             <div className="rating-overview">
               <div>
                 <span className="rating-average"><Star size={25} aria-hidden="true" />{decimal.format(summary.meanRating ?? 0)}<small> / 5</small></span>
-                <p>Average of {summary.total} demo reviews</p>
+                <p>Average of {summary.total} reviews</p>
               </div>
             </div>
             <ul className="rating-distribution" aria-label="Rating distribution">
@@ -142,7 +142,7 @@ export function ReviewInsights({ reviews, onTrySeating, restaurantId, active = t
                 {visibleReviews.map((review) => (
                   <li key={`${review.id}-${review.text}`} data-review-id={review.id} data-assistant-key={`review:${review.id}`}>
                     <div className="review-meta">
-                      <span className="pill">Demo review</span>
+
                       {records.get(review.id)?.classification.highPriority && <span className="review-priority-badge"><Sparkles size={12} />High priority</span>}
                       <time dateTime={review.date}>{review.date}</time>
                       <span className="review-card-rating" aria-label={`${review.rating} out of 5 stars`}><Star size={13} aria-hidden="true" />{review.rating}/5</span>

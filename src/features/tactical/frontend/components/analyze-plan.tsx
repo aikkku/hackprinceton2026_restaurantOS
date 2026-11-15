@@ -410,7 +410,7 @@ export function AnalyzePlan({ plans }: { plans: Dataset["photoPlans"] }) {
           <StateButton className="button ai-button analyze-btn" onClick={() => void analyze()} disabled={analyzeDisabled} title={analyzeTitle}>
             {status === "analyzing" ? "Analyzing…" : "Analyze photos"}
           </StateButton>
-          <p className="ai-surface">AI photo analysis sends these photos to Google Gemini. Unlock AI above to enable analysis. Sample and blank plans are manual demos.</p>
+          <p className="ai-surface">AI photo analysis sends these photos to Google Gemini. Unlock AI above to enable analysis.</p>
           {statusMsg && <p role={status === "error" ? "alert" : "status"} className={`analyze-status ${status === "error" ? "ai-error" : "ai-output"}`}>{statusMsg}</p>}
           {fixupMsg && <p className="analyze-status analyze-status-info">{fixupMsg}</p>}
         </aside>

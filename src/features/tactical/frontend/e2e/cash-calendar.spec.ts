@@ -9,7 +9,7 @@ async function open(page:import("@playwright/test").Page){await page.goto("/tact
 test("calendar connects source events, edits assumptions, saves and restores original forecast",async({page})=>{
  const cash=await open(page);
  await expect(cash.getByRole("heading",{name:"Know what’s coming."})).toBeVisible();
- await expect(cash.getByText("Local demo · simulated funds",{exact:true})).toBeVisible();
+ await expect(cash.getByText("Saved snapshot",{exact:true})).toBeVisible();
  await cash.getByRole("button",{name:/Lowest projected cash/}).click();
  await expect(cash.getByRole("complementary",{name:"Selected cash day"})).toContainText("Projected close");
  await cash.getByRole("button",{name:"Assumptions",exact:true}).click();
@@ -21,16 +21,16 @@ test("calendar connects source events, edits assumptions, saves and restores ori
  await page.reload();await page.getByRole("button",{name:"Cash calendar",exact:true}).click();
  await expect(cash.getByLabel("Forecast name",{exact:true})).toHaveValue("Owner cash plan");
  await expect(cash.getByRole("button",{name:/Reserve cushion at low point/})).toContainText("$50,000");
- await cash.getByRole("button",{name:"Use local demo",exact:true}).click();
+ await cash.getByRole("button",{name:"Reset to initial plan",exact:true}).click();
  await expect(cash.getByRole("button",{name:/Reserve cushion at low point/})).toContainText("$10,000");
  const savedId=await cash.getByLabel("Saved cash forecasts").locator("option").nth(1).getAttribute("value");await cash.getByLabel("Saved cash forecasts").selectOption(savedId!);
  await expect(cash.getByRole("button",{name:/Reserve cushion at low point/})).toContainText("$50,000");
 });
 test("live sandbox refresh is explicit and a failed refresh preserves its stale snapshot",async({page})=>{
  let calls=0;await page.route("**/api/tactical/cash-calendar",route=>{calls++;return calls===1?route.fulfill({json:{ok:true,bank,bankSnapshotId:"123e4567-e89b-42d3-a456-426614174000"}}):route.fulfill({status:503,json:{error:"Cash calendar service is unavailable."}});});
- const cash=await open(page);await cash.getByRole("button",{name:"Refresh bank data",exact:true}).click();await expect(cash.getByText("Nessie API · simulated funds",{exact:true})).toBeVisible();
+ const cash=await open(page);await cash.getByRole("button",{name:"Refresh bank data",exact:true}).click();await expect(cash.getByText("Nessie API",{exact:true})).toBeVisible();
  await expect(cash.locator(".cash-calendar-bar h4")).toHaveText("December 2026");
- await cash.getByRole("button",{name:"Refresh bank data",exact:true}).click();await expect(cash.getByRole("alert")).toContainText("Previous snapshot retained");await expect(cash.getByText("Nessie API · simulated funds",{exact:true})).toBeVisible();await expect(cash.locator(".cash-meta")).toContainText("stale snapshot");
+ await cash.getByRole("button",{name:"Refresh bank data",exact:true}).click();await expect(cash.getByRole("alert")).toContainText("Previous snapshot retained");await expect(cash.getByText("Nessie API",{exact:true})).toBeVisible();await expect(cash.locator(".cash-meta")).toContainText("stale snapshot");
 });
 test("narrow agenda and keyboard controls work without overflow or calendar AI calls",async({page})=>{
  await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:"reduce"});
