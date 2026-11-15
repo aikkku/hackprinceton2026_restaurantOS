@@ -3,7 +3,7 @@
 import { Sprout } from "lucide-react";
 import type { BriefChoice } from "../../domain/decision-brief.ts";
 import type { RequirementAssessment } from "../../domain/matching.ts";
-import { FACTOR_REQUIREMENT, FIT_LABEL, budgetCap, compareTake, fitForGroup, fitForStatus, money, monthlyCost, rangeLabel, unresolvedMustHaves, FACTOR_NAME, type FactorKey } from "./model.ts";
+import { FACTOR_REQUIREMENT, FIT_LABEL, assessmentLabel, displayAssessment, budgetCap, compareTake, fitForGroup, fitForAssessment, money, monthlyCost, rangeLabel, unresolvedMustHaves, FACTOR_NAME, type FactorKey } from "./model.ts";
 import { evidenceIndex, factTag, factorLine } from "./place-detail.tsx";
 import { placeSubtitle } from "./places.tsx";
 import { AskButton, Back, Disclosure, Dot, FitPill, Tag, Thumb } from "./ui.tsx";
@@ -79,14 +79,15 @@ export function Compare({ workspace, choices, images, pick, onPick, onWorkOut, o
                 <span><FitPill fit={fitForGroup(choice.assessment.group)} /></span>
               </div>
               {ROWS.map(({ key, label }) => {
-                const item = find(choice, key) as RequirementAssessment | undefined;
-                const fit = item ? fitForStatus(item.status) : "other";
+                const original = find(choice, key) as RequirementAssessment | undefined;
+                const item = original ? displayAssessment(original, choice, workspace.requirements) : undefined;
+                const fit = item ? fitForAssessment(item) : "other";
                 return (
                   <div key={key} className="sx-crow">
-                    <Dot fit={fit} />
+                    <Dot fit={fit} title={item ? assessmentLabel(item) : undefined} />
                     <div className="sx-crow-main">
                       <span className="sx-crow-label">{label}{differs(key) && <span className="sx-crow-diff">Different</span>}</span>
-                      <span className="sx-strong">{FIT_LABEL[fit]}</span>
+                      <span className="sx-strong">{item ? assessmentLabel(item) : FIT_LABEL[fit]}</span>
                       <span className="sx-small">{item ? factorLine(key, item, choice, workspace) : "Not checked"}</span>
                     </div>
                   </div>

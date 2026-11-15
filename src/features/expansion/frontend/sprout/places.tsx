@@ -115,7 +115,7 @@ export function Places({ workspace, views, saved, selectedId, notice, onSelect, 
             <span className="sx-pcard-cost">{costUnknown && estimate ? estimateCostLabel(estimate) : costLabel(cost)}</span>
             {costUnknown && (estimate ? <Tag kind="estimate">Estimate</Tag> : <Tag kind="unknown">Rent not listed</Tag>)}
           </span>
-          <span className="sx-finding"><Dot fit={finding.fit} /><span>{finding.text}</span></span>
+          <span className="sx-finding">{finding.fit !== "verify" && <Dot fit={finding.fit} />}<span>{finding.text}</span></span>
           {current && <button type="button" className="sx-pcard-more" onClick={() => onOpen(id)}>See details ›</button>}
         </div>
         <button type="button" className="sx-save" aria-pressed={isSaved} aria-label={isSaved ? `Remove ${assessed.candidate.name} from saved` : `Save ${assessed.candidate.name}`}

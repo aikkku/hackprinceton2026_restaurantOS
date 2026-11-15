@@ -916,7 +916,7 @@ export async function invokeAgentTool(
                 assessment.status === "fail" ? -1 : assessment.status === "unknown" ? 0 : 1;
               return order(left) - order(right);
             });
-            const top = ordered.find((assessment) => assessment.status !== "pass") ?? item.assessments[0];
+            const top = ordered.find((assessment) => assessment.status === "unknown" || assessment.status === "fail") ?? item.assessments[0];
             return {
               id: item.candidate.id,
               name: item.candidate.name,
@@ -957,7 +957,7 @@ export async function invokeAgentTool(
           notFoundIds.push(candidateId);
           continue;
         }
-        const gaps = assessed.assessments.filter((item) => item.status !== "pass");
+        const gaps = assessed.assessments.filter((item) => item.status === "unknown" || item.status === "fail");
         inspected.push({
           candidateId,
           name: assessed.candidate.name,

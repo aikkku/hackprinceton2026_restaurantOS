@@ -6,6 +6,8 @@ import { z } from "zod";
 import { EVIDENCE_VERSION, providerNames, providerStatusSchema, sourceObservationSchema, sourceSnapshotSchema, type SourceObservation, type SourceSnapshot } from "../domain/evidence.ts";
 import { acsObservation, contextGaps, HEIGHTS_DEFINITION, mapMatterport, mapVexcel, parseAcsResponse, ACS_VARIABLES } from "../domain/source-adapters.ts";
 import type { SpaceCandidate } from "../domain/matching.ts";
+import { inferProperty } from "./property-inference.ts";
+import type { PropertyInference } from "../domain/property-inference.ts";
 
 const execute = promisify(execFile);
 const probeSchema = z.object({ status: providerStatusSchema.shape.status, reason: z.string().min(1), link: z.unknown().optional(), model: z.unknown().optional(), image: z.unknown().optional(), imageFile: z.string().optional() });
@@ -42,6 +44,7 @@ export async function collectCandidateSources(candidate: SpaceCandidate, options
   const status = (provider: typeof providerNames[number], state: z.infer<typeof providerStatusSchema>["status"], reason: string, capabilities: string[] = []) => statuses.push({ provider, status: state, mode: state === "verified" ? "live" : "unavailable", checkedAt: now, capabilities, reason });
   // This endpoint NEVER injects synthetic facts, even for the test-owned cache.
   const sourceCallsAllowed = network && !candidate.isDemo;
+  let photo: Uint8Array | null = null;
   for (const provider of ["matterport", "vexcel"] as const) {
     if (!sourceCallsAllowed || (provider === "vexcel" && process.env.EXPANSION_VEXCEL_DISPLAY !== "1")) {
       status(provider, "unavailable", candidate.isDemo ? "Synthetic candidate: live source calls disabled." : "Source probing disabled. Configure EXPANSION_SOURCE_NETWORK and permitted imagery display explicitly.");
@@ -52,6 +55,7 @@ export async function collectCandidateSources(candidate: SpaceCandidate, options
       if (result.status === "verified") {
         const observation = provider === "matterport" ? mapMatterport(candidate, result.link, result.model, now) : mapVexcel(candidate, result.image, now);
         observations.push(observation);
+        if (provider === "vexcel" && result.imageFile) photo = readEvidenceImage(result.imageFile);
       }
       status(provider, result.status, result.reason, result.status === "verified" ? [provider === "matterport" ? "property_metadata" : "dated_site_context_date_nullable"] : []);
     } catch { status(provider, "unavailable", "Source timed out, returned malformed data, or could not start. No fixture substituted."); }
@@ -98,15 +102,29 @@ export async function collectCandidateSources(candidate: SpaceCandidate, options
     status("acs", "unavailable", "Public context calls disabled or sourced coordinates unavailable.");
     status("competition", "unavailable", "Public context calls disabled or sourced coordinates unavailable. Selected source: OSM/ODbL, not Google Places.");
   }
+  let propertyInference: PropertyInference | undefined;
+  const inferenceGaps: string[] = [];
+  if (sourceCallsAllowed) {
+    // Even without imagery, the model assesses kitchen likelihood from the actual listing.
+    try { propertyInference = await inferProperty(candidate, observations, photo); }
+    catch { inferenceGaps.push("AI property assessment unavailable. Retry Look for missing details; listing and source checks are retained."); }
+  }
   return sourceSnapshotSchema.parse({ version: EVIDENCE_VERSION, candidateId: candidate.id, refreshedAt: now, statuses, observations,
-    gaps: [...contextGaps(options.currentAddress, options.priceLevel), ...statuses.filter(x => x.status !== "verified").map(x => `${x.provider}: ${x.reason}`)] });
+    ...(propertyInference ? { propertyInference } : {}),
+    gaps: [...inferenceGaps, ...contextGaps(options.currentAddress, options.priceLevel), ...statuses.filter(x => x.status !== "verified").map(x => `${x.provider}: ${x.reason}`)] });
+}
+
+function readEvidenceImage(imageFile: string): Uint8Array {
+  const file = resolve(imageFile);
+  if (!file.startsWith(resolve("src/features/expansion/data/data/evidence-images") + sep)) throw new Error("Invalid image reference.");
+  const bytes = readFileSync(file);
+  if (bytes.byteLength > 15_000_000) throw new Error("Image exceeds limit.");
+  return bytes;
 }
 
 export async function candidateImage(candidate: SpaceCandidate): Promise<Uint8Array> {
   if (candidate.isDemo || process.env.EXPANSION_SOURCE_NETWORK !== "1" || process.env.EXPANSION_VEXCEL_DISPLAY !== "1") throw new Error("Image display unavailable.");
   const result = await probeSource("vexcel", candidate);
   if (result.status !== "verified" || !result.imageFile) throw new Error("Image unavailable.");
-  const file = resolve(result.imageFile);
-  if (!file.startsWith(resolve("src/features/expansion/data/data/evidence-images") + sep)) throw new Error("Invalid image reference.");
-  return readFileSync(file);
+  return readEvidenceImage(result.imageFile);
 }

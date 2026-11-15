@@ -47,13 +47,14 @@ function pinElement(spot: Spot, selectedId: string | null, onPick: (id: string, 
   button.setAttribute("aria-pressed", String(Boolean(selectedHere)));
   const label = spot.places.length > 1
     ? `${spot.places.length} places at one address${selectedHere ? `, showing ${selectedHere.name}` : ""}`
-    : `${lead.name}, ${lead.price}, ${FIT_LABEL[lead.fit]}`;
+    : `${lead.name}, ${lead.price}${lead.fit === "verify" ? "" : `, ${FIT_LABEL[lead.fit]}`}`;
   button.setAttribute("aria-label", label);
   const dot = document.createElement("span");
   dot.className = `sx-dot sx-s-${fit}`;
   dot.setAttribute("aria-hidden", "true");
   dot.textContent = FIT_ICON[fit];
-  button.append(dot, document.createTextNode(spot.places.length > 1 && !selectedHere ? `${spot.places.length} places` : lead.price));
+  if (fit !== "verify") button.append(dot);
+  button.append(document.createTextNode(spot.places.length > 1 && !selectedHere ? `${spot.places.length} places` : lead.price));
   if (spot.places.some((p) => p.saved)) {
     const saved = document.createElement("span");
     saved.className = "sx-pin-saved";
@@ -120,7 +121,9 @@ function cardElement(place: MapPlace, onDetails: (id: string) => void, onToggleS
   const price = document.createElement("span");
   price.className = "sx-map-card-price";
   price.textContent = place.size ? `${place.priceLabel} · ${place.size}` : place.priceLabel;
-  body.append(eyebrow, name, address, pill, price);
+  body.append(eyebrow, name, address);
+  if (place.fit !== "verify") body.append(pill);
+  body.append(price);
   if (place.question) {
     const question = document.createElement("span");
     question.className = "sx-map-card-question";
@@ -263,7 +266,7 @@ export function PlacesMap({ places, selectedId, onSelect, onOpen, onToggleSave, 
         </div>
       )}
       <div className="sx-map-legend" aria-label="Map legend">
-        {(["meets", "verify", "fails"] as const).map((fit) => <span key={fit}><span className={`sx-dot sx-s-${fit}`} aria-hidden="true">{FIT_ICON[fit]}</span>{FIT_LABEL[fit]}</span>)}
+        {(["meets", "fails"] as const).map((fit) => <span key={fit}><span className={`sx-dot sx-s-${fit}`} aria-hidden="true">{FIT_ICON[fit]}</span>{FIT_LABEL[fit]}</span>)}
       </div>
       <p className="sx-map-note">{state === "fallback" ? "Map tiles couldn’t load. Pins show relative positions only." : note}{missing ? ` · ${missing} without a map location` : ""}</p>
     </div>

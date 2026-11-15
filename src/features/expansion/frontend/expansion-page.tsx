@@ -4,7 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { calculateDecisionFinance, emptyFinanceInputs, type DecisionFinanceInputs } from "../domain/decision-finance.ts";
 import { createDecisionBrief, type BriefChoice, type DecisionBrief } from "../domain/decision-brief.ts";
 import { reassessCandidate, type InvestigationNote, type SourceSnapshot } from "../domain/evidence.ts";
-import type { AssessedCandidate } from "../domain/matching.ts";
+import { applyRequirementPreferences, groupFor, type AssessedCandidate } from "../domain/matching.ts";
+import { PROPERTY_INFERENCE_VERSION } from "../domain/property-inference.ts";
 import { BRIEF_STORAGE_KEY, decodeBriefs, persistBriefs } from "./brief-storage.ts";
 import { ensureSession, listAccountBriefs, loadAccountProfile, saveAccountBrief, saveAccountProfile, unlockSession, type SessionStatus } from "./data/account-client.ts";
 import { refreshCandidateSources } from "./data/investigation-client.ts";
@@ -166,7 +167,10 @@ export default function ExpansionPage() {
       if (restore && restore.runId === next.runId) {
         for (const choice of restore.choices) {
           const base = next.candidates.find((item) => item.candidate.id === choice.candidateId);
-          if (base && choice.assessment.profileRevisionId === next.requirements.revisionId && JSON.stringify(base.candidate) === JSON.stringify(choice.assessment.candidate)) restored[choice.candidateId] = choice;
+          if (base && choice.assessment.profileRevisionId === next.requirements.revisionId && JSON.stringify(base.candidate) === JSON.stringify(choice.assessment.candidate)) {
+            const assessments = applyRequirementPreferences(choice.assessment.assessments, next.requirements);
+            restored[choice.candidateId] = { ...choice, assessment: { ...choice.assessment, assessments, group: groupFor(assessments) } };
+          }
         }
       }
       const ids = new Set(next.candidates.map((item) => item.candidate.id));
@@ -236,7 +240,7 @@ export default function ExpansionPage() {
     if (!base || !workspace) return;
     setChoices((old) => {
       const previous = old[id] ?? makeChoice(workspace.requirements, base, workspace.evidence.get(id));
-      const assessment = reassessCandidate(base, workspace.requirements, notes, sources, { id: crypto.randomUUID(), parentId: previous.assessment.id, revisionNumber: previous.assessment.revisionNumber + 1, evaluatedAt: new Date().toISOString() });
+      const assessment = reassessCandidate(base, workspace.requirements, notes, sources, { id: crypto.randomUUID(), parentId: previous.assessment.id, revisionNumber: previous.assessment.revisionNumber + 1, evaluatedAt: new Date().toISOString(), propertyAssessmentVersion: PROPERTY_INFERENCE_VERSION });
       return { ...old, [id]: { ...previous, assessment, assessmentHistory: [...previous.assessmentHistory, previous.assessment] } };
     });
   };
@@ -268,7 +272,7 @@ export default function ExpansionPage() {
     setScreen({ name: "place", id });
     if (!workspace || !choice || workspace.source === "saved_plan" || workspace.isSynthetic) return;
     const key = `${workspace.runId}:${id}`;
-    if (autoChecked.current.has(key) || !sourcesNeverChecked(choice.assessment.sources)) return;
+    if (autoChecked.current.has(key) || (!sourcesNeverChecked(choice.assessment.sources) && choice.assessment.sources.propertyInference)) return;
     autoChecked.current.add(key);
     void refreshSources(id, "live", true);
   };

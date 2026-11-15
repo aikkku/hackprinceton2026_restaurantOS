@@ -5,7 +5,7 @@ import type { BriefChoice } from "../../domain/decision-brief.ts";
 import { investigationNoteSchema, type InvestigationNote, type SourceObservation } from "../../domain/evidence.ts";
 import type { AssessedCandidate, CandidateFact, RequirementAssessment } from "../../domain/matching.ts";
 import {
-  FACTOR_NAME, FACTOR_REQUIREMENT, FIT_LABEL, chargesLabel, checkQuestion, costLabel, estimateCostLabel, estimateMethodText, fitForGroup, fitForStatus, friendlyReason,
+  FACTOR_NAME, FACTOR_REQUIREMENT, assessmentLabel, displayAssessment, chargesLabel, checkQuestion, costLabel, estimateCostLabel, estimateMethodText, fitForGroup, fitForAssessment, friendlyReason,
   money, monthlyCost, quotedRate, rangeLabel, ruleLabel, verdict, occupancyBreakdown, type FactorKey,
 } from "./model.ts";
 import { placeSubtitle } from "./places.tsx";
@@ -32,7 +32,9 @@ const dateText = (value: string | null) => {
 };
 
 export function factTag(assessment: RequirementAssessment, index: Map<string, EvidenceRef>): { kind: TagKind; text: string } {
+  if (assessment.reasonCode === "not_applicable") return { kind: "owner", text: "Your preference" };
   const refs = assessment.evidenceIds.map((id) => index.get(id)).filter((ref): ref is EvidenceRef => Boolean(ref));
+  if (assessment.estimate) return { kind: "estimate", text: assessment.estimate.kind === "ai_estimate" ? "AI estimate" : "Space estimate" };
   if (refs.some((ref) => ref.user)) return { kind: "owner", text: "Your check" };
   if (assessment.status === "unknown") return { kind: "unknown", text: "Not confirmed" };
   if (assessment.status === "not_applicable") return { kind: "unknown", text: "Not checked" };
@@ -41,7 +43,13 @@ export function factTag(assessment: RequirementAssessment, index: Map<string, Ev
 }
 
 export function factorLine(key: FactorKey, assessment: RequirementAssessment, choice: BriefChoice, workspace: Workspace): string {
-  if (key === "cost") return rangeLabel(choice.financeResults.occupancy, "/mo") ?? costLabel(monthlyCost(choice.assessment.candidate));
+  if (assessment.reasonCode === "not_applicable") return "You don’t need this for your restaurant";
+  if (key === "cost") {
+    const occupancy = choice.financeResults.occupancy;
+    if (occupancy?.high === null) return `${money(occupancy.low)}/mo base + unknown charges`;
+    return rangeLabel(occupancy, "/mo") ?? costLabel(monthlyCost(choice.assessment.candidate));
+  }
+  if (assessment.estimate) return assessment.sourceValue;
   if (key === "space") return assessment.status === "pass" || assessment.status === "fail" ? assessment.sourceValue : friendlyReason(assessment.reasonCode, workspace.requirements);
   return friendlyReason(assessment.reasonCode, workspace.requirements);
 }
@@ -69,7 +77,7 @@ export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, 
   const index = evidenceIndex(choice, candidate);
   const byId = (id: RequirementAssessment["requirementId"]) => assessments.find((item) => item.requirementId === id);
   const neighborhood = byId("market.neighborhoodPreference");
-  const area = neighborhood?.status === "pass" ? neighborhood.sourceValue : null;
+  const area = neighborhood && ["neighborhood_member", "neighborhood_other"].includes(neighborhood.reasonCode) ? neighborhood.sourceValue : null;
   const questions = [...new Set(assessments.map(checkQuestion).filter((q): q is string => Boolean(q)))];
   const inspectorTasks = workspace.tasks.get(candidate.id) ?? [];
   const observations = choice.assessment.sources.observations;
@@ -98,7 +106,7 @@ export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, 
       <div className="sx-hero">
         <Thumb src={image} alt={candidate.name} variant="hero" />
         <div className="sx-hero-main">
-          <span className="sx-small sx-muted">{area ?? "Neighborhood not confirmed"}</span>
+          {area && <span className="sx-small sx-muted">{area}</span>}
           <h1 className="sx-title-sm">{candidate.name}</h1>
           <span className="sx-muted">{placeSubtitle(candidate)}</span>
           <div className="sx-row" style={{ gap: 8 }}>
@@ -113,21 +121,27 @@ export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, 
 
       <div className="sx-factors">
         {factors.map(({ key, assessment }) => {
-          const fit = fitForStatus(assessment.status);
+          assessment = displayAssessment(assessment, choice, workspace.requirements);
+          const fit = fitForAssessment(assessment);
           const tag = factTag(assessment, index);
           return (
             <div key={key} className="sx-factor">
-              <Dot fit={fit} />
+              <Dot fit={fit} title={assessmentLabel(assessment)} />
               <div className="sx-stack" style={{ gap: 4 }}>
                 <span className="sx-factor-name">{FACTOR_NAME[key]}</span>
-                <span className="sx-factor-status">{FIT_LABEL[fit]}</span>
+                <span className="sx-factor-status">{assessmentLabel(assessment)}</span>
                 <span>{factorLine(key, assessment, choice, workspace)}</span>
                 <span><Tag kind={tag.kind}>{tag.text}</Tag></span>
+                {key === "parking" && assessment.estimate && <span className="sx-small sx-muted">{assessment.reasonCode === "parking_visible" ? "Customer access still needs lease confirmation." : choice.assessment.sources.propertyInference?.parking.reason}</span>}
+                {key === "kitchen" && assessment.estimate && <span className="sx-small sx-muted">{choice.assessment.sources.propertyInference?.kitchen.reason}</span>}
+                {key === "space" && assessment.estimate && <span className="sx-small sx-muted">60% dining area · 15 sq ft per seat</span>}
               </div>
             </div>
           );
         })}
       </div>
+
+      {busy && <p className="sx-small sx-muted" role="status">Checking property details…</p>}
 
       <div className="sx-row">
         {isSaved && savedCount >= 2
@@ -163,10 +177,11 @@ export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, 
             return (
               <div key={assessment.requirementId} className="sx-ev">
                 <span className="sx-strong">{ruleLabel(workspace.requirements, assessment.requirementId)}</span>
-                <div className="sx-ev-head"><FitPill fit={fitForStatus(assessment.status)} /><Tag kind={tag.kind}>{tag.text}</Tag></div>
+                <div className="sx-ev-head"><FitPill fit={fitForAssessment(assessment)} label={assessmentLabel(assessment)} /><Tag kind={tag.kind}>{tag.text}</Tag></div>
                 <ul>
                   <li>{assessment.reason}</li>
                   <li>What the record says: {assessment.sourceValue}</li>
+                  {assessment.estimate?.kind === "ai_estimate" && choice.assessment.sources.propertyInference && <li>AI estimate by {choice.assessment.sources.propertyInference.model}, {dateText(choice.assessment.sources.propertyInference.assessedAt)}. Based on {choice.assessment.sources.propertyInference.photoUsed ? "the property photo and listing context" : "listing context only"}; confidence is subjective, not an inspection.</li>}
                   {refs.map(({ id, ref }) => <li key={id}>{ref ? `${ref.label} (${dateText(ref.date)})` : `Evidence ${id} (date unknown)`}</li>)}
                 </ul>
               </div>

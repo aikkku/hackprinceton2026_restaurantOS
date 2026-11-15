@@ -1,6 +1,7 @@
 import { z } from "zod";
-import { assessmentSchema, candidateSchema, evaluateCandidate, factSchema, groupFor, type AssessedCandidate, type CandidateFact } from "./matching.ts";
+import { applyRequirementPreferences, assessmentSchema, candidateSchema, evaluateCandidate, factSchema, groupFor, type AssessedCandidate, type CandidateFact } from "./matching.ts";
 import { searchRequirementsSchema, type SearchRequirements } from "./requirements.ts";
+import { applyPropertyInference, PROPERTY_INFERENCE_VERSION, propertyInferenceSchema } from "./property-inference.ts";
 
 export const EVIDENCE_VERSION = "expansion-investigation-evidence-v1";
 export const providerNames = ["matterport", "vexcel", "neighborhood", "acs", "competition"] as const;
@@ -22,7 +23,9 @@ export type SourceObservation = z.infer<typeof sourceObservationSchema>;
 export const sourceSnapshotSchema = z.object({
   version: z.literal(EVIDENCE_VERSION), candidateId: z.string().min(1), refreshedAt: z.iso.datetime(),
   statuses: z.array(providerStatusSchema), observations: z.array(sourceObservationSchema), gaps: z.array(z.string()),
+  propertyInference: propertyInferenceSchema.optional(),
 }).superRefine((snapshot, ctx) => {
+  if (snapshot.propertyInference && snapshot.propertyInference.candidateId !== snapshot.candidateId) ctx.addIssue({ code: "custom", message: "Property inference must belong to this candidate." });
   const ids = snapshot.observations.map(x => x.id);
   if (new Set(ids).size !== ids.length) ctx.addIssue({ code: "custom", message: "Duplicate evidence IDs." });
   for (const item of snapshot.observations) {
@@ -54,15 +57,17 @@ export const assessmentRevisionSchema = z.object({
   candidate: candidateSchema, notes: z.array(investigationNoteSchema), sources: sourceSnapshotSchema,
   assessments: z.array(assessmentSchema), group: z.enum(["meets_assessed_requirements", "needs_verification", "does_not_meet"]),
   conflicts: z.array(z.string()),
+  propertyAssessmentVersion: z.literal(PROPERTY_INFERENCE_VERSION).optional(),
 });
 export type AssessmentRevision = z.infer<typeof assessmentRevisionSchema>;
 
-export function reassessCandidate(base: AssessedCandidate, rawRequirements: SearchRequirements, rawNotes: InvestigationNote[], rawSources: SourceSnapshot, metadata: Pick<AssessmentRevision, "id" | "parentId" | "revisionNumber" | "evaluatedAt">): AssessmentRevision {
+export function reassessCandidate(base: AssessedCandidate, rawRequirements: SearchRequirements, rawNotes: InvestigationNote[], rawSources: SourceSnapshot, metadata: Pick<AssessmentRevision, "id" | "parentId" | "revisionNumber" | "evaluatedAt" | "propertyAssessmentVersion">): AssessmentRevision {
   const requirements = searchRequirementsSchema.parse(rawRequirements);
   const notes = z.array(investigationNoteSchema).parse(rawNotes);
   const sources = sourceSnapshotSchema.parse(rawSources);
   const candidate = candidateSchema.parse(base.candidate);
   if (sources.candidateId !== candidate.id || notes.some(n => n.fact.entityId !== candidate.id)) throw new Error("Evidence belongs to a different candidate.");
+  if (sources.propertyInference?.evidenceIds.some(id => !candidate.sourceIds.includes(id) && !sources.observations.some(o => o.id === id))) throw new Error("Property inference references unknown evidence.");
   const allFacts = [...sources.observations.flatMap(x => x.facts), ...notes.map(x => x.fact)];
   // The Phase 2 evaluator consumes trusted facts. This adapter enforces origin,
   // suite association, source date and conflict policy before invoking it.
@@ -70,11 +75,14 @@ export function reassessCandidate(base: AssessedCandidate, rawRequirements: Sear
   const fields = ["existingKitchen", "customerParking", "seatCapacity", "neighborhood", "monthlyAdditionalCharges"] as const;
   const conflicts = fields.filter(field => new Set(eligible.filter(f => f.field === field && f.value.kind !== "unknown").map(f => JSON.stringify(f.value))).size > 1);
   const safeFacts: CandidateFact[] = eligible.filter(f => !conflicts.includes(f.field));
-  const assessments = evaluateCandidate(candidate, requirements, safeFacts);
+  // Frozen older plans retain their original capacity method on recomputation.
+  let assessments = evaluateCandidate(candidate, requirements, safeFacts, { estimateSeats: metadata.propertyAssessmentVersion === PROPERTY_INFERENCE_VERSION });
   const requirementFor = { existingKitchen: "space.existingKitchen", customerParking: "space.customerParking", seatCapacity: "space.seats", neighborhood: "market.neighborhoodPreference", monthlyAdditionalCharges: "occupancy.monthlyLimit" };
   for (const field of conflicts) {
     const item = assessments.find(a => a.requirementId === requirementFor[field]);
     if (item) Object.assign(item, { status: "unknown", reasonCode: "unknown_value", reason: "Conflicting dated observations are retained; resolve them before treating this requirement as verified.", evidenceIds: eligible.filter(f => f.field === field).map(f => f.id), sourceValue: "Conflicting observations" });
   }
+  if (sources.propertyInference && !candidate.isDemo) assessments = applyPropertyInference(assessments, sources.propertyInference);
+  assessments = applyRequirementPreferences(assessments, requirements);
   return assessmentRevisionSchema.parse({ ...metadata, version: EVIDENCE_VERSION, profileRevisionId: requirements.revisionId, candidate, notes, sources, assessments, group: groupFor(assessments), conflicts });
 }

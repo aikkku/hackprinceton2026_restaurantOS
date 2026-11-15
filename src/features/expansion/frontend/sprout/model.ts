@@ -12,6 +12,7 @@ import {
 } from "../../domain/matching.ts";
 import type { Requirement, SearchRequirements } from "../../domain/requirements.ts";
 import type { RentEstimate } from "../../domain/rent-estimate.ts";
+import { PROPERTY_INFERENCE_VERSION } from "../../domain/property-inference.ts";
 
 /**
  * Pure presentation model for the sprout Expansion UI (Rain-owned, no React).
@@ -36,6 +37,26 @@ export const fitForGroup = (group: CandidateGroup): Fit =>
 
 export const fitForStatus = (status: RequirementAssessment["status"]): Fit =>
   status === "pass" ? "meets" : status === "unknown" ? "verify" : status === "fail" ? "fails" : "other";
+
+const hasSeatEstimate = (assessment: RequirementAssessment) =>
+  assessment.requirementId === "space.seats" && assessment.estimate?.kind === "area_estimate";
+
+/** A computed seat count is a completed estimate, even outside the preferred range. */
+export const fitForAssessment = (assessment: RequirementAssessment): Fit =>
+  hasSeatEstimate(assessment) ? "meets" : fitForStatus(assessment.status);
+
+export const assessmentLabel = (assessment: RequirementAssessment): string =>
+  assessment.reasonCode === "not_applicable" ? "Not required" : assessment.reasonCode === "missing_charges" && assessment.status === "pass" ? "Base rent fits" : hasSeatEstimate(assessment) ? "Estimated capacity" : FIT_LABEL[fitForAssessment(assessment)];
+
+/** The price card can pass on listed base rent; total occupancy remains incomplete. */
+export function displayAssessment(assessment: RequirementAssessment, choice: BriefChoice, requirements: SearchRequirements): RequirementAssessment {
+  if (assessment.requirementId !== "occupancy.monthlyLimit" || assessment.reasonCode !== "missing_charges") return assessment;
+  const base = monthlyOccupancyRange(choice.assessment.candidate, 0, "not_included");
+  const cap = budgetCap(requirements);
+  return cap !== null && "known" in base && base.known.high !== null && base.known.high <= cap
+    ? { ...assessment, status: "pass", reason: "The listed base rent fits your budget. Extra charges and total occupancy cost remain unknown." }
+    : assessment;
+}
 
 // ---------------------------------------------------------------------------
 // Money
@@ -237,9 +258,13 @@ export function friendlyReason(code: AssessmentReasonCode, requirements: SearchR
     case "kitchen_verified": return "Kitchen confirmed for this space";
     case "kitchen_absent": return "No kitchen in this space";
     case "kitchen_unverified": return "Kitchen isn’t confirmed yet";
+    case "kitchen_likely": return "Existing kitchen is likely (AI estimate)";
+    case "kitchen_unlikely": return "Kitchen likelihood needs review (AI estimate)";
     case "parking_verified": return "Customer parking confirmed";
     case "parking_absent": return "No customer parking";
     case "parking_unverified": return "Customer parking isn’t confirmed yet";
+    case "parking_visible": return "Parking lot visible in the photo";
+    case "parking_unlikely": return "Parking assessment needs a clearer photo";
     case "capacity_aligned": return "Room for your seat count";
     case "capacity_mismatch": return "Seat count may not match";
     case "capacity_unknown": return "Seat count isn’t known";
@@ -253,6 +278,7 @@ export function friendlyReason(code: AssessmentReasonCode, requirements: SearchR
 
 /** What to ask or look for when an assessment is still unknown. */
 export function checkQuestion(assessment: RequirementAssessment): string | null {
+  if (hasSeatEstimate(assessment)) return null;
   if (assessment.status !== "unknown") return null;
   switch (assessment.requirementId) {
     case "occupancy.monthlyLimit": {
@@ -265,7 +291,7 @@ export function checkQuestion(assessment: RequirementAssessment): string | null 
     case "space.existingKitchen": return "Does a working kitchen (hood, grease trap) come with this space?";
     case "space.customerParking": return "Can your customers use the parking? Check the lease or ask the landlord.";
     case "space.seats": return "How many seats fit in the dining room?";
-    case "market.neighborhoodPreference": return "Which neighborhood is this address in?";
+    case "market.neighborhoodPreference": return null;
     default: return assessment.reason;
   }
 }
@@ -296,7 +322,7 @@ export function joinWords(words: string[]): string {
 }
 
 export function verdict(assessments: RequirementAssessment[], group: CandidateGroup, requirements: SearchRequirements): string {
-  const checks = assessments.filter((a) => a.status === "unknown").length;
+  const checks = assessments.filter((a) => checkQuestion(a) !== null).length;
   if (group === "meets_assessed_requirements")
     return checks ? `This place looks like a good fit. ${checks === 1 ? "One detail is" : "A few details are"} worth checking.` : "This place looks like a good fit for your must-haves.";
   if (group === "needs_verification") {
@@ -375,6 +401,7 @@ export function makeChoice(requirements: SearchRequirements, base: AssessedCandi
     assessmentHistory: [],
     assessment: reassessCandidate(base, requirements, [], sources ?? emptySources(base.candidate.id), {
       id: crypto.randomUUID(), parentId: null, revisionNumber: 0, evaluatedAt: new Date().toISOString(),
+      propertyAssessmentVersion: PROPERTY_INFERENCE_VERSION,
     }),
     financeInputs,
     financeResults: calculateDecisionFinance(base.candidate, financeInputs),

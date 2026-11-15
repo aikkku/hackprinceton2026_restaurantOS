@@ -1,6 +1,6 @@
 import type { DecisionBrief, InvestigationRun } from "../../domain/decision-brief.ts";
 import type { SourceSnapshot } from "../../domain/evidence.ts";
-import type { AssessedCandidate } from "../../domain/matching.ts";
+import { applyRequirementPreferences, groupFor, type AssessedCandidate } from "../../domain/matching.ts";
 import type { RentEstimate } from "../../domain/rent-estimate.ts";
 import type { SearchRequirements } from "../../domain/requirements.ts";
 import { loadAgentEvidence } from "../data/account-client.ts";
@@ -42,7 +42,10 @@ const cityLabelFor = (requirements: SearchRequirements, fallback: string) => {
   const target = requirements.requirements.find((item) => item.id === "market.target")?.value;
   return target?.kind === "market" ? target.market.city : fallback;
 };
-const byRank = (items: AssessedCandidate[]) => [...items].sort((a, b) => a.rank - b.rank);
+const byRank = (items: AssessedCandidate[], requirements: SearchRequirements) => items.map(item => {
+  const assessments = applyRequirementPreferences(item.assessments, requirements);
+  return { ...item, assessments, group: groupFor(assessments) };
+}).sort((a, b) => a.rank - b.rank);
 
 export function workspaceFromBundle(
   bundle: InvestigationRun,
@@ -60,7 +63,7 @@ export function workspaceFromBundle(
     requirements,
     profileRevisionId: bundle.profile.revisionId,
     profileRevisionNumber: bundle.profile.revisionNumber,
-    candidates: byRank(bundle.search.candidates),
+    candidates: byRank(bundle.search.candidates, requirements),
     bundle,
     evidence,
     tasks: new Map((bundle.inspection?.candidates ?? []).map((item) => [item.candidateId, item.verificationTasks])),
@@ -107,7 +110,7 @@ export async function loadDeterministicWorkspace(runId: string, signal?: AbortSi
     requirements,
     profileRevisionId: run.profile.revisionId,
     profileRevisionNumber: run.profile.revisionNumber,
-    candidates: byRank(candidates),
+    candidates: byRank(candidates, requirements),
     bundle: null,
     evidence: new Map(),
     tasks: new Map(),

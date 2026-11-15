@@ -54,9 +54,13 @@ export const ASSESSMENT_REASON_CODES = [
   "kitchen_verified",
   "kitchen_absent",
   "kitchen_unverified",
+  "kitchen_likely",
+  "kitchen_unlikely",
   "parking_verified",
   "parking_absent",
   "parking_unverified",
+  "parking_visible",
+  "parking_unlikely",
   "capacity_aligned",
   "capacity_mismatch",
   "capacity_unknown",
@@ -189,6 +193,7 @@ export const assessmentSchema = z.object({
   evidenceIds: z.array(id),
   /** Human-readable source value/range behind the status. */
   sourceValue: z.string().min(1),
+  estimate: z.object({ kind: z.enum(["ai_estimate", "area_estimate"]), probability: z.number().min(0).max(1).optional() }).optional(),
 });
 export type RequirementAssessment = z.infer<typeof assessmentSchema>;
 
@@ -505,13 +510,28 @@ function seatsAssessment(
   candidate: SpaceCandidate,
   requirements: SearchRequirements,
   facts: CandidateFact[],
+  estimateSeats = false,
 ): RequirementAssessment {
   const preference = requirementOf(requirements, "space.seats");
-  const fact = facts.find((f) => f.field === "seatCapacity");
+  let fact = facts.find((f) => f.field === "seatCapacity");
+  let areaEstimate = false;
+  if (estimateSeats && (!fact || fact.value.kind === "unknown")) {
+    const lowArea = candidate.floorAreaSqFt ?? candidate.sizeRangeSqFt.minimum;
+    const highArea = candidate.floorAreaSqFt ?? candidate.sizeRangeSqFt.maximum;
+    if (lowArea !== null || highArea !== null) {
+      // Planning assumptions: 60% dining area, 15 dining sq ft per seat.
+      const seats = (area: number | null) => area === null ? null : Math.floor(area * 0.6 / 15);
+      fact = { id: `area-seats:${candidate.id}`, entityScope: "space", entityId: candidate.id, field: "seatCapacity",
+        value: lowArea !== null && lowArea === highArea ? { kind: "exact", value: seats(lowArea)! } : { kind: "range", minimum: seats(lowArea), maximum: seats(highArea) },
+        unit: "seats", origin: "derived", source: { label: "Listing floor area", recordId: candidate.sourceIds[0], capturedAt: null },
+        method: "floor(offered sq ft × 0.60 / 15)", limitations: ["Assumes 60% dining space and 15 dining sq ft per seat; layout and legal occupancy are unverified."], isDemo: candidate.isDemo };
+      areaEstimate = true;
+    }
+  }
   if (!fact || fact.value.kind === "unknown") {
     return {
       requirementId: "space.seats",
-      status: "not_applicable",
+      status: estimateSeats ? "unknown" : "not_applicable",
       reasonCode: "capacity_unknown",
       reason: "No usable dining-area or capacity evidence; the seat preference cannot be assessed.",
       evidenceIds: [],
@@ -525,11 +545,12 @@ function seatsAssessment(
   if (minimum === null && maximum === null) {
     return {
       requirementId: "space.seats",
-      status: "not_applicable",
-      reasonCode: "capacity_unknown",
-      reason: "The profile has no seat preference to compare against.",
-      evidenceIds: [fact.id],
-      sourceValue: capacitySourceValue(fact.value),
+      status: estimateSeats ? "pass" : "not_applicable",
+      reasonCode: estimateSeats ? "capacity_aligned" : "capacity_unknown",
+      reason: areaEstimate ? "Planning seats = floor(listing sq ft × 60% dining allocation ÷ 15 sq ft per seat). Layout and legal occupancy require confirmation." : "The profile has no seat preference to compare against.",
+      evidenceIds: areaEstimate ? candidate.sourceIds : [fact.id],
+      sourceValue: `${areaEstimate ? "About " : ""}${capacitySourceValue(fact.value)}`,
+      ...(areaEstimate ? { estimate: { kind: "area_estimate" as const } } : {}),
     };
   }
   const capacity = fact.value.kind === "exact" ? { low: fact.value.value, high: fact.value.value } : { low: fact.value.minimum, high: fact.value.maximum };
@@ -541,11 +562,10 @@ function seatsAssessment(
     requirementId: "space.seats",
     status: aligned ? "pass" : "unknown",
     reasonCode: aligned ? "capacity_aligned" : "capacity_mismatch",
-    reason: aligned
-      ? "The supported capacity estimate aligns with the 40–50 seat preference."
-      : "The supported capacity estimate is outside the preferred seat range; this is a preference mismatch, not a rejection.",
-    evidenceIds: [fact.id],
-    sourceValue: capacitySourceValue(fact.value),
+    reason: areaEstimate ? `${aligned ? "Estimated capacity overlaps your seat preference." : "Estimated capacity is outside your seat preference."} Planning seats = floor(listing sq ft × 60% dining allocation ÷ 15 sq ft per seat). Layout and legal occupancy require confirmation.` : aligned ? "The supported capacity estimate aligns with the 40–50 seat preference." : "The supported capacity estimate is outside the preferred seat range; this is a preference mismatch, not a rejection.",
+    evidenceIds: areaEstimate ? candidate.sourceIds : [fact.id],
+    sourceValue: `${areaEstimate ? "About " : ""}${capacitySourceValue(fact.value)}`,
+    ...(areaEstimate ? { estimate: { kind: "area_estimate" as const } } : {}),
   };
 }
 
@@ -600,14 +620,27 @@ export function evaluateCandidate(
   candidate: SpaceCandidate,
   requirements: SearchRequirements,
   facts: CandidateFact[] = [],
+  options: { estimateSeats?: boolean } = {},
 ): RequirementAssessment[] {
-  return [
+  return applyRequirementPreferences([
     occupancyAssessment(candidate, requirements, facts),
     kitchenAssessment(candidate, facts),
     parkingAssessment(candidate, facts),
-    seatsAssessment(candidate, requirements, facts),
+    seatsAssessment(candidate, requirements, facts, options.estimateSeats),
     neighborhoodAssessment(candidate, requirements, facts),
-  ];
+  ], requirements);
+}
+
+/** Explicit opt-outs are preferences, not missing property evidence. */
+export function applyRequirementPreferences(assessments: RequirementAssessment[], requirements: SearchRequirements): RequirementAssessment[] {
+  return assessments.map(item => {
+    if (!["space.existingKitchen", "space.customerParking"].includes(item.requirementId)) return item;
+    const requirement = requirementOf(requirements, item.requirementId);
+    if (requirement?.value.kind !== "boolean" || requirement.value.value) return item;
+    return { requirementId: item.requirementId, status: "not_applicable", reasonCode: "not_applicable",
+      reason: `You selected that ${item.requirementId === "space.existingKitchen" ? "an existing kitchen" : "customer parking"} is not required. This does not affect this place’s fit.`,
+      sourceValue: "Not required", evidenceIds: [] };
+  });
 }
 
 export function groupFor(assessments: RequirementAssessment[]): CandidateGroup {

@@ -145,13 +145,15 @@ export function SearchProgress({ profile, cityId, onSeeLocations, onBack }: {
         if (controller.signal.aborted) return;
         setRun(created);
         setPhase("running");
-        stream.current = openAgentEventStream(runId, {
+        // The server may reuse an active search after a retry or double submission.
+        const activeRunId = created.runId;
+        stream.current = openAgentEventStream(activeRunId, {
           afterSeq: 0,
           onEvent: (event) => setStages((current) => applyEvent(event, current)),
-          onDone: () => { void finish(runId); },
+          onDone: () => { void finish(activeRunId); },
           onDisconnect: () => { /* the status poll keeps state consistent */ },
         });
-        timer.current = setTimeout(() => { void finish(runId); }, 3000);
+        timer.current = setTimeout(() => { void finish(activeRunId); }, 3000);
       } catch (failure) {
         if (controller.signal.aborted) return;
         setError({ message: failure instanceof Error ? failure.message : "The search couldn’t start.", fallback: false });
