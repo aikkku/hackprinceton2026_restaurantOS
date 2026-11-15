@@ -5,6 +5,14 @@ import { requiredSalesMonthly } from "./scenario.ts";
 export const DECISION_FINANCE_VERSION = "expansion-decision-finance-v1";
 const amount = z.number().finite().nonnegative().max(1e12);
 export const upfrontCategories = ["deposit", "build_out", "equipment", "fees", "initial_working_capital"] as const;
+/**
+ * Explicitly labeled illustrative values the owner may opt into for blank
+ * fields. Deliberately excludes fixed costs, funds, upfront costs and sales:
+ * those are owner/site-specific, and assumed sales would be invented demand.
+ */
+export const ILLUSTRATIVE_VALUES = { contributionMargin: 0.35, averageSpend: 25, operatingDays: 26 } as const;
+export const illustrativeKeys = ["contributionMargin", "averageSpend", "operatingDays"] as const;
+export type IllustrativeKey = typeof illustrativeKeys[number];
 export const decisionFinanceInputsSchema = z.object({
   additionalOccupancyMonthly: amount.nullable(),
   fixedCostsMonthly: amount.nullable(),
@@ -16,7 +24,13 @@ export const decisionFinanceInputsSchema = z.object({
   averageSpend: amount.positive().nullable(),
   operatingDays: z.number().finite().positive().max(31).nullable(),
   assumedSalesMonthly: amount.nullable(),
+  /** Fields currently holding ILLUSTRATIVE_VALUES (absent in pre-illustrative saves → []). */
+  illustrative: z.array(z.enum(illustrativeKeys)).max(illustrativeKeys.length).default([]),
 }).superRefine((value, ctx) => {
+  if (new Set(value.illustrative).size !== value.illustrative.length)
+    ctx.addIssue({ code: "custom", path: ["illustrative"], message: "Duplicate illustrative field." });
+  for (const key of value.illustrative) if (value[key] !== ILLUSTRATIVE_VALUES[key])
+    ctx.addIssue({ code: "custom", path: ["illustrative"], message: `${key} is labeled illustrative but holds a different value.` });
   if (new Set(value.upfront.map(x => x.category)).size !== value.upfront.length)
     ctx.addIssue({ code: "custom", message: "An upfront category can only be counted once." });
   if (value.reserve !== null && value.totalFunds !== null && value.reserve > value.totalFunds)
@@ -27,8 +41,28 @@ export const emptyFinanceInputs = (): DecisionFinanceInputs => ({
   additionalOccupancyMonthly: null, fixedCostsMonthly: null, fixedCostBasis: "excludes_occupancy",
   contributionMargin: null, totalFunds: null, reserve: null,
   upfront: upfrontCategories.map(category => ({ category, amount: null })),
-  averageSpend: null, operatingDays: null, assumedSalesMonthly: null,
+  averageSpend: null, operatingDays: null, assumedSalesMonthly: null, illustrative: [],
 });
+/** Fill only blank illustrative-eligible fields; existing owner inputs are never overwritten. */
+export function applyIllustrative(inputs: DecisionFinanceInputs): DecisionFinanceInputs {
+  const next = { ...inputs, illustrative: [...inputs.illustrative] };
+  for (const key of illustrativeKeys) if (next[key] === null) { next[key] = ILLUSTRATIVE_VALUES[key]; next.illustrative.push(key); }
+  return decisionFinanceInputsSchema.parse(next);
+}
+
+export type MoneyRange = { low: number; high: number | null };
+/**
+ * Display-only split of the occupancy total (not part of saved results):
+ * base rent from the quoted rent, plus nonincluded charges once.
+ */
+export function occupancyBreakdown(candidate: SpaceCandidate, additionalOccupancyMonthly: number | null): { baseRent: MoneyRange | null; additional: { status: "included_in_rent" | "known" | "unknown"; monthly: number | null } } {
+  const inclusion = serviceInclusion(candidate.rent?.serviceTypeCode ?? null);
+  const base = monthlyOccupancyRange(candidate, 0, "not_included");
+  return {
+    baseRent: "known" in base ? base.known : null,
+    additional: inclusion === "included" ? { status: "included_in_rent", monthly: null } : additionalOccupancyMonthly === null ? { status: "unknown", monthly: null } : { status: "known", monthly: additionalOccupancyMonthly },
+  };
+}
 const range = z.object({ low: amount, high: amount.nullable() });
 export const decisionFinanceResultSchema = z.object({
   modelVersion: z.literal(DECISION_FINANCE_VERSION),
@@ -48,6 +82,7 @@ export function calculateDecisionFinance(candidate: SpaceCandidate, raw: Decisio
   const occupancy = "known" in occupancyResult ? occupancyResult.known : null;
   const gaps: string[] = [];
   const notes = ["All edited finance inputs are user planning assumptions. No demand or payback prediction is made."];
+  if (input.illustrative.length) notes.push(`Illustrative (not sourced, not the owner's figures): ${input.illustrative.map(key => `${key} = ${ILLUSTRATIVE_VALUES[key]}`).join(", ")}. Results using them are illustrations only.`);
   if (!occupancy || occupancy.high === null) gaps.push("Total monthly occupancy is incomplete.");
   if ("notes" in occupancyResult) notes.push(...occupancyResult.notes);
   let fixedCosts: { low: number; high: number | null } | null = null;

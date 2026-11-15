@@ -24,3 +24,15 @@
 .expansion-app .decision-workbench button:focus-visible, .expansion-app .decision-workbench summary:focus-visible, .expansion-app .decision-workbench input:focus-visible, .expansion-app .decision-workbench select:focus-visible { outline: 3px solid var(--ros-forest); outline-offset: 3px; }
 @media(max-width: 600px) { .expansion-app .decision-form-grid { grid-template-columns: 1fr; } .expansion-app .decision-workbench .section-heading { flex-wrap: wrap; gap: 12px; } }
 @media(prefers-reduced-motion: reduce) { .expansion-app .decision-workbench *, .expansion-app .decision-workbench { animation: none !important; transition: none !important; scroll-behavior: auto; } }
+.expansion-app .decision-requirement-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.expansion-app .decision-evidence-refs { margin: 0; padding-left: 18px; font-size: 12px; color: var(--ros-muted); }
+.expansion-app .decision-gap { font-size: 12px; border-left: 3px solid var(--ros-border); padding-left: 8px; }
+.expansion-app .decision-notes { display: grid; gap: 10px; }
+.expansion-app .decision-notes h4, .expansion-app .decision-scope > h4 { margin: 0 0 6px; }
+.expansion-app .decision-scope { display: grid; gap: 8px; margin-block: 10px; }
+.expansion-app .decision-source.synthetic { border: 1px dashed var(--ros-border); border-radius: 8px; padding: 10px; }
+.expansion-app .decision-upfront { margin: 0; padding-left: 18px; font-weight: 400; }
+.expansion-app .decision-table-wrap { overflow-x: auto; max-width: 100%; }
+.expansion-app .decision-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.expansion-app .decision-table caption { text-align: left; font-size: 12px; color: var(--ros-muted); padding-bottom: 6px; }
+.expansion-app .decision-table th, .expansion-app .decision-table td { border: 1px solid var(--ros-border); padding: 8px; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
