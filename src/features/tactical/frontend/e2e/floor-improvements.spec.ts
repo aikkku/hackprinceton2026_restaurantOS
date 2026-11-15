@@ -98,3 +98,67 @@ test("keyboard edits furniture directly and its properties start collapsed", asy
   await expect(page.getByLabel("Furniture width (m)")).toBeVisible();
   expect(original).toBe("translate(5.25 5.55)");
 });
+
+test("the chosen saved version survives reload without creating another snapshot", async ({ page }) => {
+  await page.goto("/tactical");
+  await expect(page.locator(".floor-editor")).toHaveAttribute("aria-busy", "false");
+  const table = page.locator('[data-object="south-two"]');
+  await table.focus();
+  await page.keyboard.press("ArrowRight");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  const versions = page.getByLabel("Saved versions");
+  await expect(versions.locator("option")).toHaveCount(2);
+  await versions.selectOption({ index: 0 });
+  const initialId = await versions.inputValue();
+  await page.reload();
+  await expect(page.locator(".floor-editor")).toHaveAttribute("aria-busy", "false");
+  await expect(versions).toHaveValue(initialId);
+  await expect(versions.locator("option")).toHaveCount(2);
+  await expect(table).toHaveAttribute("transform", "translate(5.25 5.55)");
+});
+
+test("Escape cancels a live drag, including its warnings, without adding undo history", async ({ page }) => {
+  await page.goto("/tactical");
+  await expect(page.locator(".floor-editor")).toHaveAttribute("aria-busy", "false");
+  const canvas = page.locator("svg.floor-svg");
+  const table = canvas.locator('[data-object="south-two"]');
+  await table.scrollIntoViewIfNeeded();
+  await drag(page, await point(canvas, 5.85, 6), await point(canvas, 8.98, 6.13));
+  await expect(page.getByRole("tooltip")).toContainText("Overlaps");
+  await page.keyboard.press("Escape");
+  await page.mouse.up();
+  await expect(table).toHaveAttribute("transform", "translate(5.25 5.55)");
+  await expect(page.getByRole("button", { name: "Undo", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
+});
+
+test("compact menus work on narrow screens and controls stay inside the canvas", async ({ page }) => {
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  page.on("console", message => { if (message.type() === "error" && /hydrat/i.test(message.text())) errors.push(message.text()); });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/tactical");
+  await expect(page.locator(".floor-editor")).toHaveAttribute("aria-busy", "false");
+  await page.getByText("Furniture", { exact: true }).click();
+  await expect(page.getByLabel("Search furniture")).toBeFocused();
+  await page.getByLabel("Search furniture").fill("nothing matches");
+  await expect(page.getByText("No furniture found.")).toBeVisible();
+  await page.getByLabel("Search furniture").fill("plant");
+  await page.getByLabel("Search furniture").press("Enter");
+  await expect(page.locator(".floor-placement-chip")).toBeVisible();
+  await expect(page.locator("svg.floor-svg")).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator(".floor-placement-chip")).toHaveCount(0);
+  await page.getByLabel("Plan settings", { exact: true }).click();
+  await expect(page.getByLabel("Room width (m)")).toBeVisible();
+  await page.getByLabel("Room width (m)").press("Escape");
+  await expect(page.getByLabel("Room width (m)")).toBeHidden();
+  const canvas = await page.locator(".floor-canvas").boundingBox();
+  const toolbar = await page.locator(".floor-map-tools").boundingBox();
+  expect(toolbar!.x).toBeGreaterThan(canvas!.x);
+  expect(toolbar!.x + toolbar!.width).toBeLessThanOrEqual(canvas!.x + canvas!.width);
+  expect(toolbar!.y + toolbar!.height).toBeLessThanOrEqual(canvas!.y + canvas!.height);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(errors).toEqual([]);
+});

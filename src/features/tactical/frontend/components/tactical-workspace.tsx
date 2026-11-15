@@ -30,7 +30,6 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
   const router = useRouter();
   const section = pathname.split("/")[2] ?? "floor";
   const [analysisRequested, setAnalysisRequested] = useState(0);
-  const [replyReviewId, setReplyReviewId] = useState(fixture.reviews[0]?.id ?? "");
   const [context, setContext] = useState<FloorContext>(() => {
     const library = modernFloorLibrary(fixture.layoutConfigurations);
     return { library, layout: library.entries.find(entry => entry.id === library.activeId)!.layout, dirty: false };
@@ -70,14 +69,10 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
         </div>
         {section === "analyze" && <AnalyzePlan plans={fixture.photoPlans} />}
         <div hidden={section !== "reviews"}>
-        <AiWorkbench title="AI review researcher" description="Interpret supplied reviews, extract themes and menu mentions, and suggest evidence-linked improvements. Counts and quoted excerpts stay tied to the supplied sample." request={{ task: "reviews", restaurantId: fixture.profile.id, question: "" }} />
-        <label className="ai-review-select">Review for an AI reply<select value={replyReviewId} onChange={event => setReplyReviewId(event.target.value)}>{fixture.reviews.map(review => <option key={review.id} value={review.id}>{review.id} · {review.text.slice(0, 80)}</option>)}</select></label>
-        <AiWorkbench title="AI review reply" description="Generate a response to the selected review, edit it and copy it. Nothing is published." request={{ task: "reply", restaurantId: fixture.profile.id, reviewId: replyReviewId, question: "" }} />
-        <ReviewInsights restaurantId={fixture.profile.id} reviews={fixture.reviews} mission={fixture.mission} onTrySeating={openSeatingAnalysis} />
+        <ReviewInsights restaurantId={fixture.profile.id} reviews={fixture.reviews} active={section === "reviews"} onTrySeating={openSeatingAnalysis} />
         </div>
         <div hidden={section !== "hr"}>
-          <AiWorkbench title="AI job-description draft" description="Describe a role, schedule and requirements, or paste a draft to improve. Missing details remain placeholders. No Indeed posting is created." inputLabel="Role, requirements or draft" request={{ task: "job", restaurantId: fixture.profile.id, question: "" }} />
-          <HrPage operations={fixture.operations} restaurantName={fixture.profile.name} />
+          <HrPage dataset={fixture} active={section === "hr"} />
         </div>
         <div hidden={section !== "supply"}>
           <AiWorkbench title="AI supply advisor" description="Explain stock issues and code-calculated costs to reach reorder thresholds. These are planning suggestions, not purchase orders." request={{ task: "supply", restaurantId: fixture.profile.id, question: "" }} />

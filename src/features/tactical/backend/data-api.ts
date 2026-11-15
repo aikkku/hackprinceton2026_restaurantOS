@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
-import { restaurantIdSchema, uploadSchema } from "../domain/dataset.ts";
+import { reviewProcessor } from "./review-analysis.ts";
+import { restaurantIdSchema, uploadSchema, type Dataset } from "../domain/dataset.ts";
 import { mongoDatasets, type DatasetRepository } from "./mongodb.ts";
 
 export const maxDatasetBytes = 1_048_576;
@@ -30,7 +31,7 @@ export async function readBoundedJson(request: Request) {
   try { return JSON.parse(Buffer.concat(chunks).toString("utf8")) as unknown; }
   catch { throw new InputError(400, "Invalid JSON."); }
 }
-export function createDataApi(repository: DatasetRepository) {
+export function createDataApi(repository: DatasetRepository, onSaved?: (dataset: Dataset) => Promise<{ pending: number }>) {
   return async function handle(request: Request, id?: string, validateOnly = false) {
     const denied = authorize(request);
     if (denied) return denied;
@@ -48,11 +49,16 @@ export function createDataApi(repository: DatasetRepository) {
       if (validateOnly) return json({ valid: true, restaurantId: parsed.data.dataset.profile.id, datasetVersion: 1, isDemo: true });
       if (!id) return json({ error: "Restaurant ID required." }, 400);
       const record = await repository.save(parsed.data.dataset, parsed.data.expectedRevision);
-      return record ? json({ id: record._id, revision: record.revision, updatedAt: record.updatedAt, source: "mongodb", isDemo: true }, parsed.data.expectedRevision === 0 ? 201 : 200) : json({ error: "Revision conflict. Fetch the current dataset and review changes before retrying." }, 409);
+      let reviewAnalysis: { pending?: number; error?: string } | undefined;
+      if (record && onSaved) {
+        try { reviewAnalysis = { pending: (await onSaved(record.dataset)).pending }; }
+        catch { reviewAnalysis = { error: "Something is wrong" }; }
+      }
+      return record ? json({ reviewAnalysis, id: record._id, revision: record.revision, updatedAt: record.updatedAt, source: "mongodb", isDemo: true }, parsed.data.expectedRevision === 0 ? 201 : 200) : json({ error: "Revision conflict. Fetch the current dataset and review changes before retrying." }, 409);
     } catch (error) {
       if (error instanceof InputError) return json({ error: error.message }, error.status);
       return json({ error: "Database unavailable or stored data invalid. Check server configuration and database access; no demo fallback was substituted." }, 503);
     }
   };
 }
-export const handleDatasetRequest = createDataApi(mongoDatasets);
+export const handleDatasetRequest = createDataApi(mongoDatasets, dataset => reviewProcessor.process(dataset));

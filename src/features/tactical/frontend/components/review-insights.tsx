@@ -1,8 +1,13 @@
 "use client";
 
 import { useId, useState } from "react";
-import { ArrowRight, MessageSquareText, Search } from "lucide-react";
+import { ArrowRight, MessageSquareText, RefreshCw, Search, Sparkles } from "lucide-react";
 import { filterReviews, summarizeReviews, themeKey } from "../../domain/reviews";
+import { matchesReview } from "../../domain/review-analysis";
+import { useReviewAnalysis } from "../use-review-analysis";
+import { useAiAccess } from "./ai-workbench";
+import { ReviewReply } from "./review-reply";
+import { StateButton } from "./state-button";
 import type { Fixture } from "../../domain/schemas";
 import "./review-insights.css";
 import { NetworkPanel } from "./network-panel";
@@ -11,32 +16,41 @@ import { SocialPipeline } from "./social-pipeline";
 const percentage = new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 0 });
 const decimal = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 
-export function ReviewInsights({ reviews, mission, onTrySeating, restaurantId }: {
+export function ReviewInsights({ reviews, onTrySeating, restaurantId, active = true }: {
   restaurantId: string;
   reviews: Fixture["reviews"];
-  mission: Fixture["mission"];
+  active?: boolean;
   onTrySeating: () => void;
 }) {
   const headingId = useId();
   const [tab, setTab] = useState("reviews");
   const [query, setQuery] = useState("");
   const [selectedTheme, setSelectedTheme] = useState("");
-  const [citedOnly, setCitedOnly] = useState(false);
-  const summary = summarizeReviews(reviews);
-  const evidenceIds = new Set(mission.evidenceIds);
-  const citedCount = reviews.filter((review) => evidenceIds.has(review.id)).length;
-  const visibleReviews = filterReviews(reviews, {
+  const [priorityOnly, setPriorityOnly] = useState(false);
+  const [sentiment, setSentiment] = useState("");
+  const unlocked = useAiAccess();
+  const analysis = useReviewAnalysis(restaurantId, JSON.stringify(reviews.map(({ id, text, rating, date }) => ({ id, text, rating, date }))), active && tab === "reviews", unlocked);
+  const records = new Map(reviews.flatMap(review => {
+    const record = analysis.state?.records.find(row => matchesReview(row, restaurantId, review));
+    return record ? [[review.id, record] as const] : [];
+  }));
+  const classifiedReviews = reviews.map(review => ({ ...review, themes: records.get(review.id)?.classification.themes ?? [] }));
+  const summary = summarizeReviews(classifiedReviews);
+  const priorityIds = [...records.values()].filter(row => row.classification.highPriority).map(row => row.source.id);
+  const seatingPriority = [...records.values()].some(row => row.classification.highPriority && row.classification.themes.some(theme => theme === "Seating" || theme === "Wait time"));
+  const visibleReviews = filterReviews(classifiedReviews, {
     query,
     theme: selectedTheme,
-    citedOnly,
-    evidenceIds: mission.evidenceIds,
-  });
-  const hasFilters = Boolean(query || selectedTheme || citedOnly);
+    citedOnly: priorityOnly,
+    evidenceIds: priorityIds,
+  }).filter(review => !sentiment || records.get(review.id)?.classification.sentiment === sentiment);
+  const hasFilters = Boolean(query || selectedTheme || priorityOnly || sentiment);
 
   function resetFilters() {
     setQuery("");
     setSelectedTheme("");
-    setCitedOnly(false);
+    setPriorityOnly(false);
+    setSentiment("");
   }
 
   return (
@@ -54,6 +68,13 @@ export function ReviewInsights({ reviews, mission, onTrySeating, restaurantId }:
       <div hidden={tab !== "social"}><SocialPipeline restaurantId={restaurantId} /></div>
       <div hidden={tab !== "network"}><NetworkPanel restaurantId={restaurantId} /></div>
       <div hidden={tab !== "reviews"}>
+      <div className="review-analysis-status" aria-label="AI review classification">
+        <div className="review-analysis-title"><Sparkles size={16} aria-hidden="true" /><strong>AI review filters</strong><span className="review-ai-badge">AI</span></div>
+        <p role="status">{!analysis.state && !analysis.pending ? analysis.error ? "" : "Loading saved classifications…" : analysis.pending ? `Processing reviews · ${records.size} of ${reviews.length} ready` : analysis.state?.storage === "unavailable" ? "Connect MongoDB to save review classifications." : `${records.size} of ${reviews.length} classified · saved to MongoDB`}</p>
+        {!unlocked && records.size < reviews.length && analysis.state?.storage === "mongodb" && <p>Unlock the AI workspace to classify new reviews.</p>}
+        {analysis.error && <p role="alert">Something is wrong</p>}
+        <StateButton className="button review-ai-button compact" disabled={analysis.pending} onClick={analysis.refresh} aria-label={analysis.error ? "Retry review analysis" : "Refresh review analysis"}><RefreshCw size={14} />{analysis.error ? "Retry" : "Refresh"}</StateButton>
+      </div>
       {summary.total === 0 ? (
         <p className="review-empty">This demo has no reviews to summarize yet.</p>
       ) : (
@@ -77,13 +98,13 @@ export function ReviewInsights({ reviews, mission, onTrySeating, restaurantId }:
             </ul>
 
             <h3>Review themes</h3>
-            <p className="review-method">Topics are supplied in the demo data. Each review is counted once per topic and can mention several topics.</p>
-            <div className="review-theme-list" aria-label="Filter by review theme">
+            <p className="review-method">AI themes from {records.size} classified reviews. Each review can mention several topics.</p>
+            <div className="review-theme-list" role="region" tabIndex={0} aria-label="Filter by review theme">
               {summary.themes.map((theme) => (
                 <button
                   key={theme.key}
                   type="button"
-                  className="review-theme"
+                  className="review-theme review-theme-ai"
                   aria-pressed={selectedTheme === theme.key}
                   onClick={() => setSelectedTheme(selectedTheme === theme.key ? "" : theme.key)}
                 >
@@ -91,14 +112,12 @@ export function ReviewInsights({ reviews, mission, onTrySeating, restaurantId }:
                   <small>{theme.count} of {summary.total} · {percentage.format(theme.fraction)}</small>
                 </button>
               ))}
+              {!summary.themes.length && <p className="review-method">Themes appear after AI processing.</p>}
             </div>
-            <div className="review-mission-link">
-              <h3>{mission.title}</h3>
-              <p>{citedCount} of {summary.total} demo reviews support this example mission.</p>
-              <button className="button secondary compact" type="button" onClick={onTrySeating}>
-                {mission.action}<ArrowRight size={15} />
-              </button>
-            </div>
+            {seatingPriority && <div className="review-priority-link">
+              <p>High-priority feedback mentions seating or waiting.</p>
+              <button className="button review-ai-button compact" type="button" onClick={onTrySeating}>Review floor plan<ArrowRight size={15} /></button>
+            </div>}
           </div>
 
           <div className="review-browser">
@@ -107,10 +126,10 @@ export function ReviewInsights({ reviews, mission, onTrySeating, restaurantId }:
                 <span>Search reviews</span>
                 <span className="review-search-field"><Search size={16} aria-hidden="true" /><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search text, source ID, or theme" /></span>
               </label>
-              <label className="checkbox">
-                <input type="checkbox" checked={citedOnly} onChange={(event) => setCitedOnly(event.target.checked)} />
-                Mission evidence only
-              </label>
+              <div className="review-ai-filters">
+                <label className="checkbox"><input type="checkbox" checked={priorityOnly} onChange={event => setPriorityOnly(event.target.checked)} />High priority <span className="review-ai-badge">AI · {priorityIds.length}</span></label>
+                <label className="review-sentiment">AI sentiment<select aria-label="AI sentiment" value={sentiment} onChange={event => setSentiment(event.target.value)}><option value="">All sentiments</option><option value="positive">Positive</option><option value="mixed">Mixed</option><option value="negative">Negative</option><option value="neutral">Neutral</option></select></label>
+              </div>
             </div>
             <div className="review-results-heading">
               <p role="status">{visibleReviews.length} of {summary.total} reviews shown</p>
@@ -119,16 +138,22 @@ export function ReviewInsights({ reviews, mission, onTrySeating, restaurantId }:
             {visibleReviews.length ? (
               <ul className="review-list">
                 {visibleReviews.map((review) => (
-                  <li key={review.id}>
+                  <li key={`${review.id}-${review.text}`} data-review-id={review.id}>
                     <div className="review-meta">
                       <span className="pill">Demo review</span>
-                      {evidenceIds.has(review.id) && <span className="pill pill-warm">Mission evidence</span>}
+                      {records.get(review.id)?.classification.highPriority && <span className="review-priority-badge"><Sparkles size={12} />High priority</span>}
                       <time dateTime={review.date}>{review.date}</time>
                       <span>{review.rating}/5</span>
                     </div>
                     <blockquote>{review.text}</blockquote>
-                    <p>{Array.from(new Map(review.themes.map((theme) => [themeKey(theme), theme.trim()])).values()).join(" · ")}</p>
+                    {records.has(review.id) ? <div className="review-ai-labels" tabIndex={0}
+                      title={`${records.get(review.id)!.classification.reason}
+AI interpretation · ${records.get(review.id)!.model} · ${records.get(review.id)!.processedAt.slice(0, 10)}`}
+                      aria-description={records.get(review.id)!.classification.reason}>
+                      <p><Sparkles size={12} aria-hidden="true" />{records.get(review.id)!.classification.sentiment} · {Array.from(new Map(review.themes.map(theme => [themeKey(theme), theme.trim()])).values()).join(" · ")}</p>
+                    </div> : <p className="review-method">Awaiting AI classification</p>}
                     <small>Source ID {review.id}</small>
+                    <ReviewReply restaurantId={restaurantId} reviewId={review.id} />
                   </li>
                 ))}
               </ul>

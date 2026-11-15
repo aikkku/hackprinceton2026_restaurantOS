@@ -1,5 +1,19 @@
 # Tactical — current implementation and remaining work
 
+## HR update — November 15, 2026
+
+HR now has Schedule, Team and Hire employees views, seven mock employees, a dated 36-shift calendar, and an independent seven-day item-demand sample. Four real Gemini assessments are cached in `restaurantos.tactical_hr_analysis` with green/yellow/red states and hover/focus evidence. Hiring drafts respond to the selected role and owner requirements and remain editable/copyable; Indeed posting is disabled. The live MongoDB restaurant was updated with only employees/workforce (revision 5), preserving other operations and layouts. The audited AI context exactly matches the synthetic fixture and excludes employee names/emails. Live overview and hiring generation succeeded. Validation: 187 unit tests; 46 existing Tactical browser checks plus six new HR checks passed in Chrome/Firefox, with lint, typecheck and build passing. The build retains two preexisting Expansion tracing warnings. Schedule editing, payroll and saving owner-edited job drafts remain open. See [HR workflow](HR_WORKFLOW.md).
+
+## Customer Reviews update — November 14, 2026
+
+Reviews now use persisted Gemini themes, sentiment and High priority filtering with per-review explanations. Each review offers an editable/copyable AI reply and a disabled Reply button. Both themes and reviews scroll independently. Classifications live in `restaurantos.tactical_review_analysis`; unchanged source reviews reuse their saved results, while new/edited reviews are processed incrementally through dataset uploads or the unlocked Reviews page. Live readback verified 30 classifications, nine high-priority flags and stable cached records. Validation passed with 181 unit tests, Chrome/Firefox review and AI checks, lint, typecheck and production build. Direct platform posting remains intentionally unavailable. See [review workflow](REVIEW_WORKFLOW.md) for processing limits and file ownership.
+
+## Floor Plan visual refinement — November 14, 2026
+
+The current editor uses one quiet workspace frame, a searchable furniture menu with previews, a compact Save/version group and an icon-only settings popover. Furniture art is rendered in room units with proportionate chairs. The canvas has thin walls, subdued floorboards and floating icon-only editing controls. The Seating Problem remains a collapsed purple AI surface. Proximity warnings appear as yellow object borders with an on-map hover tooltip. The selected saved version now survives reload, and Escape cancels an active drag/resize. Existing MongoDB version records, meter coordinates, automatic capacity rules and AI context contracts are unchanged. No Expansion files were edited.
+
+Validation: 174 unit tests and 38 Tactical Chrome/Firefox checks passed, with a further focused Floor Plan pass after responsive sizing. Lint, typecheck and production build passed; the build retains two existing Expansion tracing warnings. A live Gemini request returned three findings and included current-object and saved-version geometry evidence. For development, use `http://localhost:3000/tactical`; the dev server blocked HMR requests through the alternate `127.0.0.1` origin.
+
 **Reviewed:** 2026-11-14. **Scope:** Asilbek's Tactical module, its routes, data, calculations, tests, and integration boundaries. This inventory describes the current working tree, including uncommitted work; it is not a statement that these changes have been committed, pushed, or deployed.
 
 **Product target:** [Product refinement brief](PRODUCT_REFINEMENT_BRIEF.md). **Architecture map:** [repository structure](../../STRUCTURE.md). **Navigation guide:** [pages](PAGES.md). **Manual demo:** [walkthrough](FRONTEND_WALKTHROUGH.md).
@@ -56,8 +70,8 @@ RestaurantOS currently provides a **working browser-local restaurant layout and 
 | Section | Current status | Strongest implemented capability | Largest remaining gap |
 | --- | --- | --- | --- |
 | Floor Plan | Working foundation; partial target | Manual geometry, named saved configurations, baseline, contextual heuristics | Operational data, richer physical semantics, evidence-linked AI, polished object art |
-| Customer Reviews & Social Media | Demo analytics | Search, rating/theme aggregation, cited mission reviews | Authorized imports, text interpretation, time/source/dish analysis, social relationships |
-| HR | Demo | Eight-person roster, schedule and profiles | Synthetic pay/contact/availability data, labor calculation, job-post draft concept |
+| Customer Reviews & Social Media | Working AI review triage on mock data | Saved themes/sentiment/priority, incremental classification, reply draft/copy, content/network workflow | Platform posting, live review ingestion, time/source/dish analysis |
+| HR | Working demo + live AI | Seven-person roster, dated calendar, AI assessments and editable hiring drafts | Synthetic weekly demand, role-level analysis, disabled Indeed posting |
 | Supply Management | Demo | Inventory filters, stock indicators, supplier directory | Derived stock status, estimated costs and consistent restock summary |
 | Financial Intelligence | Working mock ledger and simulations | Reconciled ledger totals, channel unit costs, price/volume experiments | Real-data imports, saved pricing scenarios and shared edited assumptions |
 | AI Assistant | Working contextual request UI | Single-turn Gemini advisor with evidence and purple results | Durable history, multi-turn context and real business data |
@@ -121,7 +135,7 @@ All synthetic business records now live in [demo-restaurant.json](../../src/feat
 | Core restaurant | Profile, main layout, 30 fictional reviews, one cited mission and default assumptions |
 | Configurations/history | Versioned layout configuration and a reproducible example turnover snapshot; ready for API upload, not auto-synced with browser saves |
 | Finance | 312 synthetic ledger entries from June through November 2026 across dine-in, delivery, takeaway and shared costs, 24 menu items and 15 sample price comparisons |
-| HR | 16 fictional employees with reserved-domain contacts, assumed pay, schedules, availability and mood |
+| HR | Seven fictional employees with reserved-domain contacts, assumed pay, validated dated shifts and weekly item demand |
 | Supply | 37 inventory items with costs and thresholds, and 12 fictional suppliers |
 | Social analysis | 24 fictional messages from nine actors in the editable conversation fixture |
 | Photo examples | Manual sample/blank plans and an unused legacy fallback fixture; provider failures never load it |
@@ -383,13 +397,15 @@ Commission and packaging apply only to delivery. Menu quantities are independent
 
 **Priority: P2, synthetic demo only.**
 
-Eight employees now come from the central dataset with names, roles, employment type, tenure, fictional ratings, scheduled hours, shift strings, reserved `example.com` contacts, assumed hourly pay, availability and fictional self-reported mood. Profiles expose the added fields. A deterministic base-labor estimate sums scheduled hours × hourly rate and explicitly excludes overtime premiums, taxes and benefits. Fixture hours were reconciled with the displayed example shifts; general structured shift parsing is not yet implemented.
+Seven employees come from the central dataset. A dated calendar replaces the table, and compact team cards reveal details on demand. Four AI assessments interpret role coverage, peak demand, labor/sales and workload, with green/yellow/red states and hover/focus evidence. The separate hiring subsection creates editable/copyable role-specific AI drafts; Indeed posting is disabled. See [HR workflow](HR_WORKFLOW.md).
 
-- [x] **HR-01:** Central fixture and selected restaurant identity.
-- [x] **HR-02:** Synthetic contacts/pay/availability/mood.
-- [ ] **HR-03:** Structured start/end/break data and cross-validation for arbitrary edited schedules.
-- [x] **HR-04 · Demo scope:** Base labor estimate with clear excluded costs.
-- [ ] **HR-05:** Editable job-description draft and preview concept.
+- [x] **HR-01:** Central fixture and selected restaurant identity; seven demo employees.
+- [x] **HR-02:** Compact profiles with synthetic contacts/pay/availability.
+- [x] **HR-03 · Dated viewing:** Validated start/end minutes, employee/menu references, overlap checks, reconciled hours, calendar/filter and mobile day picker. Breaks, overnight authoring and schedule editing remain open.
+- [x] **HR-04 · Demo scope:** Deterministic base labor, item sales, order counts and peak station coverage; explicit exclusions and editable fixture assumptions.
+- [x] **HR-05:** AI hiring suggestions with position/requirements input and editable job-description preview/copy.
+- [x] **HR-07:** Persisted AI assessment colors, hover explanations and evidence; cached by source/model/task.
+- [ ] **HR-08:** Persist owner-edited job descriptions and edit schedules in the UI.
 - [ ] **HR-06:** Indeed publishing, real employee data and payroll remain out of scope.
 
 ## 10. Supply Management

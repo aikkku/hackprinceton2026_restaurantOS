@@ -468,19 +468,19 @@
         "type": "Full-time",
         "tenure": "8 yrs",
         "rating": "Excellent",
-        "hoursThisWeek": 40,
+        "hoursThisWeek": 42,
         "schedule": [
-          "8–4",
-          "8–4",
+          "12:00–20:00",
+          "12:00–20:00",
           null,
-          "8–4",
-          "8–4",
-          "8–4",
+          "12:00–20:00",
+          "12:00–20:00",
+          "12:00–22:00",
           null
         ],
         "email": "staff1@example.com",
-        "hourlyRateCents": 1800,
-        "availability": "Availability supplied in fictional schedule",
+        "hourlyRateCents": 3200,
+        "availability": "Fictional availability follows the dated demo schedule",
         "mood": "Happy"
       },
       {
@@ -493,16 +493,16 @@
         "hoursThisWeek": 48,
         "schedule": [
           null,
-          "8–4",
-          "8–4",
-          "8–4",
-          "8–4",
-          "8–4",
-          "10–6"
+          "14:00–22:00",
+          "14:00–22:00",
+          "14:00–22:00",
+          "14:00–22:00",
+          "14:00–22:00",
+          "14:00–22:00"
         ],
         "email": "staff2@example.com",
-        "hourlyRateCents": 2050,
-        "availability": "Availability supplied in fictional schedule",
+        "hourlyRateCents": 2600,
+        "availability": "Fictional availability follows the dated demo schedule",
         "mood": "Neutral"
       },
       {
@@ -512,41 +512,41 @@
         "type": "Full-time",
         "tenure": "4 yrs",
         "rating": "Excellent",
-        "hoursThisWeek": 45,
+        "hoursThisWeek": 40,
         "schedule": [
-          "11–8",
+          "11:00–19:00",
           null,
-          "11–8",
-          "11–8",
-          "11–8",
-          "11–8",
+          "11:00–19:00",
+          "11:00–19:00",
+          "11:00–19:00",
+          "11:00–19:00",
           null
         ],
         "email": "staff3@example.com",
-        "hourlyRateCents": 2300,
-        "availability": "Availability supplied in fictional schedule",
+        "hourlyRateCents": 1800,
+        "availability": "Fictional availability follows the dated demo schedule",
         "mood": "Tired"
       },
       {
         "id": "e4",
         "name": "Noah Williams",
         "role": "Bartender",
-        "type": "Full-time",
+        "type": "Part-time",
         "tenure": "2 yrs",
         "rating": "Good",
-        "hoursThisWeek": 48,
+        "hoursThisWeek": 30,
         "schedule": [
-          "4–12",
-          "4–12",
           null,
-          "4–12",
-          "4–12",
-          "4–12",
-          "4–12"
+          "16:00–22:00",
+          null,
+          "16:00–22:00",
+          "16:00–22:00",
+          "16:00–22:00",
+          "16:00–22:00"
         ],
         "email": "staff4@example.com",
-        "hourlyRateCents": 2550,
-        "availability": "Availability supplied in fictional schedule",
+        "hourlyRateCents": 2200,
+        "availability": "Fictional availability follows the dated demo schedule",
         "mood": "Happy"
       },
       {
@@ -556,19 +556,19 @@
         "type": "Full-time",
         "tenure": "2 yrs",
         "rating": "Good",
-        "hoursThisWeek": 45,
+        "hoursThisWeek": 40,
         "schedule": [
-          "11–8",
-          "11–8",
-          "11–8",
+          "12:00–20:00",
+          "12:00–20:00",
+          "12:00–20:00",
           null,
-          "11–8",
-          "11–8",
+          "12:00–20:00",
+          "12:00–20:00",
           null
         ],
         "email": "staff5@example.com",
-        "hourlyRateCents": 2800,
-        "availability": "Availability supplied in fictional schedule",
+        "hourlyRateCents": 2000,
+        "availability": "Fictional availability follows the dated demo schedule",
         "mood": "Neutral"
       },
       {
@@ -581,39 +581,17 @@
         "hoursThisWeek": 25,
         "schedule": [
           null,
-          "5–10",
-          "5–10",
-          "5–10",
           null,
-          "5–10",
-          "5–10"
+          "17:00–22:00",
+          "17:00–22:00",
+          "17:00–22:00",
+          "17:00–22:00",
+          "17:00–22:00"
         ],
         "email": "staff6@example.com",
-        "hourlyRateCents": 3050,
-        "availability": "Availability supplied in fictional schedule",
+        "hourlyRateCents": 1850,
+        "availability": "Fictional availability follows the dated demo schedule",
         "mood": "Tired"
-      },
-      {
-        "id": "e7",
-        "name": "Aisha Johnson",
-        "role": "Server",
-        "type": "Part-time",
-        "tenure": "8 mos",
-        "rating": "Developing",
-        "hoursThisWeek": 20,
-        "schedule": [
-          null,
-          null,
-          "5–10",
-          "5–10",
-          "5–10",
-          "5–10",
-          null
-        ],
-        "email": "staff7@example.com",
-        "hourlyRateCents": 3300,
-        "availability": "Availability supplied in fictional schedule",
-        "mood": "Happy"
       },
       {
         "id": "e8",
@@ -622,196 +600,20 @@
         "type": "Part-time",
         "tenure": "5 mos",
         "rating": "Good",
-        "hoursThisWeek": 25,
+        "hoursThisWeek": 30,
         "schedule": [
+          "16:00–22:00",
           null,
-          "5–10",
           null,
-          "5–10",
-          "5–10",
-          "5–10",
-          "11–4"
+          "16:00–22:00",
+          "16:00–22:00",
+          "16:00–22:00",
+          "16:00–22:00"
         ],
         "email": "staff8@example.com",
-        "hourlyRateCents": 3550,
-        "availability": "Availability supplied in fictional schedule",
+        "hourlyRateCents": 1700,
+        "availability": "Fictional availability follows the dated demo schedule",
         "mood": "Neutral"
-      },
-      {
-        "id": "e9",
-        "name": "Maya Patel",
-        "role": "Floor Manager",
-        "type": "Full-time",
-        "tenure": "2 yrs",
-        "rating": "Excellent",
-        "hoursThisWeek": 40,
-        "schedule": [
-          null,
-          "14–22",
-          "14–22",
-          "14–22",
-          "14–22",
-          "14–22",
-          null
-        ],
-        "email": "staff9@example.com",
-        "hourlyRateCents": 2850,
-        "availability": "Available on the days shown in this fictional schedule",
-        "mood": "Happy"
-      },
-      {
-        "id": "e10",
-        "name": "Elena Brooks",
-        "role": "Line Cook",
-        "type": "Full-time",
-        "tenure": "1 yr",
-        "rating": "Good",
-        "hoursThisWeek": 40,
-        "schedule": [
-          null,
-          null,
-          "14–22",
-          "14–22",
-          "14–22",
-          "14–22",
-          "12–20"
-        ],
-        "email": "staff10@example.com",
-        "hourlyRateCents": 2300,
-        "availability": "Available on the days shown in this fictional schedule",
-        "mood": "Neutral"
-      },
-      {
-        "id": "e11",
-        "name": "Dante Ruiz",
-        "role": "Prep Cook",
-        "type": "Part-time",
-        "tenure": "9 mos",
-        "rating": "Good",
-        "hoursThisWeek": 20,
-        "schedule": [
-          "9–14",
-          null,
-          "9–14",
-          null,
-          "9–14",
-          "9–14",
-          null
-        ],
-        "email": "staff11@example.com",
-        "hourlyRateCents": 1900,
-        "availability": "Available on the days shown in this fictional schedule",
-        "mood": "Happy"
-      },
-      {
-        "id": "e12",
-        "name": "Nina Okafor",
-        "role": "Host",
-        "type": "Part-time",
-        "tenure": "4 mos",
-        "rating": "Developing",
-        "hoursThisWeek": 22,
-        "schedule": [
-          null,
-          null,
-          null,
-          "16–21",
-          "16–22",
-          "16–22",
-          "10–15"
-        ],
-        "email": "staff12@example.com",
-        "hourlyRateCents": 1750,
-        "availability": "Available on the days shown in this fictional schedule",
-        "mood": "Neutral"
-      },
-      {
-        "id": "e13",
-        "name": "Theo Martin",
-        "role": "Barista",
-        "type": "Part-time",
-        "tenure": "1 yr",
-        "rating": "Excellent",
-        "hoursThisWeek": 24,
-        "schedule": [
-          null,
-          "9–14",
-          null,
-          "9–14",
-          null,
-          "8–15",
-          "8–15"
-        ],
-        "email": "staff13@example.com",
-        "hourlyRateCents": 1900,
-        "availability": "Available on the days shown in this fictional schedule",
-        "mood": "Happy"
-      },
-      {
-        "id": "e14",
-        "name": "Iris Bell",
-        "role": "Dishwasher",
-        "type": "Part-time",
-        "tenure": "7 mos",
-        "rating": "Good",
-        "hoursThisWeek": 24,
-        "schedule": [
-          null,
-          null,
-          null,
-          "17–23",
-          "17–23",
-          "17–23",
-          "13–19"
-        ],
-        "email": "staff14@example.com",
-        "hourlyRateCents": 1800,
-        "availability": "Available on the days shown in this fictional schedule",
-        "mood": "Tired"
-      },
-      {
-        "id": "e15",
-        "name": "Jules Kim",
-        "role": "Expediter",
-        "type": "Part-time",
-        "tenure": "6 mos",
-        "rating": "Developing",
-        "hoursThisWeek": 16,
-        "schedule": [
-          null,
-          null,
-          "17–22",
-          null,
-          "17–22",
-          "17–23",
-          null
-        ],
-        "email": "staff15@example.com",
-        "hourlyRateCents": 2000,
-        "availability": "Available on the days shown in this fictional schedule",
-        "mood": "Neutral"
-      },
-      {
-        "id": "e16",
-        "name": "Avery Stone",
-        "role": "Pastry Cook",
-        "type": "Part-time",
-        "tenure": "2 yrs",
-        "rating": "Excellent",
-        "hoursThisWeek": 20,
-        "schedule": [
-          null,
-          "8–13",
-          null,
-          "8–13",
-          "8–13",
-          "8–13",
-          null
-        ],
-        "email": "staff16@example.com",
-        "hourlyRateCents": 2400,
-        "availability": "Available on the days shown in this fictional schedule",
-        "mood": "Happy"
       }
     ],
     "suppliers": [
@@ -4897,7 +4699,1194 @@
         "sourceId": "fixture-operations",
         "approximate": true
       }
-    ]
+    ],
+    "workforce": {
+      "weekStart": "2026-11-09",
+      "source": "synthetic",
+      "description": "Fictional weekly order/menu-item sample for staffing exploration. Each order contains one or more items; item sales use recorded sample prices. This independent demand sample does not replace or reconcile the historical ledger. Shifts are paid working time; breaks, premiums and benefits are not modeled.",
+      "shifts": [
+        {
+          "id": "e1-2026-11-09",
+          "employeeId": "e1",
+          "date": "2026-11-09",
+          "startMinute": 720,
+          "endMinute": 1200
+        },
+        {
+          "id": "e1-2026-11-10",
+          "employeeId": "e1",
+          "date": "2026-11-10",
+          "startMinute": 720,
+          "endMinute": 1200
+        },
+        {
+          "id": "e1-2026-11-12",
+          "employeeId": "e1",
+          "date": "2026-11-12",
+          "startMinute": 720,
+          "endMinute": 1200
+        },
+        {
+          "id": "e1-2026-11-13",
+          "employeeId": "e1",
+          "date": "2026-11-13",
+          "startMinute": 720,
+          "endMinute": 1200
+        },
+        {
+          "id": "e1-2026-11-14",
+          "employeeId": "e1",
+          "date": "2026-11-14",
+          "startMinute": 720,
+          "endMinute": 1320
+        },
+        {
+          "id": "e2-2026-11-10",
+          "employeeId": "e2",
+          "date": "2026-11-10",
+          "startMinute": 840,
+          "endMinute": 1320
+        },
+        {
+          "id": "e2-2026-11-11",
+          "employeeId": "e2",
+          "date": "2026-11-11",
+          "startMinute": 840,
+          "endMinute": 1320
+        },
+        {
+          "id": "e2-2026-11-12",
+          "employeeId": "e2",
+          "date": "2026-11-12",
+          "startMinute": 840,
+          "endMinute": 1320
+        },
+        {
+          "id": "e2-2026-11-13",
+          "employeeId": "e2",
+          "date": "2026-11-13",
+          "startMinute": 840,
+          "endMinute": 1320
+        },
+        {
+          "id": "e2-2026-11-14",
+          "employeeId": "e2",
+          "date": "2026-11-14",
+          "startMinute": 840,
+          "endMinute": 1320
+        },
+        {
+          "id": "e2-2026-11-15",
+          "employeeId": "e2",
+          "date": "2026-11-15",
+          "startMinute": 840,
+          "endMinute": 1320
+        },
+        {
+          "id": "e3-2026-11-09",
+          "employeeId": "e3",
+          "date": "2026-11-09",
+          "startMinute": 660,
+          "endMinute": 1140
+        },
+        {
+          "id": "e3-2026-11-11",
+          "employeeId": "e3",
+          "date": "2026-11-11",
+          "startMinute": 660,
+          "endMinute": 1140
+        },
+        {
+          "id": "e3-2026-11-12",
+          "employeeId": "e3",
+          "date": "2026-11-12",
+          "startMinute": 660,
+          "endMinute": 1140
+        },
+        {
+          "id": "e3-2026-11-13",
+          "employeeId": "e3",
+          "date": "2026-11-13",
+          "startMinute": 660,
+          "endMinute": 1140
+        },
+        {
+          "id": "e3-2026-11-14",
+          "employeeId": "e3",
+          "date": "2026-11-14",
+          "startMinute": 660,
+          "endMinute": 1140
+        },
+        {
+          "id": "e4-2026-11-10",
+          "employeeId": "e4",
+          "date": "2026-11-10",
+          "startMinute": 960,
+          "endMinute": 1320
+        },
+        {
+          "id": "e4-2026-11-12",
+          "employeeId": "e4",
+          "date": "2026-11-12",
+          "startMinute": 960,
+          "endMinute": 1320
+        },
+        {
+          "id": "e4-2026-11-13",
+          "employeeId": "e4",
+          "date": "2026-11-13",
+          "startMinute": 960,
+          "endMinute": 1320
+        },
+        {
+          "id": "e4-2026-11-14",
+          "employeeId": "e4",
+          "date": "2026-11-14",
+          "startMinute": 960,
+          "endMinute": 1320
+        },
+        {
+          "id": "e4-2026-11-15",
+          "employeeId": "e4",
+          "date": "2026-11-15",
+          "startMinute": 960,
+          "endMinute": 1320
+        },
+        {
+          "id": "e5-2026-11-09",
+          "employeeId": "e5",
+          "date": "2026-11-09",
+          "startMinute": 720,
+          "endMinute": 1200
+        },
+        {
+          "id": "e5-2026-11-10",
+          "employeeId": "e5",
+          "date": "2026-11-10",
+          "startMinute": 720,
+          "endMinute": 1200
+        },
+        {
+          "id": "e5-2026-11-11",
+          "employeeId": "e5",
+          "date": "2026-11-11",
+          "startMinute": 720,
+          "endMinute": 1200
+        },
+        {
+          "id": "e5-2026-11-13",
+          "employeeId": "e5",
+          "date": "2026-11-13",
+          "startMinute": 720,
+          "endMinute": 1200
+        },
+        {
+          "id": "e5-2026-11-14",
+          "employeeId": "e5",
+          "date": "2026-11-14",
+          "startMinute": 720,
+          "endMinute": 1200
+        },
+        {
+          "id": "e6-2026-11-11",
+          "employeeId": "e6",
+          "date": "2026-11-11",
+          "startMinute": 1020,
+          "endMinute": 1320
+        },
+        {
+          "id": "e6-2026-11-12",
+          "employeeId": "e6",
+          "date": "2026-11-12",
+          "startMinute": 1020,
+          "endMinute": 1320
+        },
+        {
+          "id": "e6-2026-11-13",
+          "employeeId": "e6",
+          "date": "2026-11-13",
+          "startMinute": 1020,
+          "endMinute": 1320
+        },
+        {
+          "id": "e6-2026-11-14",
+          "employeeId": "e6",
+          "date": "2026-11-14",
+          "startMinute": 1020,
+          "endMinute": 1320
+        },
+        {
+          "id": "e6-2026-11-15",
+          "employeeId": "e6",
+          "date": "2026-11-15",
+          "startMinute": 1020,
+          "endMinute": 1320
+        },
+        {
+          "id": "e8-2026-11-09",
+          "employeeId": "e8",
+          "date": "2026-11-09",
+          "startMinute": 960,
+          "endMinute": 1320
+        },
+        {
+          "id": "e8-2026-11-12",
+          "employeeId": "e8",
+          "date": "2026-11-12",
+          "startMinute": 960,
+          "endMinute": 1320
+        },
+        {
+          "id": "e8-2026-11-13",
+          "employeeId": "e8",
+          "date": "2026-11-13",
+          "startMinute": 960,
+          "endMinute": 1320
+        },
+        {
+          "id": "e8-2026-11-14",
+          "employeeId": "e8",
+          "date": "2026-11-14",
+          "startMinute": 960,
+          "endMinute": 1320
+        },
+        {
+          "id": "e8-2026-11-15",
+          "employeeId": "e8",
+          "date": "2026-11-15",
+          "startMinute": 960,
+          "endMinute": 1320
+        }
+      ],
+      "assignments": [
+        {
+          "employeeId": "e1",
+          "station": "Kitchen"
+        },
+        {
+          "employeeId": "e2",
+          "station": "Kitchen"
+        },
+        {
+          "employeeId": "e3",
+          "station": "Floor"
+        },
+        {
+          "employeeId": "e4",
+          "station": "Bar"
+        },
+        {
+          "employeeId": "e5",
+          "station": "Floor"
+        },
+        {
+          "employeeId": "e6",
+          "station": "Floor"
+        },
+        {
+          "employeeId": "e8",
+          "station": "Support"
+        }
+      ],
+      "demand": [
+        {
+          "date": "2026-11-09",
+          "orders": 43,
+          "peakOrders": 26,
+          "items": [
+            {
+              "menuItemId": "dish-1",
+              "quantity": 3,
+              "unitPriceCents": 1800
+            },
+            {
+              "menuItemId": "dish-2",
+              "quantity": 5,
+              "unitPriceCents": 2800
+            },
+            {
+              "menuItemId": "dish-3",
+              "quantity": 6,
+              "unitPriceCents": 2200
+            },
+            {
+              "menuItemId": "dish-4",
+              "quantity": 3,
+              "unitPriceCents": 4500
+            },
+            {
+              "menuItemId": "dish-5",
+              "quantity": 5,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-6",
+              "quantity": 6,
+              "unitPriceCents": 1000
+            },
+            {
+              "menuItemId": "dish-7",
+              "quantity": 3,
+              "unitPriceCents": 900
+            },
+            {
+              "menuItemId": "dish-8",
+              "quantity": 5,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-9",
+              "quantity": 6,
+              "unitPriceCents": 1200
+            },
+            {
+              "menuItemId": "dish-10",
+              "quantity": 3,
+              "unitPriceCents": 1100
+            },
+            {
+              "menuItemId": "dish-11",
+              "quantity": 5,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-12",
+              "quantity": 6,
+              "unitPriceCents": 2400
+            },
+            {
+              "menuItemId": "dish-13",
+              "quantity": 3,
+              "unitPriceCents": 1700
+            },
+            {
+              "menuItemId": "dish-14",
+              "quantity": 5,
+              "unitPriceCents": 1900
+            },
+            {
+              "menuItemId": "dish-15",
+              "quantity": 6,
+              "unitPriceCents": 3400
+            },
+            {
+              "menuItemId": "dish-16",
+              "quantity": 3,
+              "unitPriceCents": 1600
+            },
+            {
+              "menuItemId": "dish-17",
+              "quantity": 5,
+              "unitPriceCents": 1800
+            },
+            {
+              "menuItemId": "dish-18",
+              "quantity": 6,
+              "unitPriceCents": 700
+            },
+            {
+              "menuItemId": "dish-19",
+              "quantity": 3,
+              "unitPriceCents": 1000
+            },
+            {
+              "menuItemId": "dish-20",
+              "quantity": 5,
+              "unitPriceCents": 1100
+            },
+            {
+              "menuItemId": "dish-21",
+              "quantity": 6,
+              "unitPriceCents": 600
+            },
+            {
+              "menuItemId": "dish-22",
+              "quantity": 3,
+              "unitPriceCents": 500
+            },
+            {
+              "menuItemId": "dish-23",
+              "quantity": 5,
+              "unitPriceCents": 850
+            },
+            {
+              "menuItemId": "dish-24",
+              "quantity": 6,
+              "unitPriceCents": 750
+            }
+          ]
+        },
+        {
+          "date": "2026-11-10",
+          "orders": 46,
+          "peakOrders": 28,
+          "items": [
+            {
+              "menuItemId": "dish-1",
+              "quantity": 3,
+              "unitPriceCents": 1800
+            },
+            {
+              "menuItemId": "dish-2",
+              "quantity": 5,
+              "unitPriceCents": 2800
+            },
+            {
+              "menuItemId": "dish-3",
+              "quantity": 7,
+              "unitPriceCents": 2200
+            },
+            {
+              "menuItemId": "dish-4",
+              "quantity": 3,
+              "unitPriceCents": 4500
+            },
+            {
+              "menuItemId": "dish-5",
+              "quantity": 5,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-6",
+              "quantity": 7,
+              "unitPriceCents": 1000
+            },
+            {
+              "menuItemId": "dish-7",
+              "quantity": 3,
+              "unitPriceCents": 900
+            },
+            {
+              "menuItemId": "dish-8",
+              "quantity": 5,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-9",
+              "quantity": 7,
+              "unitPriceCents": 1200
+            },
+            {
+              "menuItemId": "dish-10",
+              "quantity": 3,
+              "unitPriceCents": 1100
+            },
+            {
+              "menuItemId": "dish-11",
+              "quantity": 5,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-12",
+              "quantity": 7,
+              "unitPriceCents": 2400
+            },
+            {
+              "menuItemId": "dish-13",
+              "quantity": 3,
+              "unitPriceCents": 1700
+            },
+            {
+              "menuItemId": "dish-14",
+              "quantity": 5,
+              "unitPriceCents": 1900
+            },
+            {
+              "menuItemId": "dish-15",
+              "quantity": 7,
+              "unitPriceCents": 3400
+            },
+            {
+              "menuItemId": "dish-16",
+              "quantity": 3,
+              "unitPriceCents": 1600
+            },
+            {
+              "menuItemId": "dish-17",
+              "quantity": 5,
+              "unitPriceCents": 1800
+            },
+            {
+              "menuItemId": "dish-18",
+              "quantity": 7,
+              "unitPriceCents": 700
+            },
+            {
+              "menuItemId": "dish-19",
+              "quantity": 3,
+              "unitPriceCents": 1000
+            },
+            {
+              "menuItemId": "dish-20",
+              "quantity": 5,
+              "unitPriceCents": 1100
+            },
+            {
+              "menuItemId": "dish-21",
+              "quantity": 7,
+              "unitPriceCents": 600
+            },
+            {
+              "menuItemId": "dish-22",
+              "quantity": 3,
+              "unitPriceCents": 500
+            },
+            {
+              "menuItemId": "dish-23",
+              "quantity": 5,
+              "unitPriceCents": 850
+            },
+            {
+              "menuItemId": "dish-24",
+              "quantity": 7,
+              "unitPriceCents": 750
+            }
+          ]
+        },
+        {
+          "date": "2026-11-11",
+          "orders": 52,
+          "peakOrders": 31,
+          "items": [
+            {
+              "menuItemId": "dish-1",
+              "quantity": 3,
+              "unitPriceCents": 1800
+            },
+            {
+              "menuItemId": "dish-2",
+              "quantity": 6,
+              "unitPriceCents": 2800
+            },
+            {
+              "menuItemId": "dish-3",
+              "quantity": 8,
+              "unitPriceCents": 2200
+            },
+            {
+              "menuItemId": "dish-4",
+              "quantity": 3,
+              "unitPriceCents": 4500
+            },
+            {
+              "menuItemId": "dish-5",
+              "quantity": 6,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-6",
+              "quantity": 8,
+              "unitPriceCents": 1000
+            },
+            {
+              "menuItemId": "dish-7",
+              "quantity": 3,
+              "unitPriceCents": 900
+            },
+            {
+              "menuItemId": "dish-8",
+              "quantity": 6,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-9",
+              "quantity": 8,
+              "unitPriceCents": 1200
+            },
+            {
+              "menuItemId": "dish-10",
+              "quantity": 3,
+              "unitPriceCents": 1100
+            },
+            {
+              "menuItemId": "dish-11",
+              "quantity": 6,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-12",
+              "quantity": 8,
+              "unitPriceCents": 2400
+            },
+            {
+              "menuItemId": "dish-13",
+              "quantity": 3,
+              "unitPriceCents": 1700
+            },
+            {
+              "menuItemId": "dish-14",
+              "quantity": 6,
+              "unitPriceCents": 1900
+            },
+            {
+              "menuItemId": "dish-15",
+              "quantity": 8,
+              "unitPriceCents": 3400
+            },
+            {
+              "menuItemId": "dish-16",
+              "quantity": 3,
+              "unitPriceCents": 1600
+            },
+            {
+              "menuItemId": "dish-17",
+              "quantity": 6,
+              "unitPriceCents": 1800
+            },
+            {
+              "menuItemId": "dish-18",
+              "quantity": 8,
+              "unitPriceCents": 700
+            },
+            {
+              "menuItemId": "dish-19",
+              "quantity": 3,
+              "unitPriceCents": 1000
+            },
+            {
+              "menuItemId": "dish-20",
+              "quantity": 6,
+              "unitPriceCents": 1100
+            },
+            {
+              "menuItemId": "dish-21",
+              "quantity": 8,
+              "unitPriceCents": 600
+            },
+            {
+              "menuItemId": "dish-22",
+              "quantity": 3,
+              "unitPriceCents": 500
+            },
+            {
+              "menuItemId": "dish-23",
+              "quantity": 6,
+              "unitPriceCents": 850
+            },
+            {
+              "menuItemId": "dish-24",
+              "quantity": 8,
+              "unitPriceCents": 750
+            }
+          ]
+        },
+        {
+          "date": "2026-11-12",
+          "orders": 58,
+          "peakOrders": 35,
+          "items": [
+            {
+              "menuItemId": "dish-1",
+              "quantity": 4,
+              "unitPriceCents": 1800
+            },
+            {
+              "menuItemId": "dish-2",
+              "quantity": 6,
+              "unitPriceCents": 2800
+            },
+            {
+              "menuItemId": "dish-3",
+              "quantity": 9,
+              "unitPriceCents": 2200
+            },
+            {
+              "menuItemId": "dish-4",
+              "quantity": 4,
+              "unitPriceCents": 4500
+            },
+            {
+              "menuItemId": "dish-5",
+              "quantity": 6,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-6",
+              "quantity": 9,
+              "unitPriceCents": 1000
+            },
+            {
+              "menuItemId": "dish-7",
+              "quantity": 4,
+              "unitPriceCents": 900
+            },
+            {
+              "menuItemId": "dish-8",
+              "quantity": 6,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-9",
+              "quantity": 9,
+              "unitPriceCents": 1200
+            },
+            {
+              "menuItemId": "dish-10",
+              "quantity": 4,
+              "unitPriceCents": 1100
+            },
+            {
+              "menuItemId": "dish-11",
+              "quantity": 6,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-12",
+              "quantity": 9,
+              "unitPriceCents": 2400
+            },
+            {
+              "menuItemId": "dish-13",
+              "quantity": 4,
+              "unitPriceCents": 1700
+            },
+            {
+              "menuItemId": "dish-14",
+              "quantity": 6,
+              "unitPriceCents": 1900
+            },
+            {
+              "menuItemId": "dish-15",
+              "quantity": 9,
+              "unitPriceCents": 3400
+            },
+            {
+              "menuItemId": "dish-16",
+              "quantity": 4,
+              "unitPriceCents": 1600
+            },
+            {
+              "menuItemId": "dish-17",
+              "quantity": 6,
+              "unitPriceCents": 1800
+            },
+            {
+              "menuItemId": "dish-18",
+              "quantity": 9,
+              "unitPriceCents": 700
+            },
+            {
+              "menuItemId": "dish-19",
+              "quantity": 4,
+              "unitPriceCents": 1000
+            },
+            {
+              "menuItemId": "dish-20",
+              "quantity": 6,
+              "unitPriceCents": 1100
+            },
+            {
+              "menuItemId": "dish-21",
+              "quantity": 9,
+              "unitPriceCents": 600
+            },
+            {
+              "menuItemId": "dish-22",
+              "quantity": 4,
+              "unitPriceCents": 500
+            },
+            {
+              "menuItemId": "dish-23",
+              "quantity": 6,
+              "unitPriceCents": 850
+            },
+            {
+              "menuItemId": "dish-24",
+              "quantity": 9,
+              "unitPriceCents": 750
+            }
+          ]
+        },
+        {
+          "date": "2026-11-13",
+          "orders": 86,
+          "peakOrders": 52,
+          "items": [
+            {
+              "menuItemId": "dish-1",
+              "quantity": 5,
+              "unitPriceCents": 1800
+            },
+            {
+              "menuItemId": "dish-2",
+              "quantity": 9,
+              "unitPriceCents": 2800
+            },
+            {
+              "menuItemId": "dish-3",
+              "quantity": 14,
+              "unitPriceCents": 2200
+            },
+            {
+              "menuItemId": "dish-4",
+              "quantity": 5,
+              "unitPriceCents": 4500
+            },
+            {
+              "menuItemId": "dish-5",
+              "quantity": 9,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-6",
+              "quantity": 14,
+              "unitPriceCents": 1000
+            },
+            {
+              "menuItemId": "dish-7",
+              "quantity": 5,
+              "unitPriceCents": 900
+            },
+            {
+              "menuItemId": "dish-8",
+              "quantity": 9,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-9",
+              "quantity": 14,
+              "unitPriceCents": 1200
+            },
+            {
+              "menuItemId": "dish-10",
+              "quantity": 5,
+              "unitPriceCents": 1100
+            },
+            {
+              "menuItemId": "dish-11",
+              "quantity": 9,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-12",
+              "quantity": 14,
+              "unitPriceCents": 2400
+            },
+            {
+              "menuItemId": "dish-13",
+              "quantity": 5,
+              "unitPriceCents": 1700
+            },
+            {
+              "menuItemId": "dish-14",
+              "quantity": 9,
+              "unitPriceCents": 1900
+            },
+            {
+              "menuItemId": "dish-15",
+              "quantity": 14,
+              "unitPriceCents": 3400
+            },
+            {
+              "menuItemId": "dish-16",
+              "quantity": 5,
+              "unitPriceCents": 1600
+            },
+            {
+              "menuItemId": "dish-17",
+              "quantity": 9,
+              "unitPriceCents": 1800
+            },
+            {
+              "menuItemId": "dish-18",
+              "quantity": 14,
+              "unitPriceCents": 700
+            },
+            {
+              "menuItemId": "dish-19",
+              "quantity": 5,
+              "unitPriceCents": 1000
+            },
+            {
+              "menuItemId": "dish-20",
+              "quantity": 9,
+              "unitPriceCents": 1100
+            },
+            {
+              "menuItemId": "dish-21",
+              "quantity": 14,
+              "unitPriceCents": 600
+            },
+            {
+              "menuItemId": "dish-22",
+              "quantity": 5,
+              "unitPriceCents": 500
+            },
+            {
+              "menuItemId": "dish-23",
+              "quantity": 9,
+              "unitPriceCents": 850
+            },
+            {
+              "menuItemId": "dish-24",
+              "quantity": 14,
+              "unitPriceCents": 750
+            }
+          ]
+        },
+        {
+          "date": "2026-11-14",
+          "orders": 102,
+          "peakOrders": 61,
+          "items": [
+            {
+              "menuItemId": "dish-1",
+              "quantity": 6,
+              "unitPriceCents": 1800
+            },
+            {
+              "menuItemId": "dish-2",
+              "quantity": 11,
+              "unitPriceCents": 2800
+            },
+            {
+              "menuItemId": "dish-3",
+              "quantity": 16,
+              "unitPriceCents": 2200
+            },
+            {
+              "menuItemId": "dish-4",
+              "quantity": 6,
+              "unitPriceCents": 4500
+            },
+            {
+              "menuItemId": "dish-5",
+              "quantity": 11,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-6",
+              "quantity": 16,
+              "unitPriceCents": 1000
+            },
+            {
+              "menuItemId": "dish-7",
+              "quantity": 6,
+              "unitPriceCents": 900
+            },
+            {
+              "menuItemId": "dish-8",
+              "quantity": 11,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-9",
+              "quantity": 16,
+              "unitPriceCents": 1200
+            },
+            {
+              "menuItemId": "dish-10",
+              "quantity": 6,
+              "unitPriceCents": 1100
+            },
+            {
+              "menuItemId": "dish-11",
+              "quantity": 11,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-12",
+              "quantity": 16,
+              "unitPriceCents": 2400
+            },
+            {
+              "menuItemId": "dish-13",
+              "quantity": 6,
+              "unitPriceCents": 1700
+            },
+            {
+              "menuItemId": "dish-14",
+              "quantity": 11,
+              "unitPriceCents": 1900
+            },
+            {
+              "menuItemId": "dish-15",
+              "quantity": 16,
+              "unitPriceCents": 3400
+            },
+            {
+              "menuItemId": "dish-16",
+              "quantity": 6,
+              "unitPriceCents": 1600
+            },
+            {
+              "menuItemId": "dish-17",
+              "quantity": 11,
+              "unitPriceCents": 1800
+            },
+            {
+              "menuItemId": "dish-18",
+              "quantity": 16,
+              "unitPriceCents": 700
+            },
+            {
+              "menuItemId": "dish-19",
+              "quantity": 6,
+              "unitPriceCents": 1000
+            },
+            {
+              "menuItemId": "dish-20",
+              "quantity": 11,
+              "unitPriceCents": 1100
+            },
+            {
+              "menuItemId": "dish-21",
+              "quantity": 16,
+              "unitPriceCents": 600
+            },
+            {
+              "menuItemId": "dish-22",
+              "quantity": 6,
+              "unitPriceCents": 500
+            },
+            {
+              "menuItemId": "dish-23",
+              "quantity": 11,
+              "unitPriceCents": 850
+            },
+            {
+              "menuItemId": "dish-24",
+              "quantity": 16,
+              "unitPriceCents": 750
+            }
+          ]
+        },
+        {
+          "date": "2026-11-15",
+          "orders": 65,
+          "peakOrders": 39,
+          "items": [
+            {
+              "menuItemId": "dish-1",
+              "quantity": 4,
+              "unitPriceCents": 1800
+            },
+            {
+              "menuItemId": "dish-2",
+              "quantity": 7,
+              "unitPriceCents": 2800
+            },
+            {
+              "menuItemId": "dish-3",
+              "quantity": 10,
+              "unitPriceCents": 2200
+            },
+            {
+              "menuItemId": "dish-4",
+              "quantity": 4,
+              "unitPriceCents": 4500
+            },
+            {
+              "menuItemId": "dish-5",
+              "quantity": 7,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-6",
+              "quantity": 10,
+              "unitPriceCents": 1000
+            },
+            {
+              "menuItemId": "dish-7",
+              "quantity": 4,
+              "unitPriceCents": 900
+            },
+            {
+              "menuItemId": "dish-8",
+              "quantity": 7,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-9",
+              "quantity": 10,
+              "unitPriceCents": 1200
+            },
+            {
+              "menuItemId": "dish-10",
+              "quantity": 4,
+              "unitPriceCents": 1100
+            },
+            {
+              "menuItemId": "dish-11",
+              "quantity": 7,
+              "unitPriceCents": 1400
+            },
+            {
+              "menuItemId": "dish-12",
+              "quantity": 10,
+              "unitPriceCents": 2400
+            },
+            {
+              "menuItemId": "dish-13",
+              "quantity": 4,
+              "unitPriceCents": 1700
+            },
+            {
+              "menuItemId": "dish-14",
+              "quantity": 7,
+              "unitPriceCents": 1900
+            },
+            {
+              "menuItemId": "dish-15",
+              "quantity": 10,
+              "unitPriceCents": 3400
+            },
+            {
+              "menuItemId": "dish-16",
+              "quantity": 4,
+              "unitPriceCents": 1600
+            },
+            {
+              "menuItemId": "dish-17",
+              "quantity": 7,
+              "unitPriceCents": 1800
+            },
+            {
+              "menuItemId": "dish-18",
+              "quantity": 10,
+              "unitPriceCents": 700
+            },
+            {
+              "menuItemId": "dish-19",
+              "quantity": 4,
+              "unitPriceCents": 1000
+            },
+            {
+              "menuItemId": "dish-20",
+              "quantity": 7,
+              "unitPriceCents": 1100
+            },
+            {
+              "menuItemId": "dish-21",
+              "quantity": 10,
+              "unitPriceCents": 600
+            },
+            {
+              "menuItemId": "dish-22",
+              "quantity": 4,
+              "unitPriceCents": 500
+            },
+            {
+              "menuItemId": "dish-23",
+              "quantity": 7,
+              "unitPriceCents": 850
+            },
+            {
+              "menuItemId": "dish-24",
+              "quantity": 10,
+              "unitPriceCents": 750
+            }
+          ]
+        }
+      ],
+      "assumptions": {
+        "peakStartMinute": 1080,
+        "peakEndMinute": 1260,
+        "targetOrdersPerFloorHour": 6,
+        "targetLaborFraction": 0.3,
+        "weeklyHoursGuide": 40
+      }
+    }
   },
   "photoPlans": {
     "sample": {

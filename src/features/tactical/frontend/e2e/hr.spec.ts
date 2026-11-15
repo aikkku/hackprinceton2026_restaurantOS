@@ -1,0 +1,52 @@
+import { expect, test } from "@playwright/test";
+const overview = { cards: ["coverage", "service", "labor", "workload"].map((id, index) => ({ id, status: ["green", "yellow", "red", "yellow"][index], reason: "Peak shifts leave an uncovered service interval.", evidenceIds: ["workforce"], limitation: "Synthetic demand is a planning sample." })) };
+const hiring = { role: "Server", title: "Evening Server", employmentType: "Part-time", hoursPerWeek: 20, pay: "$18.50/hr — demo estimate", schedule: "Friday and Saturday evenings", summary: "Support peak service with our team.", responsibilities: ["Take orders accurately", "Coordinate with the kitchen"], requirements: ["Evening availability"], reason: "Peak demand exceeds the planning guide.", evidenceIds: ["workforce"], limitation: "Confirm real demand before hiring." };
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/tactical/ai/session", route => route.fulfill({ json: { unlocked: true } }));
+  await page.route("**/api/tactical/hr**", route => route.fulfill({ json: { ok: true, result: route.request().method() === "POST" && route.request().postDataJSON().task === "hire" ? hiring : overview, evidence: [{ id: "workforce", label: "Weekly demand", detail: {} }], model: "test-model", generatedAt: "2026-11-15T12:00:00Z" } }));
+});
+test("seven staff, calendar shifts, filters and explanatory AI status cards", async ({ page }) => {
+  await page.goto("/tactical/hr");
+  const coverage = page.getByLabel("Team coverage: On track", { exact: true });
+  await coverage.hover(); await expect(coverage.getByRole("tooltip")).toContainText("uncovered service interval");
+  await coverage.focus(); await expect(coverage.getByRole("tooltip")).toBeVisible();
+  await expect(page.getByRole("region", { name: "Weekly schedule" }).getByRole("table")).toHaveCount(0);
+  await expect(page.locator(".hr-shift")).toHaveCount(36);
+  await page.getByLabel("Filter schedule by station").selectOption("Bar");
+  await expect(page.locator(".hr-shift")).toHaveCount(5);
+  await page.getByRole("button", { name: "Next week", exact: true }).click();
+  await expect(page.getByText("No shifts saved for this week.")).toBeVisible();
+  await page.getByRole("button", { name: "Demo week", exact: true }).click();
+  await expect(page.locator(".hr-shift")).toHaveCount(5);
+  await page.getByRole("navigation", { name: "HR sections" }).getByRole("button", { name: "Team" }).click();
+  await expect(page.locator(".hr-person")).toHaveCount(7);
+});
+test("hiring drafts can be edited and copied while Indeed posting is disabled", async ({ page }) => {
+  await page.goto("/tactical/hr");
+  await page.getByRole("button", { name: "Hire employees", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Post to Indeed" })).toBeDisabled();
+  await page.getByLabel("Your requirements", { exact: true }).fill("Weekend evenings");
+  await page.getByRole("button", { name: "Draft with AI", exact: true }).click();
+  await expect(page.getByLabel("Job title", { exact: true })).toHaveValue("Evening Server");
+  await page.getByLabel("Job title", { exact: true }).fill("Weekend Server");
+  await page.getByRole("button", { name: "Copy draft", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Copied", exact: true })).toBeVisible();
+  await page.getByRole("combobox", { name: "Position", exact: true }).selectOption("Line Cook");
+  await expect(page.getByText("Your brief changed. Update the draft to match.")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Copied", exact: true })).toBeDisabled();
+});
+test("mobile calendar and failed AI never invents status colors", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 }); await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.unroute("**/api/tactical/hr**");
+  await page.route("**/api/tactical/hr**", route => route.fulfill({ status: 503, json: { ok: false, error: "private failure" } }));
+  await page.goto("/tactical/hr");
+  await expect(page.locator(".hr-inline-error")).toContainText("Something is wrong");
+  await expect(page.locator(".health-neutral")).toHaveCount(4);
+  await page.getByRole("button", { name: "Sat 14" }).click();
+  await expect(page.getByRole("region", { name: "Saturday, November 14" })).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.getByRole("button", { name: "Hire employees", exact: true }).click();
+  await page.getByRole("button", { name: "Draft with AI", exact: true }).click();
+  await expect(page.locator(".hr-hiring").getByRole("alert")).toHaveText("Something is wrong");
+  await expect(page.getByLabel("Job title", { exact: true })).toHaveCount(0);
+});

@@ -129,3 +129,11 @@ See [sponsor integration guide](docs/tactical/SPONSOR_INTEGRATIONS.md). `domain/
 ## Message content and actor connectivity
 
 The Arlequin Track 2 workflow lives in Tactical: `domain/social.ts` owns message schemas and graph/content joins; `backend/adapters/hacker-news.ts` collects a bounded public conversation; `backend/social-service.ts` validates source/AI requests; thin routes live at `src/app/api/tactical/integrations/social/{source,analyze}/route.ts`. `frontend/components/social-pipeline.tsx` renders Reviews → Content & connectivity, and `frontend/data/demo-social.json` is its editable fictional fixture. See [the complete pipeline and requirement map](docs/tactical/ARLEQUIN_TRACK2.md).
+
+### Saved review intelligence
+
+`domain/review-analysis.ts` validates AI triage; `backend/review-analysis.ts` processes only new/edited reviews, and `review-analysis-store.ts` persists results and leases in the shared database's `tactical_review_analysis` collection. The thin API lives at `src/app/api/tactical/reviews/analysis/route.ts`. Dataset uploads invoke the same processor after saving. `frontend/use-review-analysis.ts` loads and resumes classification; `components/review-insights.tsx` renders AI filters; `components/review-reply.tsx` provides editable/copyable drafts with a disabled posting control. See [review behavior and persistence](docs/tactical/REVIEW_WORKFLOW.md).
+
+## HR calendar, assessments and hiring
+
+`domain/workforce.ts` validates dated shifts and weekly item demand; `domain/hr.ts` calculates staffing/sales metrics and validates AI outputs. `backend/hr-service.ts` handles Gemini and the shared database’s `tactical_hr_analysis` collection behind `src/app/api/tactical/hr/route.ts`. UI is split into `hr-page.tsx` (assessment/team), `hr-calendar.tsx` (schedule), `hr-hiring.tsx` (editable role drafts) and `hr.css`. All editable mock input remains in `frontend/data/demo-restaurant.json`. See [HR workflow, assumptions and remaining work](docs/tactical/HR_WORKFLOW.md).

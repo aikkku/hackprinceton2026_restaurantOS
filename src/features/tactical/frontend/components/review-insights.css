@@ -52,3 +52,42 @@
     .review-demo-label { margin-inline-start: 0; }
   }
 }
+
+.tactical-workspace .review-insights { margin-top: 12px; }
+.tactical-workspace .review-theme-list { max-height: 300px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 3px 7px 3px 3px; align-content: start; }
+.tactical-workspace .review-insights .review-theme span { overflow-wrap: anywhere; }
+.tactical-workspace .review-analysis-status { position: relative; display: grid; gap: 5px; background: var(--ai-surface); border: 1px solid var(--ai-border); border-radius: 10px; padding: 14px 110px 14px 14px; margin-top: 18px; color: var(--ai-ink); }
+.tactical-workspace .review-analysis-title { display: flex; align-items: center; gap: 7px; font-size: .84rem; }
+.tactical-workspace .review-analysis-status > p { font-size: .78rem; line-height: 1.5; }
+.tactical-workspace .review-analysis-status > button { position: absolute; right: 12px; top: 14px; }
+.tactical-workspace .review-ai-badge { display: inline-flex; border: 1px solid var(--ai-border); color: var(--ai-ink); background: var(--ai-surface); border-radius: 4px; font-size: .65rem; padding: 2px 5px; white-space: nowrap; }
+.tactical-workspace .button.review-ai-button { background: var(--ai-surface); border: 1px solid var(--ai-border); color: var(--ai-ink); }
+.tactical-workspace .button.review-ai-button:hover:not(:disabled) { background: #eee4fc; border-color: var(--ai-strong); }
+.tactical-workspace .review-insights .review-theme-ai { color: var(--ai-ink); background: var(--ai-surface); border-color: var(--ai-border); }
+.tactical-workspace .review-insights .review-theme-ai[aria-pressed="true"] { border-color: var(--ai-strong); box-shadow: inset 3px 0 var(--ai-strong); background: #eee4fc; }
+.tactical-workspace .review-ai-filters { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-top: 12px; color: var(--ai-ink); }
+.tactical-workspace .review-ai-filters .checkbox { margin: 0; font-size: .82rem; accent-color: var(--ai-strong); }
+.tactical-workspace .review-sentiment { display: grid; gap: 4px; font-size: .74rem; }
+.tactical-workspace .review-sentiment select { min-height: 34px; color: var(--ai-ink); background: var(--ai-surface); border: 1px solid var(--ai-border); border-radius: 6px; padding: 5px 8px; }
+.tactical-workspace .review-priority-badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 5px; padding: 3px 7px; background: var(--ai-surface); border: 1px solid var(--ai-border); color: var(--ai-ink); font-size: .7rem; }
+.tactical-workspace .review-ai-labels { cursor: help; color: var(--ai-ink); background: var(--ai-surface); border-radius: 7px; padding: 9px 10px; margin-block: 8px; font-size: .78rem; }
+.tactical-workspace .review-ai-labels > p { display: flex; align-items: center; gap: 4px; text-transform: none; }
+.tactical-workspace .review-ai-labels svg { flex-shrink: 0; }
+.tactical-workspace .review-list .review-ai-labels p, .tactical-workspace .review-list .review-ai-labels small { color: var(--ai-ink); }
+.tactical-workspace .review-priority-link { margin-top: 14px; padding: 12px; border: 1px solid var(--ai-border); border-radius: 8px; background: var(--ai-surface); color: var(--ai-ink); }
+.tactical-workspace .review-priority-link p { font-size: .8rem; margin-bottom: 9px; }
+.tactical-workspace .review-reply { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ros-border); }
+.tactical-workspace .review-reply-actions { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.tactical-workspace .review-reply-draft { padding: 12px; border: 1px solid var(--ai-border); border-radius: 8px; margin-top: 10px; background: var(--ai-surface); color: var(--ai-ink); }
+.tactical-workspace .review-reply-draft label { display: grid; gap: 7px; font-size: .78rem; font-weight: 550; }
+.tactical-workspace .review-reply-draft textarea { width: 100%; min-width: 0; resize: vertical; padding: 10px; color: var(--ai-ink); border: 1px solid var(--ai-border); border-radius: 6px; background: white; font: inherit; line-height: 1.6; }
+.tactical-workspace .review-reply-draft button { margin-top: 8px; }
+.tactical-workspace .review-ai-error { color: var(--ai-ink); font-size: .8rem; padding: 8px 0; }
+@media (max-width: 750px) {
+  .tactical-workspace .review-insights .review-list { max-height: 70vh; overflow-y: auto; overscroll-behavior: contain; }
+  .tactical-workspace .review-theme-list { max-height: 220px; }
+}
+@media (max-width: 430px) {
+  .tactical-workspace .review-analysis-status { padding: 12px; }
+  .tactical-workspace .review-analysis-status > button { position: static; justify-self: start; margin-top: 4px; }
+}

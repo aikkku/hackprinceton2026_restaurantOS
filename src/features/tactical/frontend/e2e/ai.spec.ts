@@ -16,24 +16,27 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/api/tactical/ai/session", route => route.fulfill({ json: { unlocked: true } }));
 });
 
-test("AI panels use purple, show evidence, editable drafts and the exact generic failure message", async ({ page }) => {
-  await page.route("**/api/tactical/ai", async route => route.fulfill({ json: response(route.request().postDataJSON().task) }));
+test("per-review AI responses are editable and copyable, posting stays disabled, and failures are generic", async ({ page }) => {
+  await page.route("**/api/tactical/ai", async route => {
+    expect(route.request().postDataJSON().reviewId).toBe(demo.reviews[0].id);
+    await route.fulfill({ json: response("reply") });
+  });
   await page.goto("/tactical/reviews");
-  const research = page.getByRole("region", { name: "AI review researcher", exact: true });
-  await research.getByRole("button", { name: "Generate with AI" }).click();
-  await expect(research.getByText("Test AI reviews interpretation")).toBeVisible();
-  expect(await research.evaluate(element => getComputedStyle(element).backgroundColor)).toBe("rgb(247, 242, 255)");
-  await research.getByText("Supporting evidence · 1").click();
-  await expect(research.getByText(demo.profile.name, { exact: true })).toBeVisible();
-  const reply = page.getByRole("region", { name: "AI review reply", exact: true });
-  await reply.getByRole("button", { name: "Generate with AI" }).click();
-  await reply.getByLabel("Edit AI draft").fill("My reviewed reply.");
-  await expect(reply.getByLabel("Edit AI draft")).toHaveValue("My reviewed reply.");
+  const review = page.locator(`[data-review-id="${demo.reviews[0].id}"]`);
+  await expect(review.getByRole("button", { name: "Reply", exact: true })).toBeDisabled();
+  await review.getByRole("button", { name: "Draft with AI" }).click();
+  const draft = review.getByLabel(`AI response draft for ${demo.reviews[0].id}`);
+  await expect(draft).toHaveValue("An editable test draft.");
+  await draft.fill("My reviewed reply.");
+  await expect(draft).toHaveValue("My reviewed reply.");
+  await review.getByRole("button", { name: "Copy", exact: true }).click();
+  await expect(review.getByRole("button", { name: "Copied", exact: true })).toBeVisible();
+  expect(await review.locator(".review-reply-draft").evaluate(element => getComputedStyle(element).backgroundColor)).toBe("rgb(247, 242, 255)");
   await page.unroute("**/api/tactical/ai");
   await page.route("**/api/tactical/ai", route => route.fulfill({ status: 503, json: { ok: false, error: "private provider failure" } }));
-  await research.getByRole("button", { name: "Generate with AI" }).click();
-  await expect(research.getByRole("alert")).toHaveText("Something is wrong");
-  await expect(research.getByText("Test AI reviews interpretation")).toHaveCount(0);
+  await review.getByRole("button", { name: "Regenerate" }).click();
+  await expect(review.getByRole("alert")).toHaveText("Something is wrong");
+  await expect(draft).toHaveValue("My reviewed reply.");
   await expect(page.getByText("private provider failure")).toHaveCount(0);
 });
 
@@ -61,11 +64,11 @@ test("AI object estimates require explicit use and placement and retain purple p
   await expect(page.locator(".svg-hit.is-ai-highlighted")).toHaveCount(1);
 });
 
-test("finance, supply, job and advisor workflows are reachable on narrow screens", async ({ page }) => {
+test("finance, supply and advisor workflows are reachable on narrow screens", async ({ page }) => {
   await page.route("**/api/tactical/ai", async route => route.fulfill({ json: response(route.request().postDataJSON().task) }));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  for (const [route, title, task] of [["finance", "AI financial analysis", "finance"], ["supply", "AI supply advisor", "supply"], ["hr", "AI job-description draft", "job"], ["ai", "AI restaurant advisor", "advisor"]]) {
+  for (const [route, title, task] of [["finance", "AI financial analysis", "finance"], ["supply", "AI supply advisor", "supply"], ["ai", "AI restaurant advisor", "advisor"]]) {
     await page.goto(`/tactical/${route}`);
     const panel = page.getByRole("region", { name: title, exact: true });
     await panel.locator("textarea").first().fill("Explain this context");

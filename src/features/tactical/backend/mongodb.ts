@@ -8,7 +8,7 @@ export interface DatasetRepository {
   save(dataset: Dataset, expectedRevision: number): Promise<DatasetRecord | null>;
 }
 const state = globalThis as typeof globalThis & { tacticalMongo?: { uri: string; promise: Promise<MongoClient> } };
-async function collection() {
+export async function tacticalDatabase() {
   const uri = process.env.MONGODB_URI;
   const db = process.env.MONGODB_DB;
   if (!uri || !db || !/^[A-Za-z0-9_-]{1,64}$/.test(db)) throw new Error("MongoDB is not configured");
@@ -21,8 +21,9 @@ async function collection() {
     });
     state.tacticalMongo = { uri, promise };
   }
-  return (await state.tacticalMongo.promise).db(db).collection<DatasetRecord>("tactical_datasets");
+  return (await state.tacticalMongo.promise).db(db);
 }
+const collection = async () => (await tacticalDatabase()).collection<DatasetRecord>("tactical_datasets");
 export const mongoDatasets: DatasetRepository = {
   async read(id) {
     const record = await (await collection()).findOne({ _id: id });

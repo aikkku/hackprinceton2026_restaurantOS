@@ -67,6 +67,7 @@ test("central mock records feed financial filters, pricing, HR and supply", asyn
   await page.getByRole("combobox", { name: "Pricing channel", exact: true }).selectOption("delivery");
   await expect(page.getByText(/Candidate price/)).toBeVisible();
   await page.goto("/tactical/hr");
+  await page.getByText("Data & assumptions", { exact: true }).click();
   await expect(page.getByText(/Estimated scheduled base labor/)).toBeVisible();
   await page.goto("/tactical/supply");
   await expect(page.locator(".inventory-table tbody tr")).toHaveCount(demo.operations.inventory.length);

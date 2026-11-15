@@ -78,7 +78,7 @@ const reviewSchema = z.object({
   date: z.iso.date(),
   rating: z.number().int().min(1).max(5),
   text: z.string().min(1),
-  themes: z.array(z.string().min(1)).min(1),
+  themes: z.array(z.string().min(1)).default([]),
 });
 
 export const fixtureSchema = z.object({

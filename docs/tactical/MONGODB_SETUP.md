@@ -2,7 +2,7 @@
 
 ## Shared database, separate ownership
 
-Use **one database: `restaurantos`** for the whole application. `MONGODB_URI` and `MONGODB_DB` are shared server configuration names. Tactical currently owns only **`tactical_datasets`**. Rain can add Expansion collections inside the same database later; this implementation does not alter his data adapters or import his records.
+Use **one database: `restaurantos`** for the whole application. `MONGODB_URI` and `MONGODB_DB` are shared server configuration names. Tactical owns **`tactical_datasets`**, **`tactical_review_analysis`** and **`tactical_hr_analysis`**. Rain can add Expansion collections inside the same database later; this implementation does not alter his data adapters or import his records.
 
 The verified Tactical Mongo connection helper lives in Tactical backend for now. Rain’s latest merged work also adds `src/lib/mongodb.ts`; it is preserved unchanged. Coordinate with Rain before consolidating the two clients, including the IPv4 setting verified here and the shared database name. Both can use the same Atlas URI; no second database is required. The existing frontend/domain/backend structure is retained.
 
@@ -136,3 +136,11 @@ Live Atlas verification succeeded after selecting IPv4 in the Mongo client; TLS 
 Remaining: editor/cloud synchronization with proper user auth; review CSV/JSON ingestion; saved pricing scenarios; larger normalized collections when record volume warrants them; agreed shared connection ownership with Rain. No Nessie, CoStar or social-provider integration is implied by using MongoDB.
 
 Driver reference: [MongoDB Node driver replacement operations](https://www.mongodb.com/docs/drivers/node/current/crud/update/replace/).
+
+## Saved review analysis
+
+`tactical_review_analysis` stores validated per-review Gemini classifications and short-lived processing leases. Review source hashes isolate restaurants and preserve cached results across reloads. New/edited comments are processed on authenticated dataset upload and reconciled by the unlocked Reviews page; no database watcher runs. Initial and bulk processing uses batches of ten. Dataset PUT responses include `reviewAnalysis.pending` or `reviewAnalysis.error` after a successful data save, so an AI outage does not falsely report that the dataset failed to save. See [review workflow](REVIEW_WORKFLOW.md) for exact limits, retry and endpoints. New source reviews can omit legacy authored themes.
+
+## HR analysis records
+
+`tactical_hr_analysis` caches schema-validated staffing assessments and original hiring drafts by restaurant, source context, task, requirements, model and prompt version. The central dataset includes seven demo employees and optional structured `operations.workforce` shifts/demand. Owner-edited job descriptions are not yet persisted. See [HR workflow](HR_WORKFLOW.md).
