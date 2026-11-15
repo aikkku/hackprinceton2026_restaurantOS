@@ -1,5 +1,9 @@
 # Tactical — current implementation and remaining work
 
+## Inventory and collisions — November 15, 2026
+
+Supply now uses roomier inventory cards, search/category/stock filters, visible mock expiration dates and expandable costs/reorder/delivery details. Supplier directory and supplier columns are removed. Existing supplier data relationships remain compatible. The fixture and MongoDB dataset (revision 6) have 34 mock expiration dates and three packaging records with no expiry listed. Dates are display data, not shelf-life or safety predictions. Overlapping floor objects turn red live; proximity-only warnings remain yellow, and assigned chairs are exempt from their own table collision. Rain’s latest Expansion commits were pulled and merged without conflicts. Validation on the merged checkout: 242 unit tests passed (one skipped), 54 Tactical Chrome/Firefox checks passed, typecheck and production build passed. Lint has no errors and one existing Expansion unused-variable warning; the build reports nine Expansion filesystem-tracing warnings.
+
 ## HR update — November 15, 2026
 
 HR now has Schedule, Team and Hire employees views, seven mock employees, a dated 36-shift calendar, and an independent seven-day item-demand sample. Four real Gemini assessments are cached in `restaurantos.tactical_hr_analysis` with green/yellow/red states and hover/focus evidence. Hiring drafts respond to the selected role and owner requirements and remain editable/copyable; Indeed posting is disabled. The live MongoDB restaurant was updated with only employees/workforce (revision 5), preserving other operations and layouts. The audited AI context exactly matches the synthetic fixture and excludes employee names/emails. Live overview and hiring generation succeeded. Validation: 187 unit tests; 46 existing Tactical browser checks plus six new HR checks passed in Chrome/Firefox, with lint, typecheck and build passing. The build retains two preexisting Expansion tracing warnings. Schedule editing, payroll and saving owner-edited job drafts remain open. See [HR workflow](HR_WORKFLOW.md).
@@ -18,7 +22,7 @@ Validation: 174 unit tests and 38 Tactical Chrome/Firefox checks passed, with a 
 
 **Product target:** [Product refinement brief](PRODUCT_REFINEMENT_BRIEF.md). **Architecture map:** [repository structure](../../STRUCTURE.md). **Navigation guide:** [pages](PAGES.md). **Manual demo:** [walkthrough](FRONTEND_WALKTHROUGH.md).
 
-**Latest Floor Plan update:** The editor uses a freeform map, a searchable furniture menu, automatic seat sizing, yellow placement warnings and compact map controls. Saved versions are available beside Save and write to MongoDB when configured. The expandable seating analysis and advisor receive working and saved coordinates. Inline scenarios, the historical library panel and backup controls were removed. See [the floor plan guide](FLOOR_PLAN_GUIDE.md).
+**Latest Floor Plan update:** The editor uses a freeform map, a searchable furniture menu, automatic seat sizing, red overlaps/yellow proximity warnings and compact map controls. Saved versions are available beside Save and write to MongoDB when configured. The expandable seating analysis and advisor receive working and saved coordinates. Inline scenarios, the historical library panel and backup controls were removed. See [the floor plan guide](FLOOR_PLAN_GUIDE.md).
 
 **Previous Arlequin Track 2 increment:** Reviews → Content & connectivity implements the supplied challenge: bounded public Hacker News import or normalized messaging JSON, explicit actor links, greedy modularity groups, AI message themes/tone with exact source spans, deterministic topic-by-group counts, cross-group conversation paths, chronological evidence and report export. An observed 23-message sample, complete Gemini labeling, authenticated browser theme tracing and report export were verified. Current validation: 169 unit tests, 36 Tactical browser checks, lint, typecheck and build. See [track implementation](ARLEQUIN_TRACK2.md).
 
@@ -72,7 +76,7 @@ RestaurantOS currently provides a **working browser-local restaurant layout and 
 | Floor Plan | Working foundation; partial target | Manual geometry, named saved configurations, baseline, contextual heuristics | Operational data, richer physical semantics, evidence-linked AI, polished object art |
 | Customer Reviews & Social Media | Working AI review triage on mock data | Saved themes/sentiment/priority, incremental classification, reply draft/copy, content/network workflow | Platform posting, live review ingestion, time/source/dish analysis |
 | HR | Working demo + live AI | Seven-person roster, dated calendar, AI assessments and editable hiring drafts | Synthetic weekly demand, role-level analysis, disabled Indeed posting |
-| Supply Management | Demo | Inventory filters, stock indicators, supplier directory | Derived stock status, estimated costs and consistent restock summary |
+| Supply Management | Demo | Inventory cards, expiration dates, stock filters | Derived stock status, estimated costs and consistent restock summary |
 | Financial Intelligence | Working mock ledger and simulations | Reconciled ledger totals, channel unit costs, price/volume experiments | Real-data imports, saved pricing scenarios and shared edited assumptions |
 | AI Assistant | Working contextual request UI | Single-turn Gemini advisor with evidence and purple results | Durable history, multi-turn context and real business data |
 
@@ -88,7 +92,7 @@ RestaurantOS currently provides a **working browser-local restaurant layout and 
 | `/tactical` | Floor Plan, layout library, insights, expandable photo editor, inline scenarios and saved comparisons. |
 | `/tactical/reviews` | Customer Reviews & Social Media section; current contents are review analytics only. |
 | `/tactical/hr` | Fictional team directory and schedule. |
-| `/tactical/supply` | Fictional inventory and suppliers. |
+| `/tactical/supply` | Fictional inventory with expiration dates. |
 | `/tactical/finance` | Overview, transactions, menu pricing and simulator tabs. |
 | `/tactical/ai` | Single-turn evidence-linked Gemini advisor. |
 | `/tactical/scenarios`, `/tactical/decisions`, `/tactical/analyze` | Compatibility redirects to `/tactical`; no additional top-level experience. |
@@ -412,14 +416,15 @@ Seven employees come from the central dataset. A dated calendar replaces the tab
 
 **Priority: P2, synthetic demo only.**
 
-Fifteen inventory records and eight suppliers now come from the central dataset. Supplier IDs are validated. The UI displays stock, reorder point, unit costs, status and expected delivery date. Status is derived: below 50% of threshold is critical, below threshold is low, above 150% is overstock, otherwise good. The restock summary derives both item and supplier counts. Delivery count now says “Items awaiting delivery,” not distinct shipments. Contacts use reserved example domains.
+37 inventory records use a cleaner card layout with stock and expiration at a glance. Search, category and status filters work together. Costs, reorder points and dated delivery details expand on demand. Supplier directory/columns are removed; legacy supplier IDs remain validated for dataset compatibility. Stock status is derived: below 50% of threshold is critical, below threshold is low, above 150% is overstock, otherwise in stock. Mock expiration dates are not inferred food-safety guidance; packaging displays “No expiry listed,” while legacy absent dates show “Not recorded.”
 
-- [x] **SUP-01:** Central validated fixture, stable IDs and units.
-- [x] **SUP-02:** Derived status and restock count.
-- [x] **SUP-03 · Partial:** Unit costs and thresholds displayed; estimated reorder quantity/cost remains pending.
-- [x] **SUP-04:** Rule-based summary computed from below-threshold records and distinct suppliers.
-- [x] **SUP-05:** Delivery count label corrected to item count.
-- [x] **SUP-06:** No live purchasing, ordering or supplier integration is claimed.
+- [x] **SUP-01:** Central inventory fixture and selected restaurant data.
+- [x] **SUP-02:** Search, category/status filters, empty-state reset and responsive cards.
+- [x] **SUP-03:** Expandable unit costs, reorder thresholds and delivery details.
+- [x] **SUP-04:** Derived item totals, below-threshold count and items awaiting delivery.
+- [x] **SUP-05:** Validated optional/nullable ISO expiration date, populated fixture and MongoDB.
+- [x] **SUP-06:** Supplier presentation removed; no live purchasing integration claimed.
+- [ ] Batch-level expiration tracking, stock editing and real inventory ingestion.
 
 ## 11. AI Assistant and contextual AI
 

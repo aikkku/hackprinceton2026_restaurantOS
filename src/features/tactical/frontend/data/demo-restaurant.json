@@ -725,7 +725,8 @@
         "lastOrdered": "2026-11-10",
         "nextDelivery": "2026-11-16",
         "supplierId": "supplier-1",
-        "unitCostCents": 250
+        "unitCostCents": 250,
+        "expirationDate": "2026-11-15"
       },
       {
         "id": "i2",
@@ -737,7 +738,8 @@
         "lastOrdered": "2026-11-09",
         "nextDelivery": "2026-11-15",
         "supplierId": "supplier-2",
-        "unitCostCents": 425
+        "unitCostCents": 425,
+        "expirationDate": "2026-11-15"
       },
       {
         "id": "i3",
@@ -749,7 +751,8 @@
         "lastOrdered": "2026-11-10",
         "nextDelivery": "2026-11-16",
         "supplierId": "supplier-1",
-        "unitCostCents": 600
+        "unitCostCents": 600,
+        "expirationDate": "2026-11-17"
       },
       {
         "id": "i4",
@@ -761,7 +764,8 @@
         "lastOrdered": "2026-11-10",
         "nextDelivery": "2026-11-15",
         "supplierId": "supplier-1",
-        "unitCostCents": 775
+        "unitCostCents": 775,
+        "expirationDate": "2026-11-15"
       },
       {
         "id": "i5",
@@ -773,7 +777,8 @@
         "lastOrdered": "2026-11-11",
         "nextDelivery": "2026-11-14",
         "supplierId": "supplier-3",
-        "unitCostCents": 950
+        "unitCostCents": 950,
+        "expirationDate": "2026-11-19"
       },
       {
         "id": "i6",
@@ -785,7 +790,8 @@
         "lastOrdered": "2026-11-12",
         "nextDelivery": "2026-11-14",
         "supplierId": "supplier-3",
-        "unitCostCents": 1125
+        "unitCostCents": 1125,
+        "expirationDate": "2026-11-21"
       },
       {
         "id": "i7",
@@ -797,7 +803,8 @@
         "lastOrdered": "2026-11-10",
         "nextDelivery": null,
         "supplierId": "supplier-3",
-        "unitCostCents": 1300
+        "unitCostCents": 1300,
+        "expirationDate": "2026-11-17"
       },
       {
         "id": "i8",
@@ -809,7 +816,8 @@
         "lastOrdered": "2026-11-11",
         "nextDelivery": null,
         "supplierId": "supplier-3",
-        "unitCostCents": 1475
+        "unitCostCents": 1475,
+        "expirationDate": "2026-11-19"
       },
       {
         "id": "i9",
@@ -821,7 +829,8 @@
         "lastOrdered": "2026-11-08",
         "nextDelivery": "2026-11-15",
         "supplierId": "supplier-4",
-        "unitCostCents": 1650
+        "unitCostCents": 1650,
+        "expirationDate": "2027-05-09"
       },
       {
         "id": "i10",
@@ -833,7 +842,8 @@
         "lastOrdered": "2026-11-08",
         "nextDelivery": "2026-11-15",
         "supplierId": "supplier-4",
-        "unitCostCents": 1825
+        "unitCostCents": 1825,
+        "expirationDate": "2027-05-07"
       },
       {
         "id": "i11",
@@ -845,7 +855,8 @@
         "lastOrdered": "2026-11-07",
         "nextDelivery": null,
         "supplierId": "supplier-5",
-        "unitCostCents": 2000
+        "unitCostCents": 2000,
+        "expirationDate": "2027-05-07"
       },
       {
         "id": "i12",
@@ -857,7 +868,8 @@
         "lastOrdered": "2026-11-09",
         "nextDelivery": "2026-11-16",
         "supplierId": "supplier-6",
-        "unitCostCents": 2175
+        "unitCostCents": 2175,
+        "expirationDate": "2027-05-10"
       },
       {
         "id": "i13",
@@ -869,7 +881,8 @@
         "lastOrdered": "2026-10-28",
         "nextDelivery": null,
         "supplierId": "supplier-7",
-        "unitCostCents": 2350
+        "unitCostCents": 2350,
+        "expirationDate": "2027-10-28"
       },
       {
         "id": "i14",
@@ -881,7 +894,8 @@
         "lastOrdered": "2026-10-28",
         "nextDelivery": null,
         "supplierId": "supplier-7",
-        "unitCostCents": 2525
+        "unitCostCents": 2525,
+        "expirationDate": "2027-10-29"
       },
       {
         "id": "i15",
@@ -893,7 +907,8 @@
         "lastOrdered": "2026-11-07",
         "nextDelivery": "2026-11-15",
         "supplierId": "supplier-8",
-        "unitCostCents": 2700
+        "unitCostCents": 2700,
+        "expirationDate": "2027-11-09"
       },
       {
         "id": "i16",
@@ -905,7 +920,8 @@
         "unit": "each",
         "lastOrdered": "2026-11-10",
         "nextDelivery": "2026-11-15",
-        "unitCostCents": 110
+        "unitCostCents": 110,
+        "expirationDate": "2026-11-14"
       },
       {
         "id": "i17",
@@ -917,7 +933,8 @@
         "unit": "loaves",
         "lastOrdered": "2026-11-11",
         "nextDelivery": "2026-11-16",
-        "unitCostCents": 670
+        "unitCostCents": 670,
+        "expirationDate": "2026-11-16"
       },
       {
         "id": "i18",
@@ -929,7 +946,8 @@
         "unit": "lbs",
         "lastOrdered": "2026-11-12",
         "nextDelivery": null,
-        "unitCostCents": 550
+        "unitCostCents": 550,
+        "expirationDate": "2026-11-24"
       },
       {
         "id": "i19",
@@ -941,7 +959,8 @@
         "unit": "lbs",
         "lastOrdered": "2026-11-13",
         "nextDelivery": "2026-11-16",
-        "unitCostCents": 450
+        "unitCostCents": 450,
+        "expirationDate": "2026-11-23"
       },
       {
         "id": "i20",
@@ -953,7 +972,8 @@
         "unit": "quarts",
         "lastOrdered": "2026-11-09",
         "nextDelivery": null,
-        "unitCostCents": 430
+        "unitCostCents": 430,
+        "expirationDate": "2026-11-20"
       },
       {
         "id": "i21",
@@ -965,7 +985,8 @@
         "unit": "gallons",
         "lastOrdered": "2026-11-10",
         "nextDelivery": "2026-11-17",
-        "unitCostCents": 395
+        "unitCostCents": 395,
+        "expirationDate": "2026-11-22"
       },
       {
         "id": "i22",
@@ -977,7 +998,8 @@
         "unit": "lbs",
         "lastOrdered": "2026-11-11",
         "nextDelivery": "2026-11-16",
-        "unitCostCents": 410
+        "unitCostCents": 410,
+        "expirationDate": "2026-11-18"
       },
       {
         "id": "i23",
@@ -989,7 +1011,8 @@
         "unit": "lbs",
         "lastOrdered": "2026-11-12",
         "nextDelivery": null,
-        "unitCostCents": 160
+        "unitCostCents": 160,
+        "expirationDate": "2026-11-20"
       },
       {
         "id": "i24",
@@ -1001,7 +1024,8 @@
         "unit": "lbs",
         "lastOrdered": "2026-11-13",
         "nextDelivery": "2026-11-16",
-        "unitCostCents": 285
+        "unitCostCents": 285,
+        "expirationDate": "2026-11-22"
       },
       {
         "id": "i25",
@@ -1013,7 +1037,8 @@
         "unit": "lbs",
         "lastOrdered": "2026-11-09",
         "nextDelivery": null,
-        "unitCostCents": 190
+        "unitCostCents": 190,
+        "expirationDate": "2026-11-16"
       },
       {
         "id": "i26",
@@ -1025,7 +1050,8 @@
         "unit": "heads",
         "lastOrdered": "2026-11-10",
         "nextDelivery": "2026-11-17",
-        "unitCostCents": 195
+        "unitCostCents": 195,
+        "expirationDate": "2026-11-18"
       },
       {
         "id": "i27",
@@ -1037,7 +1063,8 @@
         "unit": "lbs",
         "lastOrdered": "2026-11-11",
         "nextDelivery": "2026-11-16",
-        "unitCostCents": 230
+        "unitCostCents": 230,
+        "expirationDate": "2026-11-20"
       },
       {
         "id": "i28",
@@ -1049,7 +1076,8 @@
         "unit": "lbs",
         "lastOrdered": "2026-11-12",
         "nextDelivery": null,
-        "unitCostCents": 130
+        "unitCostCents": 130,
+        "expirationDate": "2026-11-19"
       },
       {
         "id": "i29",
@@ -1061,7 +1089,8 @@
         "unit": "lbs",
         "lastOrdered": "2026-11-13",
         "nextDelivery": "2026-11-17",
-        "unitCostCents": 1050
+        "unitCostCents": 1050,
+        "expirationDate": "2026-11-19"
       },
       {
         "id": "i30",
@@ -1073,7 +1102,8 @@
         "unit": "dozen",
         "lastOrdered": "2026-11-09",
         "nextDelivery": "2026-11-16",
-        "unitCostCents": 360
+        "unitCostCents": 360,
+        "expirationDate": "2026-11-21"
       },
       {
         "id": "i31",
@@ -1085,7 +1115,8 @@
         "unit": "lbs",
         "lastOrdered": "2026-11-10",
         "nextDelivery": null,
-        "unitCostCents": 190
+        "unitCostCents": 190,
+        "expirationDate": "2027-11-10"
       },
       {
         "id": "i32",
@@ -1097,7 +1128,8 @@
         "unit": "cartons",
         "lastOrdered": "2026-11-11",
         "nextDelivery": "2026-11-17",
-        "unitCostCents": 380
+        "unitCostCents": 380,
+        "expirationDate": "2027-05-11"
       },
       {
         "id": "i33",
@@ -1109,7 +1141,8 @@
         "unit": "bottles",
         "lastOrdered": "2026-11-12",
         "nextDelivery": null,
-        "unitCostCents": 85
+        "unitCostCents": 85,
+        "expirationDate": "2027-05-13"
       },
       {
         "id": "i34",
@@ -1121,7 +1154,8 @@
         "unit": "each",
         "lastOrdered": "2026-11-13",
         "nextDelivery": "2026-11-18",
-        "unitCostCents": 46
+        "unitCostCents": 46,
+        "expirationDate": null
       },
       {
         "id": "i35",
@@ -1133,7 +1167,8 @@
         "unit": "each",
         "lastOrdered": "2026-11-09",
         "nextDelivery": null,
-        "unitCostCents": 9
+        "unitCostCents": 9,
+        "expirationDate": null
       },
       {
         "id": "i36",
@@ -1145,7 +1180,8 @@
         "unit": "each",
         "lastOrdered": "2026-11-10",
         "nextDelivery": "2026-11-18",
-        "unitCostCents": 42
+        "unitCostCents": 42,
+        "expirationDate": null
       },
       {
         "id": "i37",
@@ -1157,7 +1193,8 @@
         "unit": "gallons",
         "lastOrdered": "2026-11-11",
         "nextDelivery": null,
-        "unitCostCents": 1850
+        "unitCostCents": 1850,
+        "expirationDate": "2027-11-11"
       }
     ],
     "menu": [

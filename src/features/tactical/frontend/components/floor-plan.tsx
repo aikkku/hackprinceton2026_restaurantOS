@@ -3,7 +3,7 @@
 import { useId, useRef, useState, type KeyboardEvent, type PointerEvent } from "react";
 import { TriangleAlert } from "lucide-react";
 import { furniture, footprint, positionObject } from "../../domain/layout";
-import { floorWarnings, resizeFromCorner } from "../../domain/floor-editor";
+import { floorWarnings, floorOverlapIds, resizeFromCorner } from "../../domain/floor-editor";
 import type { Layout, LayoutObject } from "../../domain/schemas";
 
 type Props = {
@@ -178,6 +178,7 @@ export function FloorPlan({ layout, selectedId, placing, highlightedIds, aiPrevi
 
   const objects = layout.objects.map(object => preview?.id === object.id ? preview : object);
   const warnings = floorWarnings(objects);
+  const overlaps = floorOverlapIds(objects);
   const assigned = (id: string) => objects.reduce((count, object) => count + (object.seatOwnerId === id ? object.seats ?? 0 : 0), 0);
 
   const hoveredWarnings = !placing && hoveredId ? warnings.get(hoveredId) : undefined;
@@ -233,14 +234,14 @@ export function FloorPlan({ layout, selectedId, placing, highlightedIds, aiPrevi
             aria-label={warning ? `${name}: ${warning.join(". ")}` : name}>
             <title>{warning ? `${name} · ${warning.join(" · ")}` : name}</title>
             <FurnitureArt object={object} assigned={assigned(object.id)} />
-            <rect width={width} height={depth} rx=".06" className={`svg-hit ${selected ? "is-selected" : ""} ${warning ? "is-floor-warning" : ""} ${object.aiSource || highlightedIds.includes(object.id) ? "is-ai-highlighted" : ""}`} />
+            <rect width={width} height={depth} rx=".06" className={`svg-hit ${selected ? "is-selected" : ""} ${warning ? "is-floor-warning" : ""} ${overlaps.has(object.id) ? "is-floor-overlap" : ""} ${object.aiSource || highlightedIds.includes(object.id) ? "is-ai-highlighted" : ""}`} />
             {selected && <rect data-resize="" className="floor-resize-handle" x={width - handle} y={depth - handle} width={handle} height={handle}><title>Drag to resize</title></rect>}
           </g>
         );
       })}
       {aiPreview.map(object => <g key={object.id} transform={`translate(${object.x} ${object.y})`} pointerEvents="none" className="svg-proposed svg-proposed-ai" aria-label="AI proposed furniture position"><FurnitureArt object={object} assigned={assigned(object.id)} /><rect width={footprint(object).width} height={footprint(object).depth} className="svg-proposed-outline" /></g>)}
     </svg>
-    {hoveredWarnings && <div className="floor-hover-warning" role="tooltip">
+    {hoveredWarnings && <div className={`floor-hover-warning ${hoveredId && overlaps.has(hoveredId) ? "is-floor-overlap" : ""}`} role="tooltip">
       <TriangleAlert size={15} aria-hidden="true" />
       <div>{hoveredWarnings.map((warning, index) => <p key={`${index}-${warning}`}>{warning}</p>)}</div>
     </div>}

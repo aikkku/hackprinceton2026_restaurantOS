@@ -31,3 +31,7 @@ The seating analysis and advisor receive the current working map and saved versi
 ## Regression checks
 
 Browser coverage includes free drag and live warnings, resize-driven chair counts, keyboard edits, AI preview/apply/staleness, saved version reload and selection persistence, Escape during a drag, palette search/empty results/keyboard placement, narrow layouts and hydration. Model responses in the automated browser suite are controlled test fixtures; live provider availability is a separate integration check.
+
+## Collision colors
+
+Overlapping furniture gets a red border and red hover explanation, including during drag/resize. Near-clearance warnings remain yellow. Attached chairs intentionally sharing their assigned table footprint are exempt. Geometry drives the color, including for AI-highlighted objects.

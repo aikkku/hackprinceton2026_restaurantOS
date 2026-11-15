@@ -46,7 +46,7 @@ test("floor toolbar has version history, furniture search and no removed panels"
   await expect(objects).toHaveCount(total);
 });
 
-test("free dragging previews yellow warnings and drag resizing adds chair markers", async ({ page }) => {
+test("free dragging previews red overlap warnings and drag resizing adds chair markers", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 1000 });
   await page.goto("/tactical");
   const canvas = page.locator("svg.floor-svg");
@@ -59,6 +59,7 @@ test("free dragging previews yellow warnings and drag resizing adds chair marker
   await drag(page, await point(canvas, 5.85, 6), await point(canvas, 8.98, 6.13));
   await expect(table.locator(".is-floor-warning")).toHaveCount(1);
   await expect(table.locator(":scope > title")).toContainText("Overlaps");
+  await expect(table.locator(".is-floor-overlap")).toHaveCSS("stroke", "rgb(196, 59, 54)");
   await page.mouse.up();
   await expect(table).not.toHaveAttribute("transform", original!);
   await page.getByRole("button", { name: "Undo", exact: true }).click();

@@ -9,7 +9,7 @@ All six sections share the persistent Tactical shell and one validated, server-s
 | Floor Plan — `/tactical` | Freeform map, searchable furniture, keyboard shortcuts, automatic seat sizing, placement warnings, saved versions and expandable Gemini seating analysis | Measured furniture and service data |
 | Customer Reviews & Social Media — `/tactical/reviews` | Review search, ratings, saved AI themes/sentiment/high-priority filters, scrollable themes, per-review AI draft/copy and disabled Reply | Platform posting, live review ingestion, source/date/dish filters and trends; see [review workflow](REVIEW_WORKFLOW.md) |
 | HR — `/tactical/hr` | Seven-person team, dated calendar, AI status cards with hover evidence, editable AI hiring drafts | Schedule editing, saved owner edits, real payroll/Indeed publishing |
-| Supply Management — `/tactical/supply` | Central inventory, category filters, suppliers, costs, thresholds and derived stock/restock indicators | Reorder-cost preview and UI polish |
+| Supply Management — `/tactical/supply` | Roomy inventory cards, mock expiration dates, search/category/stock filters, expandable costs and delivery details; supplier UI removed | Batch-level expiration tracking and real stock imports |
 | Financial Intelligence — `/tactical/finance` | Reconciled synthetic ledger, month/channel/type filters, channel contribution, dated sample dish prices, price/volume and capacity experiments | Real-data imports, saved pricing scenarios and shared edited assumptions |
 | AI Assistant — `/tactical/ai` | Purple single-turn Gemini advisor with evidence | Durable history, multi-turn context and external data remain deferred |
 

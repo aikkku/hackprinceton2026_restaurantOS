@@ -5,7 +5,7 @@ import { layoutCounts, objectClearance, footprintGap, suggestClearPosition, hasO
 import { initialLibrary } from "./domain/layout-library.ts";
 import { applyObjectMeasurements } from "./frontend/layout-edit.ts";
 import { parseLibraryBackup, writeLibrary, maxLibraryBytes } from "./frontend/layout-storage.ts";
-import { floorWarnings, modernFloor, resizeFurniture, resizeFromCorner } from "./domain/floor-editor.ts";
+import { floorOverlapIds, floorWarnings, modernFloor, resizeFurniture, resizeFromCorner } from "./domain/floor-editor.ts";
 
 const table: LayoutObject = { id: "table", type: "table_2", seats: 2, x: 1, y: 1, width: 2, depth: 1, rotation: 0 };
 const chair: LayoutObject = { id: "chair", type: "chair", seats: 1, x: 4, y: 1, width: .5, depth: .5, rotation: 0 };
@@ -26,6 +26,9 @@ test("resizing preserves the existing seat count as a reference across increment
 });
 
 test("placement warnings identify overlapping and nearby objects by name", () => {
+  assert.equal(floorOverlapIds([table, { ...chair, x: 3.1 }]).size, 0);
+  assert.deepEqual([...floorOverlapIds([table, { ...chair, x: 2.9 }])].sort(), [table.id, chair.id].sort());
+  assert.equal(floorOverlapIds([table, { ...chair, x: 2.9, seatOwnerId: table.id }]).size, 0);
   const near = floorWarnings([table, { ...chair, x: 3.1 }]);
   assert.match(near.get(table.id)![0], /0.10 m from Chair/);
   const overlapping = floorWarnings([table, { ...chair, x: 2.9 }]);

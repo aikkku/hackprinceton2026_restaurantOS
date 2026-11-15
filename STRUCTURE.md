@@ -137,3 +137,7 @@ The Arlequin Track 2 workflow lives in Tactical: `domain/social.ts` owns message
 ## HR calendar, assessments and hiring
 
 `domain/workforce.ts` validates dated shifts and weekly item demand; `domain/hr.ts` calculates staffing/sales metrics and validates AI outputs. `backend/hr-service.ts` handles Gemini and the shared database’s `tactical_hr_analysis` collection behind `src/app/api/tactical/hr/route.ts`. UI is split into `hr-page.tsx` (assessment/team), `hr-calendar.tsx` (schedule), `hr-hiring.tsx` (editable role drafts) and `hr.css`. All editable mock input remains in `frontend/data/demo-restaurant.json`. See [HR workflow, assumptions and remaining work](docs/tactical/HR_WORKFLOW.md).
+
+## Inventory presentation
+
+`frontend/components/supply-page.tsx` and `supply.css` render searchable inventory cards with expiration dates and expandable stock details. `domain/dataset.ts` accepts an optional nullable ISO `operations.inventory[].expirationDate`; the editable fixture supplies mock dates (null for packaging). Supplier records remain a legacy data relationship, with no supplier UI. Floor collision severity uses `domain/floor-editor.ts` → `floor-plan.tsx` and `floor-editor.css`: overlap red, proximity yellow.

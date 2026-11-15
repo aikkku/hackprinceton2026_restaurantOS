@@ -1,0 +1,22 @@
+import { expect, test } from "@playwright/test";
+import demo from "../data/demo-restaurant.json" with { type: "json" };
+test("inventory has dated cards, searchable filters and no suppliers section", async ({ page }) => {
+  await page.goto("/tactical/supply");
+  const inventory = page.getByRole("region", { name: "Inventory", exact: true });
+  await expect(inventory.getByRole("table")).toHaveCount(0);
+  await expect(inventory.getByText("Suppliers", { exact: true })).toHaveCount(0);
+  await expect(inventory.locator(".supply-item")).toHaveCount(demo.operations.inventory.length);
+  const item = inventory.locator(`[data-inventory-id="${demo.operations.inventory[0].id}"]`);
+  await expect(item.locator("time")).toHaveAttribute("datetime", demo.operations.inventory[0].expirationDate!);
+  await item.getByText("Stock details", { exact: true }).click();
+  await expect(item.getByText("Unit cost", { exact: true })).toBeVisible();
+  await inventory.getByLabel("Search inventory").fill("ricotta");
+  await expect(inventory.locator(".supply-item")).toHaveCount(1);
+  await inventory.getByLabel("Inventory category").selectOption("Packaging");
+  await expect(inventory.getByText("No items match your filters.")).toBeVisible();
+  await inventory.getByRole("button", { name: "Clear filters" }).click();
+  await inventory.getByLabel("Inventory category").selectOption("Packaging");
+  await expect(inventory.getByText("No expiry listed", { exact: true })).toHaveCount(3);
+  await page.setViewportSize({ width: 390, height: 844 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});

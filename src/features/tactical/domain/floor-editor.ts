@@ -91,3 +91,13 @@ export function floorWarnings(objects: LayoutObject[]) {
   }
   return warnings;
 }
+
+// Assigned chairs intentionally share their owner's footprint. Other collisions are errors.
+export function floorOverlapIds(objects: LayoutObject[]) {
+  const ids = new Set<string>();
+  for (const [index, object] of objects.entries()) for (const other of objects.slice(index + 1)) {
+    if (object.seatOwnerId === other.id || other.seatOwnerId === object.id) continue;
+    if (hasOverlap(object, other)) { ids.add(object.id); ids.add(other.id); }
+  }
+  return ids;
+}

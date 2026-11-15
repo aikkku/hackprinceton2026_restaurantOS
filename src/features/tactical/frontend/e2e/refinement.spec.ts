@@ -70,7 +70,7 @@ test("central mock records feed financial filters, pricing, HR and supply", asyn
   await page.getByText("Data & assumptions", { exact: true }).click();
   await expect(page.getByText(/Estimated scheduled base labor/)).toBeVisible();
   await page.goto("/tactical/supply");
-  await expect(page.locator(".inventory-table tbody tr")).toHaveCount(demo.operations.inventory.length);
-  await expect(page.getByText(/Rule-based demo summary/)).toBeVisible();
+  await expect(page.locator(".supply-item")).toHaveCount(demo.operations.inventory.length);
+  await expect(page.getByText(/below reorder point/)).toBeVisible();
   expect(errors).toEqual([]);
 });
