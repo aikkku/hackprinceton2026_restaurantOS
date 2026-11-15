@@ -1,3 +1,4 @@
+import { z } from "zod";
 import {
   rentSchema,
   scenarioInputsSchema,
@@ -79,4 +80,61 @@ export function propertyMatches(
     property.floorAreaSqFt !== null &&
     property.floorAreaSqFt >= minimumArea
   );
+}
+
+// ---------------------------------------------------------------------------
+// Callable finance tool boundary (Phase 2). Pure, schema-validated DTOs;
+// Phase 3's Python worker invokes these through the documented contracts and
+// must not reimplement the arithmetic.
+
+export const FINANCE_TOOL_VERSION = "expansion-finance-tool-v1";
+
+export const requiredSalesInputSchema = z.object({
+  fixedCostsMonthly: z.number().finite().nonnegative().max(1e12),
+  contributionMargin: z.number().finite().min(0).max(1),
+});
+export type RequiredSalesInput = z.infer<typeof requiredSalesInputSchema>;
+
+export const requiredSalesOutputSchema = z.discriminatedUnion("status", [
+  z.object({
+    status: z.literal("available"),
+    requiredSalesMonthly: z.number().finite().nonnegative(),
+  }),
+  z.object({
+    status: z.literal("unavailable"),
+    requiredSalesMonthly: z.literal(null),
+    reason: z.string().min(1),
+  }),
+]);
+export type RequiredSalesOutput = z.infer<typeof requiredSalesOutputSchema>;
+
+/**
+ * Required monthly sales = fixed costs / contribution margin.
+ * Zero margin has no attainable threshold; missing inputs are unavailable,
+ * never replaced with defaults.
+ */
+export function requiredSalesMonthly(
+  input: RequiredSalesInput,
+): RequiredSalesOutput {
+  const parsed = requiredSalesInputSchema.parse(input);
+  if (parsed.contributionMargin <= 0) {
+    return {
+      status: "unavailable",
+      requiredSalesMonthly: null,
+      reason:
+        "No sales threshold is attainable at a zero contribution margin.",
+    };
+  }
+  const result = parsed.fixedCostsMonthly / parsed.contributionMargin;
+  if (!Number.isFinite(result)) {
+    return {
+      status: "unavailable",
+      requiredSalesMonthly: null,
+      reason: "The requested calculation exceeds the supported numeric range.",
+    };
+  }
+  return requiredSalesOutputSchema.parse({
+    status: "available",
+    requiredSalesMonthly: result,
+  });
 }

@@ -64,6 +64,7 @@ test("local dataset supports unknown rent, inspect, edit, compare, save and relo
   await expect(page.locator(".compare-card")).toHaveCount(2);
   await page.reload();
   await expect(page.getByLabel("Data mode")).toHaveValue("local");
+  await page.getByRole('button', { name: 'Continue to the scouting map' }).click();
   await page.getByRole("button", { name: "Restore", exact: true }).click();
   await expect(page.getByLabel("Pass-throughs")).toHaveValue("1000");
   await expect(page.locator(".required-sales")).toHaveText("$31,429");
@@ -111,6 +112,7 @@ test("local query empty and failure states preserve a draft and retry", async ({
 
 test("configured local data completes the actual API to browser save and restore flow", async ({ page, request }) => {
   test.skip(process.env.EXPANSION_E2E_LOCAL !== "1", "Set EXPANSION_E2E_LOCAL=1 with an imported local database.");
+  test.skip(!!process.env.EXPANSION_E2E_DB_PATH, "The synthetic e2e cache override is active (EXPANSION_E2E_DB_PATH). Run without the synthetic Playwright env to exercise the real imported database.");
   const markets = await request.get("/api/expansion/markets");
   expect(markets.ok()).toBe(true);
   const body = await markets.json();
@@ -163,6 +165,7 @@ test("local mobile reduced motion and saved evidence survive source failure", as
   await page.getByRole("button", { name: "Save scenario", exact: true }).click();
   await page.reload();
   await page.route("**/api/expansion/properties/*", (route) => route.fulfill({ status: 503, json: { error: { code: "source_failure", message: "Synthetic source unavailable" } } }));
+  await page.getByRole('button', { name: 'Continue to the scouting map' }).click();
   await page.getByRole("button", { name: "Restore", exact: true }).click();
   await expect(page.locator(".inspector")).toContainText("Dated saved property snapshot");
   await expect(page.getByLabel(/^Base rent/)).toHaveValue("4000");

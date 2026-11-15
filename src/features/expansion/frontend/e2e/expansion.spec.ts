@@ -89,6 +89,7 @@ test("scout, simulate, compare, save and restore exact assumptions", async ({
   await expect(page.locator(".compare-card").first()).toContainText("$31,429");
   await expect(page.locator(".compare-card").last()).toContainText("$32,714");
   await page.reload();
+  await page.getByRole("button", { name: "Continue to the scouting map" }).click();
   await page.getByRole("button", { name: "Restore", exact: true }).click();
   await expect(page.getByLabel("Pass-throughs")).toHaveValue("1000");
   await expect(page.getByLabel("Assumed monthly sales (optional)")).toHaveValue(
