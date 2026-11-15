@@ -24,7 +24,7 @@ test("semantic labels join to actor groups, explicit paths, source messages and 
   expect(await findings.evaluate(element => getComputedStyle(element).backgroundColor)).toBe("rgb(247, 242, 255)");
   await findings.getByRole("button", { name: "Trace this theme" }).click();
   await expect(panel.getByLabel("Theme filter")).toHaveValue("expectations");
-  await panel.getByLabel("Search message text").fill("reservation estimate");
+  await panel.getByLabel("Search message text").fill("eggs");
   await expect(panel.locator(".social-timeline li")).toHaveCount(1);
   await expect(panel.locator(".social-timeline")).toContainText(sample.messages[4].text);
   const download = page.waitForEvent("download"); await panel.getByRole("button", { name: "Download analysis report" }).click(); expect((await download).suggestedFilename()).toBe("tactical-social-analysis.json");

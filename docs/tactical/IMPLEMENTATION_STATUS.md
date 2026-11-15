@@ -188,7 +188,7 @@ All synthetic business records now live in [demo-restaurant.json](../../src/feat
 | Finance | 312 synthetic ledger entries from June through November 2026 across dine-in, delivery, takeaway and shared costs, 24 menu items, a separate 92-day item-sales report and 65 fictional price comparisons |
 | HR | Seven fictional employees with reserved-domain contacts, assumed pay, validated dated shifts and weekly item demand |
 | Supply | 37 inventory items with costs and thresholds, and 12 fictional suppliers |
-| Social analysis | 24 fictional messages from nine actors in the editable conversation fixture |
+| Social analysis | 40 fictional messages from 17 actors (Nov 1–15, 2026) in the editable conversation fixture, plus a recorded semantics fixture for tests |
 | Photo examples | Manual sample/blank plans and an unused legacy fallback fixture; provider failures never load it |
 
 `TACTICAL_DATA_SOURCE=demo` reads the local fixture. `mongodb` reads the selected restaurant by `TACTICAL_RESTAURANT_ID` and displays source/revision. All six sections receive the selected profile; the UI still has no interactive restaurant picker. All records are explicitly synthetic, including after MongoDB storage. Real staff/banking uploads are not supported by this contract.

@@ -1,62 +1,94 @@
 {
   "version": 1,
   "id": "juniper-social-demo",
-  "title": "Juniper Table: prices, waiting and clear expectations",
+  "title": "Juniper Table: weekend waits, soggy takeaway and app prices",
   "provenance": "synthetic",
   "source": {
     "name": "RestaurantOS fictional conversation fixture",
     "url": "",
-    "retrievedAt": "2026-11-14T12:00:00.000Z",
-    "method": "Invented messages and explicit reply/repost links for exercising the content-plus-connectivity pipeline. No real guests or accounts.",
+    "retrievedAt": "2026-11-15T22:00:00.000Z",
+    "method": "Invented customer posts with explicit reply/repost links, dated November 1–15, 2026 to overlap the demo staffing week and stock records. No real guests or accounts.",
     "limitations": [
       "Synthetic sample; no observed customer findings or real dissemination claims.",
-      "Small fictional conversation with linked pricing, wait-time and takeaway threads."
+      "Small fictional conversation written to exercise wait-time, takeaway packaging, pricing and food threads across separate customer circles."
     ]
   },
   "actors": [
     {
       "id": "a",
-      "label": "Demo participant A"
+      "label": "Demo guest A"
     },
     {
       "id": "b",
-      "label": "Demo participant B"
+      "label": "Demo guest B"
     },
     {
       "id": "c",
-      "label": "Demo participant C"
+      "label": "Demo guest C"
     },
     {
       "id": "d",
-      "label": "Demo participant D"
+      "label": "Demo guest D"
     },
     {
       "id": "e",
-      "label": "Demo participant E"
+      "label": "Demo guest E"
     },
     {
       "id": "f",
-      "label": "Demo participant F"
+      "label": "Demo guest F"
     },
     {
       "id": "g",
-      "label": "Demo participant G"
+      "label": "Demo guest G"
     },
     {
       "id": "h",
-      "label": "Demo participant H"
+      "label": "Demo guest H"
     },
     {
       "id": "i",
-      "label": "Demo participant I"
+      "label": "Demo guest I"
+    },
+    {
+      "id": "j",
+      "label": "Demo guest J"
+    },
+    {
+      "id": "k",
+      "label": "Demo guest K"
+    },
+    {
+      "id": "l",
+      "label": "Demo guest L"
+    },
+    {
+      "id": "m",
+      "label": "Demo guest M"
+    },
+    {
+      "id": "n",
+      "label": "Demo guest N"
+    },
+    {
+      "id": "o",
+      "label": "Demo guest O"
+    },
+    {
+      "id": "p",
+      "label": "Demo guest P"
+    },
+    {
+      "id": "q",
+      "label": "Demo guest Q"
     }
   ],
   "messages": [
     {
       "id": "m1",
       "actorId": "a",
-      "text": "Menu prices should include every service charge so the final bill is clear.",
-      "timestamp": "2026-11-14T12:00:00.000Z",
+      "text": "Saturday night we waited 40 minutes for a table even with a reservation. The food was worth it, but the wait was rough.",
+      "timestamp": "2026-11-01T19:10:00.000Z",
       "url": "",
       "replyTo": null,
       "repostOf": null
@@ -64,8 +96,8 @@
     {
       "id": "m2",
       "actorId": "b",
-      "text": "Clear menu prices help us budget. Hidden service fees make dinner feel expensive.",
-      "timestamp": "2026-11-14T12:01:00.000Z",
+      "text": "Same for us last weekend. Our reservation time came and went and nobody at the host stand could say how long it would be.",
+      "timestamp": "2026-11-01T19:42:00.000Z",
       "url": "",
       "replyTo": "m1",
       "repostOf": null
@@ -73,199 +105,343 @@
     {
       "id": "m3",
       "actorId": "c",
-      "text": "I agree about clear prices. Please show fees before we order.",
-      "timestamp": "2026-11-14T12:02:00.000Z",
+      "text": "The host stand looks swamped on weekend nights. One person is seating tables, answering the phone and handing out pickup orders.",
+      "timestamp": "2026-11-01T20:05:00.000Z",
       "url": "",
       "replyTo": "m2",
       "repostOf": null
     },
     {
       "id": "m4",
-      "actorId": "a",
-      "text": "We will test showing the full price on the menu instead of adding a service fee.",
-      "timestamp": "2026-11-14T12:03:00.000Z",
+      "actorId": "d",
+      "text": "We gave up after 30 minutes and went home. We love it on weeknights, but weekends are a gamble.",
+      "timestamp": "2026-11-01T20:31:00.000Z",
+      "url": "",
+      "replyTo": "m1",
+      "repostOf": null
+    },
+    {
+      "id": "m5",
+      "actorId": "e",
+      "text": "Sunday brunch had the same line. We waited half an hour just to sit down for eggs.",
+      "timestamp": "2026-11-01T21:15:00.000Z",
       "url": "",
       "replyTo": "m3",
       "repostOf": null
     },
     {
-      "id": "m5",
-      "actorId": "d",
-      "text": "The Saturday queue was long. A reservation estimate would make waiting easier.",
-      "timestamp": "2026-11-14T12:04:00.000Z",
+      "id": "m6",
+      "actorId": "n",
+      "text": "Weekday lunch at Juniper Table is my favorite break. The roasted squash bowl is excellent and comes out fast.",
+      "timestamp": "2026-11-02T12:40:00.000Z",
       "url": "",
       "replyTo": null,
       "repostOf": null
     },
     {
-      "id": "m6",
-      "actorId": "e",
-      "text": "Our group waited for a table too. Reservations need a realistic wait estimate.",
-      "timestamp": "2026-11-14T12:05:00.000Z",
-      "url": "",
-      "replyTo": "m5",
-      "repostOf": null
-    },
-    {
       "id": "m7",
-      "actorId": "f",
-      "text": "A clear wait estimate and a text when the table is ready would help.",
-      "timestamp": "2026-11-14T12:06:00.000Z",
+      "actorId": "o",
+      "text": "Agreed, the squash bowl and the mushroom soup are both great. Lunch service is quick.",
+      "timestamp": "2026-11-02T13:05:00.000Z",
       "url": "",
       "replyTo": "m6",
       "repostOf": null
     },
     {
       "id": "m8",
-      "actorId": "d",
-      "text": "We will try giving accurate queue updates before guests arrive.",
-      "timestamp": "2026-11-14T12:07:00.000Z",
+      "actorId": "j",
+      "text": "Is it just me or are delivery app prices much higher than in the restaurant? The House Burger is $18 inside and $23 on the app.",
+      "timestamp": "2026-11-03T18:20:00.000Z",
       "url": "",
-      "replyTo": "m7",
+      "replyTo": null,
       "repostOf": null
     },
     {
       "id": "m9",
-      "actorId": "c",
-      "text": "Clear expectations matter for both menu fees and the queue. Please communicate prices and waits early.",
-      "timestamp": "2026-11-14T12:08:00.000Z",
+      "actorId": "k",
+      "text": "Same with the sweet potato fries. For students the app markup adds up fast, so I just walk over now.",
+      "timestamp": "2026-11-03T18:47:00.000Z",
       "url": "",
-      "replyTo": "m5",
+      "replyTo": "m8",
       "repostOf": null
     },
     {
       "id": "m10",
-      "actorId": "b",
-      "text": "Sharing this idea: put the full price on the menu and explain all service charges.",
-      "timestamp": "2026-11-14T12:09:00.000Z",
+      "actorId": "f",
+      "text": "Ordered delivery tonight. The food tasted good, but the sweet potato fries were soft and steamed by the time they arrived.",
+      "timestamp": "2026-11-04T19:30:00.000Z",
       "url": "",
       "replyTo": null,
-      "repostOf": "m1"
+      "repostOf": null
     },
     {
       "id": "m11",
-      "actorId": "e",
-      "text": "The same clarity would help reservations: explain the wait before guests travel.",
-      "timestamp": "2026-11-14T12:10:00.000Z",
+      "actorId": "l",
+      "text": "Picking up in person is cheaper. A student discount on the app would bring more of us back.",
+      "timestamp": "2026-11-05T17:55:00.000Z",
       "url": "",
       "replyTo": "m9",
       "repostOf": null
     },
     {
       "id": "m12",
-      "actorId": "g",
-      "text": "Our fries were soft by the time we got home. Could takeaway boxes have vents?",
-      "timestamp": "2026-11-14T12:11:00.000Z",
+      "actorId": "e",
+      "text": "Tonight's wait was over 45 minutes. The bar was full of people standing around with nowhere to go.",
+      "timestamp": "2026-11-07T20:10:00.000Z",
       "url": "",
-      "replyTo": null,
+      "replyTo": "m4",
       "repostOf": null
     },
     {
       "id": "m13",
-      "actorId": "h",
-      "text": "Vented boxes would help with fries. Keep the salad and dressing in a separate bag.",
-      "timestamp": "2026-11-14T12:12:00.000Z",
+      "actorId": "a",
+      "text": "We saw that too. A text when the table is ready would make the wait much easier.",
+      "timestamp": "2026-11-07T20:36:00.000Z",
       "url": "",
       "replyTo": "m12",
       "repostOf": null
     },
     {
       "id": "m14",
-      "actorId": "i",
-      "text": "Our packaging test put the sauce on the side and used a vented box for the hot food.",
-      "timestamp": "2026-11-14T12:13:00.000Z",
+      "actorId": "c",
+      "text": "And a realistic estimate at the door. Being told 10 minutes and waiting 45 is the frustrating part.",
+      "timestamp": "2026-11-07T21:02:00.000Z",
       "url": "",
-      "replyTo": "m13",
+      "replyTo": "m12",
       "repostOf": null
     },
     {
       "id": "m15",
-      "actorId": "g",
-      "text": "That would also make pickup easier to check. Add a label for sauces and dietary notes.",
-      "timestamp": "2026-11-14T12:14:00.000Z",
+      "actorId": "b",
+      "text": "Agreed. I would rather hear 45 minutes up front than be surprised at the door.",
+      "timestamp": "2026-11-08T11:15:00.000Z",
       "url": "",
       "replyTo": "m14",
       "repostOf": null
     },
     {
       "id": "m16",
-      "actorId": "h",
-      "text": "Labels would help. My takeaway order was ready, but I could not tell which bag was ours.",
-      "timestamp": "2026-11-14T12:15:00.000Z",
+      "actorId": "d",
+      "text": "Texting would help. We stood by the door the whole time because we were afraid to lose our spot.",
+      "timestamp": "2026-11-08T12:20:00.000Z",
       "url": "",
-      "replyTo": "m15",
+      "replyTo": "m13",
       "repostOf": null
     },
     {
       "id": "m17",
-      "actorId": "i",
-      "text": "A marked pickup shelf and a clear order number would let the host focus on the queue.",
-      "timestamp": "2026-11-14T12:16:00.000Z",
+      "actorId": "p",
+      "text": "Took my team to lunch. Everyone loved the crispy chicken sandwich and the bistro beet salad.",
+      "timestamp": "2026-11-08T13:10:00.000Z",
       "url": "",
-      "replyTo": "m16",
+      "replyTo": null,
       "repostOf": null
     },
     {
       "id": "m18",
-      "actorId": "f",
-      "text": "The crowded pickup shelf and the reservation queue do run into each other on Saturday.",
-      "timestamp": "2026-11-14T12:17:00.000Z",
+      "actorId": "q",
+      "text": "Great lunch spot. The lunch prices are fair compared with places nearby, and the food is consistently good.",
+      "timestamp": "2026-11-09T12:30:00.000Z",
       "url": "",
       "replyTo": "m17",
       "repostOf": null
     },
     {
       "id": "m19",
-      "actorId": "d",
-      "text": "A separate pickup sign could make it easier for guests to find the reservations line.",
-      "timestamp": "2026-11-14T12:18:00.000Z",
+      "actorId": "n",
+      "text": "Agreed on price. For a sit-down lunch it is a good deal.",
+      "timestamp": "2026-11-09T13:00:00.000Z",
       "url": "",
       "replyTo": "m18",
       "repostOf": null
     },
     {
       "id": "m20",
-      "actorId": "a",
-      "text": "The menu trial will show the full meal price and identify any optional add-ons separately.",
-      "timestamp": "2026-11-14T12:19:00.000Z",
+      "actorId": "g",
+      "text": "Same problem with my order. The fries were limp and the box was damp inside. They taste great when they are fresh though.",
+      "timestamp": "2026-11-10T19:45:00.000Z",
       "url": "",
       "replyTo": "m10",
       "repostOf": null
     },
     {
       "id": "m21",
-      "actorId": "b",
-      "text": "Please use the same price labels on the takeaway menu so people can compare before ordering.",
-      "timestamp": "2026-11-14T12:20:00.000Z",
+      "actorId": "m",
+      "text": "A student discount would be great. Right now the app price is the only reason I do not order more often.",
+      "timestamp": "2026-11-10T20:30:00.000Z",
       "url": "",
-      "replyTo": "m20",
+      "replyTo": "m11",
       "repostOf": null
     },
     {
       "id": "m22",
-      "actorId": "c",
-      "text": "The menu labels are useful if people can see them before getting to the pickup counter.",
-      "timestamp": "2026-11-14T12:21:00.000Z",
+      "actorId": "o",
+      "text": "We go most Wednesdays. Service is quick and the mushroom risotto is reliable.",
+      "timestamp": "2026-11-11T12:55:00.000Z",
+      "url": "",
+      "replyTo": "m18",
+      "repostOf": null
+    },
+    {
+      "id": "m23",
+      "actorId": "h",
+      "text": "The braised short rib travels really well. It was still hot and tender when it arrived.",
+      "timestamp": "2026-11-11T19:05:00.000Z",
+      "url": "",
+      "replyTo": null,
+      "repostOf": null
+    },
+    {
+      "id": "m24",
+      "actorId": "f",
+      "text": "Agreed, the short rib held up perfectly for us too.",
+      "timestamp": "2026-11-11T19:40:00.000Z",
+      "url": "",
+      "replyTo": "m23",
+      "repostOf": null
+    },
+    {
+      "id": "m25",
+      "actorId": "k",
+      "text": "Off topic, but the lemon ricotta pancakes at weekend brunch are worth the walk.",
+      "timestamp": "2026-11-12T10:20:00.000Z",
       "url": "",
       "replyTo": "m21",
       "repostOf": null
     },
     {
-      "id": "m23",
-      "actorId": "g",
-      "text": "Sharing the vented box test with the takeaway team so we can compare results next weekend.",
-      "timestamp": "2026-11-14T12:22:00.000Z",
+      "id": "m26",
+      "actorId": "i",
+      "text": "Fries arrived soggy again and the box was crushed. It looks like they switched to flat boxes with no vents.",
+      "timestamp": "2026-11-13T19:20:00.000Z",
       "url": "",
       "replyTo": null,
-      "repostOf": "m14"
+      "repostOf": null
     },
     {
-      "id": "m24",
-      "actorId": "e",
-      "text": "A text with the wait estimate and the pickup directions could save a trip to the host stand.",
-      "timestamp": "2026-11-14T12:23:00.000Z",
+      "id": "m27",
+      "actorId": "h",
+      "text": "Mine came in the same flat box tonight. Everything steamed inside, even the burger bun. Please bring back the vented boxes.",
+      "timestamp": "2026-11-13T20:05:00.000Z",
       "url": "",
-      "replyTo": "m19",
+      "replyTo": "m26",
+      "repostOf": null
+    },
+    {
+      "id": "m28",
+      "actorId": "e",
+      "text": "Friday night was packed again. Forty minutes at the door, and the host was also handing out pickup orders.",
+      "timestamp": "2026-11-13T21:10:00.000Z",
+      "url": "",
+      "replyTo": "m16",
+      "repostOf": null
+    },
+    {
+      "id": "m29",
+      "actorId": "j",
+      "text": "Sharing this. Our dorm order of fries last night was soggy too, in the same flat box.",
+      "timestamp": "2026-11-14T12:15:00.000Z",
+      "url": "",
+      "replyTo": null,
+      "repostOf": "m26"
+    },
+    {
+      "id": "m30",
+      "actorId": "l",
+      "text": "Same for our group order. The fries and the chicken sandwich were both soggy on arrival.",
+      "timestamp": "2026-11-14T12:50:00.000Z",
+      "url": "",
+      "replyTo": "m29",
+      "repostOf": null
+    },
+    {
+      "id": "m31",
+      "actorId": "n",
+      "text": "Our office lunch order had the same problem. Soggy fries and a damp box.",
+      "timestamp": "2026-11-14T13:20:00.000Z",
+      "url": "",
+      "replyTo": null,
+      "repostOf": "m27"
+    },
+    {
+      "id": "m32",
+      "actorId": "q",
+      "text": "Same with our team order. The sandwiches went soft before we even opened the bag.",
+      "timestamp": "2026-11-14T13:55:00.000Z",
+      "url": "",
+      "replyTo": "m31",
+      "repostOf": null
+    },
+    {
+      "id": "m33",
+      "actorId": "a",
+      "text": "Saturday was the same, about 45 minutes. We love the food, but the wait at the door needs fixing.",
+      "timestamp": "2026-11-14T20:40:00.000Z",
+      "url": "",
+      "replyTo": "m28",
+      "repostOf": null
+    },
+    {
+      "id": "m34",
+      "actorId": "c",
+      "text": "The host is doing their best, but one person cannot seat the whole room and run pickup at the same time.",
+      "timestamp": "2026-11-14T21:15:00.000Z",
+      "url": "",
+      "replyTo": "m33",
+      "repostOf": null
+    },
+    {
+      "id": "m35",
+      "actorId": "b",
+      "text": "A second host on Friday and Saturday nights would make a big difference.",
+      "timestamp": "2026-11-15T10:30:00.000Z",
+      "url": "",
+      "replyTo": "m34",
+      "repostOf": null
+    },
+    {
+      "id": "m36",
+      "actorId": "i",
+      "text": "The short rib is the one dish I trust for delivery right now.",
+      "timestamp": "2026-11-15T11:05:00.000Z",
+      "url": "",
+      "replyTo": "m24",
+      "repostOf": null
+    },
+    {
+      "id": "m37",
+      "actorId": "p",
+      "text": "We have switched back to eating in at lunch because takeaway arrives soggy now.",
+      "timestamp": "2026-11-15T12:10:00.000Z",
+      "url": "",
+      "replyTo": "m32",
+      "repostOf": null
+    },
+    {
+      "id": "m38",
+      "actorId": "d",
+      "text": "We ordered pickup instead of waiting for a table, and the fries were soggy by the time we got home.",
+      "timestamp": "2026-11-15T18:25:00.000Z",
+      "url": "",
+      "replyTo": "m35",
+      "repostOf": null
+    },
+    {
+      "id": "m39",
+      "actorId": "e",
+      "text": "Ordering pickup just to avoid the line says a lot about the weekend wait.",
+      "timestamp": "2026-11-15T19:00:00.000Z",
+      "url": "",
+      "replyTo": "m38",
+      "repostOf": null
+    },
+    {
+      "id": "m40",
+      "actorId": "m",
+      "text": "The food is great in person. The fries at the table are crispy every time.",
+      "timestamp": "2026-11-15T19:40:00.000Z",
+      "url": "",
+      "replyTo": "m30",
       "repostOf": null
     }
   ]

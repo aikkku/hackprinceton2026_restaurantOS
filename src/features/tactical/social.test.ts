@@ -10,6 +10,18 @@ const semantics: Semantics = { topics: [{ id: "clarity", label: "Clear expectati
 const modelResult = { ...semantics, annotations: semantics.annotations.map(({ messageId, topicIds, tone }) => ({ messageId, topicIds, tone, excerptIndex: 0 })) };
 const request = (data: unknown) => new Request("http://localhost/api/tactical/integrations/social/analyze", { method: "POST", headers: { origin: "http://localhost", "Content-Type": "application/json" }, body: JSON.stringify(data) });
 
+test("demo conversation separates customer circles and its recorded semantics set up the reach story", () => {
+  const recorded = validateSemantics(sample, JSON.parse(readFileSync(new URL("./frontend/data/demo-social-semantics.json", import.meta.url), "utf8")));
+  const result = analyzeSocial(sample, recorded);
+  assert.deepEqual(result.groups.map(group => group.actors.join("")), ["abcde", "fghi", "jklm", "nopq"]);
+  assert.equal(result.unresolved, 0); assert.equal(result.selfReplies, 0);
+  const topic = (id: string) => result.topics.find(item => item.id === id)!;
+  const reached = (id: string) => topic(id).groups.filter(group => group.count).length;
+  assert.ok(topic("wait").messageIds.length > topic("packaging").messageIds.length);
+  assert.equal(reached("wait"), 1); assert.equal(reached("packaging"), result.groups.length);
+  const before = topic("packaging").timeline.filter(item => item.timestamp < "2026-11-13");
+  assert.equal(new Set(before.map(item => item.groupId)).size, 1);
+});
 test("social contract rejects invented authors, duplicate records, cycles and impossible chronology", () => {
   for (const mutate of [
     (data: typeof sample) => { data.messages[0].actorId = "absent"; },

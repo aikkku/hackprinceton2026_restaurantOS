@@ -1,0 +1,351 @@
+{
+  "topics": [
+    {
+      "id": "wait",
+      "label": "Weekend table wait",
+      "description": "Long waits at the door, unclear estimates and a busy host stand on weekend nights."
+    },
+    {
+      "id": "packaging",
+      "label": "Soggy takeaway packaging",
+      "description": "Fries and sandwiches arriving soft or soggy, damp or crushed boxes, missing vents."
+    },
+    {
+      "id": "pricing",
+      "label": "App and menu prices",
+      "description": "Delivery app markups compared with in-restaurant prices, and lunch value."
+    },
+    {
+      "id": "food",
+      "label": "Dishes guests praise",
+      "description": "Positive comments about specific dishes and quick lunch service."
+    }
+  ],
+  "annotations": [
+    {
+      "messageId": "m1",
+      "topicIds": [
+        "wait"
+      ],
+      "tone": "mixed",
+      "quote": "Saturday night we waited 40 minutes for a table even with a reservation"
+    },
+    {
+      "messageId": "m2",
+      "topicIds": [
+        "wait"
+      ],
+      "tone": "negative",
+      "quote": "Same for us last weekend"
+    },
+    {
+      "messageId": "m3",
+      "topicIds": [
+        "wait"
+      ],
+      "tone": "negative",
+      "quote": "The host stand looks swamped on weekend nights"
+    },
+    {
+      "messageId": "m4",
+      "topicIds": [
+        "wait"
+      ],
+      "tone": "negative",
+      "quote": "We gave up after 30 minutes and went home"
+    },
+    {
+      "messageId": "m5",
+      "topicIds": [
+        "wait"
+      ],
+      "tone": "negative",
+      "quote": "Sunday brunch had the same line"
+    },
+    {
+      "messageId": "m6",
+      "topicIds": [
+        "food"
+      ],
+      "tone": "positive",
+      "quote": "Weekday lunch at Juniper Table is my favorite break"
+    },
+    {
+      "messageId": "m7",
+      "topicIds": [
+        "food"
+      ],
+      "tone": "positive",
+      "quote": "Agreed, the squash bowl and the mushroom soup are both great"
+    },
+    {
+      "messageId": "m8",
+      "topicIds": [
+        "pricing"
+      ],
+      "tone": "negative",
+      "quote": "Is it just me or are delivery app prices much higher than in the restaurant? The House Burger is $18 inside and $23 on t"
+    },
+    {
+      "messageId": "m9",
+      "topicIds": [
+        "pricing"
+      ],
+      "tone": "negative",
+      "quote": "Same with the sweet potato fries"
+    },
+    {
+      "messageId": "m10",
+      "topicIds": [
+        "packaging"
+      ],
+      "tone": "mixed",
+      "quote": "Ordered delivery tonight"
+    },
+    {
+      "messageId": "m11",
+      "topicIds": [
+        "pricing"
+      ],
+      "tone": "neutral",
+      "quote": "Picking up in person is cheaper"
+    },
+    {
+      "messageId": "m12",
+      "topicIds": [
+        "wait"
+      ],
+      "tone": "negative",
+      "quote": "Tonight's wait was over 45 minutes"
+    },
+    {
+      "messageId": "m13",
+      "topicIds": [
+        "wait"
+      ],
+      "tone": "negative",
+      "quote": "We saw that too"
+    },
+    {
+      "messageId": "m14",
+      "topicIds": [
+        "wait"
+      ],
+      "tone": "negative",
+      "quote": "And a realistic estimate at the door"
+    },
+    {
+      "messageId": "m15",
+      "topicIds": [
+        "wait"
+      ],
+      "tone": "negative",
+      "quote": "Agreed"
+    },
+    {
+      "messageId": "m16",
+      "topicIds": [
+        "wait"
+      ],
+      "tone": "negative",
+      "quote": "Texting would help"
+    },
+    {
+      "messageId": "m17",
+      "topicIds": [
+        "food"
+      ],
+      "tone": "positive",
+      "quote": "Took my team to lunch"
+    },
+    {
+      "messageId": "m18",
+      "topicIds": [
+        "food",
+        "pricing"
+      ],
+      "tone": "positive",
+      "quote": "Great lunch spot"
+    },
+    {
+      "messageId": "m19",
+      "topicIds": [
+        "pricing"
+      ],
+      "tone": "positive",
+      "quote": "Agreed on price"
+    },
+    {
+      "messageId": "m20",
+      "topicIds": [
+        "packaging"
+      ],
+      "tone": "mixed",
+      "quote": "Same problem with my order"
+    },
+    {
+      "messageId": "m21",
+      "topicIds": [
+        "pricing"
+      ],
+      "tone": "negative",
+      "quote": "A student discount would be great"
+    },
+    {
+      "messageId": "m22",
+      "topicIds": [
+        "food"
+      ],
+      "tone": "positive",
+      "quote": "We go most Wednesdays"
+    },
+    {
+      "messageId": "m23",
+      "topicIds": [
+        "food"
+      ],
+      "tone": "positive",
+      "quote": "The braised short rib travels really well"
+    },
+    {
+      "messageId": "m24",
+      "topicIds": [
+        "food"
+      ],
+      "tone": "positive",
+      "quote": "Agreed, the short rib held up perfectly for us too"
+    },
+    {
+      "messageId": "m25",
+      "topicIds": [
+        "food"
+      ],
+      "tone": "positive",
+      "quote": "Off topic, but the lemon ricotta pancakes at weekend brunch are worth the walk"
+    },
+    {
+      "messageId": "m26",
+      "topicIds": [
+        "packaging"
+      ],
+      "tone": "negative",
+      "quote": "Fries arrived soggy again and the box was crushed"
+    },
+    {
+      "messageId": "m27",
+      "topicIds": [
+        "packaging"
+      ],
+      "tone": "negative",
+      "quote": "Mine came in the same flat box tonight"
+    },
+    {
+      "messageId": "m28",
+      "topicIds": [
+        "wait"
+      ],
+      "tone": "negative",
+      "quote": "Friday night was packed again"
+    },
+    {
+      "messageId": "m29",
+      "topicIds": [
+        "packaging"
+      ],
+      "tone": "negative",
+      "quote": "Sharing this"
+    },
+    {
+      "messageId": "m30",
+      "topicIds": [
+        "packaging"
+      ],
+      "tone": "negative",
+      "quote": "Same for our group order"
+    },
+    {
+      "messageId": "m31",
+      "topicIds": [
+        "packaging"
+      ],
+      "tone": "negative",
+      "quote": "Our office lunch order had the same problem"
+    },
+    {
+      "messageId": "m32",
+      "topicIds": [
+        "packaging"
+      ],
+      "tone": "negative",
+      "quote": "Same with our team order"
+    },
+    {
+      "messageId": "m33",
+      "topicIds": [
+        "wait"
+      ],
+      "tone": "mixed",
+      "quote": "Saturday was the same, about 45 minutes"
+    },
+    {
+      "messageId": "m34",
+      "topicIds": [
+        "wait"
+      ],
+      "tone": "negative",
+      "quote": "The host is doing their best, but one person cannot seat the whole room and run pickup at the same time"
+    },
+    {
+      "messageId": "m35",
+      "topicIds": [
+        "wait"
+      ],
+      "tone": "negative",
+      "quote": "A second host on Friday and Saturday nights would make a big difference"
+    },
+    {
+      "messageId": "m36",
+      "topicIds": [
+        "food"
+      ],
+      "tone": "positive",
+      "quote": "The short rib is the one dish I trust for delivery right now"
+    },
+    {
+      "messageId": "m37",
+      "topicIds": [
+        "packaging"
+      ],
+      "tone": "negative",
+      "quote": "We have switched back to eating in at lunch because takeaway arrives soggy now"
+    },
+    {
+      "messageId": "m38",
+      "topicIds": [
+        "wait",
+        "packaging"
+      ],
+      "tone": "negative",
+      "quote": "We ordered pickup instead of waiting for a table, and the fries were soggy by the time we got home"
+    },
+    {
+      "messageId": "m39",
+      "topicIds": [
+        "wait"
+      ],
+      "tone": "negative",
+      "quote": "Ordering pickup just to avoid the line says a lot about the weekend wait"
+    },
+    {
+      "messageId": "m40",
+      "topicIds": [
+        "food"
+      ],
+      "tone": "positive",
+      "quote": "The food is great in person"
+    }
+  ],
+  "limitations": [
+    "Recorded test interpretation of a fictional conversation for automated tests; not a live AI result."
+  ]
+}

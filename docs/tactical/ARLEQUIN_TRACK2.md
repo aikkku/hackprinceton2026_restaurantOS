@@ -6,7 +6,7 @@ Implemented November 14, 2026 against the challenge text supplied by Asilbek in 
 
 Open **Tactical → Reviews → Content & connectivity**.
 
-1. Start with the clearly labeled fictional restaurant conversation. Its 24 messages from nine actors cover pricing, wait times and takeaway packaging, with explicit replies and reposts. Structural analysis works without API keys.
+1. Start with the clearly labeled fictional restaurant conversation. Its 40 messages from 17 actors (Nov 1–15, 2026) cover weekend waits, soggy takeaway packaging, app prices and praised dishes, with explicit replies and reposts. Structure separates four customer circles; see the [operations plan](TRACK2_OPERATIONS_PLAN.md). Structural analysis works without API keys.
 2. Unlock the existing AI workspace control. Under **Choose data, import or reopen**, use story ID `42302171` and **Load public discussion**. This reads an observed public discussion about tipping through the official Hacker News API. It does not scrape pages, fetch user profiles or load the linked news article.
 3. Inspect **Source and sampling evidence**, actor communities and bridge interactions. Open a bridge's source message and its original link. Structural calculations do not depend on Gemini.
 4. Choose **Analyze message content with AI**. Each message gets theme labels, a message-tone interpretation and an exact source excerpt. AI selects a span index; deterministic code copies that span from the source. There is no generated-quote fallback.
