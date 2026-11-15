@@ -6,4 +6,22 @@
   .inspector-fields label { display: grid; gap: 4px; font-size: .8rem; font-weight: 560; min-width: 0; }
   .layout-inspector .inspector-warning { color: var(--ros-danger); margin-bottom: var(--ros-space-2); }
   .inspector-saved { color: var(--ros-forest); font-size: .79rem; }
+  .draft-context, .move-preview { padding: var(--ros-space-3) var(--ros-space-4); border-block-start: 1px solid var(--ros-border); background: var(--ros-canvas); }
+  .draft-context p, .move-preview p, .clearance-summary p, .custom-object-form p { font-size: .8rem; color: var(--ros-muted); margin-block: 6px; line-height: 1.5; }
+  .move-preview { border-inline-start: 4px solid var(--ros-forest); }
+  .custom-object-form { display: grid; gap: var(--ros-space-2); width: 100%; }
+  .custom-object-form > label, .layout-inspector > label { display: grid; gap: 5px; font-size: .83rem; margin-block: 8px; }
+  .custom-object-form textarea, .layout-inspector textarea { width: 100%; min-height: 70px; resize: vertical; }
+  .custom-object-form textarea, .custom-object-form input:not([type]), .layout-inspector textarea, .layout-inspector input:not([type]), .layout-library input:not([type]) {
+    min-width: 0; min-height: 39px; padding: 8px 10px; font: inherit; color: var(--ros-ink); background: var(--ros-surface); border: 1px solid var(--ros-control-border); border-radius: 7px;
+  }
+  .clearance-summary { padding: var(--ros-space-2); border: 1px solid var(--ros-border); border-radius: var(--ros-radius, 8px); margin-block: var(--ros-space-3); }
+  .layout-finding { padding-block: var(--ros-space-3); border-bottom: 1px solid var(--ros-border); }
+  .library-backup .button-row { margin-block: var(--ros-space-3); }
+  .library-import-preview { padding: var(--ros-space-3); background: var(--ros-canvas); border: 1px solid var(--ros-border); border-radius: 8px; }
+  .library-import-preview ul { padding-inline-start: 20px; }
+  .svg-object .svg-hit.is-highlighted { fill: color-mix(in srgb, var(--ros-focus) 15%, transparent); stroke: var(--ros-focus); stroke-width: 3px; }
+  .svg-seat-label { fill: var(--ros-ink); paint-order: stroke; stroke: var(--ros-canvas); stroke-width: .035; font-weight: 650; }
+  .svg-proposed { opacity: .7; }
+  .svg-proposed-outline { fill: color-mix(in srgb, var(--ros-forest) 15%, transparent); stroke: var(--ros-forest); stroke-width: 3px; stroke-dasharray: 8px 5px; vector-effect: non-scaling-stroke; }
 }

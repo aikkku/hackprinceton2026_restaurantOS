@@ -55,7 +55,7 @@ export function LayoutTransfer({ layout, onImport, onNotice, disabled = false }:
 
   return (
     <div className="layout-transfer" aria-label="Layout files">
-      <input ref={input} type="file" accept=".json,application/json" aria-label="Import layout JSON file" onChange={importLayout} hidden />
+      <input ref={input} type="file" accept=".json,application/json" aria-label="Import layout JSON file" onChange={importLayout} disabled={disabled || reading} hidden />
       <StateButton type="button" className="button compact quiet" disabled={disabled || reading} onClick={() => input.current?.click()}>
         <Upload size={14} /> {reading ? "Reading layout…" : "Import layout"}
       </StateButton>

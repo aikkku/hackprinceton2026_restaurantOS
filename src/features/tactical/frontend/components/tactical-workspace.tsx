@@ -13,7 +13,7 @@ import {
 } from "lucide-react";
 import {
   displayLength, fitsRoom, footprint, furniture, gridStep, hasOverlap, layoutCounts, overlappingIds,
-  positionObject, roundLength, toMeters,
+  positionObject, roundLength, toMeters, suggestClearPosition,
 } from "../../domain/layout";
 import { simulateSeating, simulateTurnover, scenarioAction } from "../../domain/scenario";
 import {
@@ -21,8 +21,10 @@ import {
   type ObjectKind, type Scenario,
 } from "../../domain/schemas";
 import { loadDemoStorage, makeId, readScenarios } from "../storage";
-import { initialLibrary, layoutLibrarySchema, layoutInsights, type LayoutLibrary } from "../../domain/layout-library";
+import { initialLibrary, layoutInsights, type LayoutLibrary } from "../../domain/layout-library";
 import { LayoutLibraryPanel } from "./layout-library";
+import { LibraryBackup } from "./library-backup";
+import { parseLibraryBackup, writeLibrary, downloadJson } from "../layout-storage";
 import { FloorPlan } from "./floor-plan";
 import { AnalysisDialog, ReviewEvidence, ScenarioPanel } from "./scenario-panel";
 import { LayoutInspector } from "./layout-inspector";
@@ -33,6 +35,8 @@ import { HrPage } from "./hr-page";
 import { SupplyPage } from "./supply-page";
 import { FinancePage } from "./finance-page";
 import { AiAssistant } from "./ai-assistant";
+import { AiAccessProvider, AiWorkbench } from "./ai-workbench";
+import { proposedAiLayout, aiError } from "../../domain/ai";
 import "./tactical.css";
 
 const objectIcons = {
@@ -64,6 +68,14 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
   const [library, setLibrary] = useState<LayoutLibrary>(initialLibrary(fixture.layout));
   const libraryKey = `restaurant-os:tactical:${fixture.profile.id}:layouts:v1`;
   const [libraryWritable, setLibraryWritable] = useState(true);
+  const libraryRaw = useRef<string | null | undefined>(undefined);
+  const [aiHighlights, setAiHighlights] = useState(false);
+  const [aiPreview, setAiPreview] = useState<{ from: Layout; layout: Layout; ids: string[] } | null>(null);
+  const [customAiSource, setCustomAiSource] = useState<LayoutObject["aiSource"]>();
+  const [replyReviewId, setReplyReviewId] = useState(fixture.reviews[0]?.id ?? "");
+  const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
+  const [proposal, setProposal] = useState<{ object: LayoutObject; from: Layout } | null>(null);
+  const [customDraft, setCustomDraft] = useState({ name: "Custom object", description: "", category: "equipment" as NonNullable<LayoutObject["category"]>, width: 1, depth: 1 });
   const [layout, setLayout] = useState(fixture.layout);
   const [checkpoint, setCheckpoint] = useState(fixture.layout);
   const [savedLayout, setSavedLayout] = useState<Layout | null>(null);
@@ -101,7 +113,8 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
       if (stored.scenarios.value) setSavedScenarios(stored.scenarios.value);
       try {
         const raw = localStorage.getItem(libraryKey);
-        const recovered = raw ? layoutLibrarySchema.parse(JSON.parse(raw)) : initialLibrary(stored.layout.value ?? fixture.layout);
+        libraryRaw.current = raw;
+        const recovered = raw !== null ? parseLibraryBackup(raw, fixture.profile.id) : initialLibrary(stored.layout.value ?? fixture.layout);
         if (recovered.entries.some(entry => entry.layout.restaurantId !== fixture.profile.id)) throw new Error("Wrong restaurant");
         setLibrary(recovered);
         const active = recovered.entries.find(entry => entry.id === recovered.activeId)!.layout;
@@ -120,9 +133,23 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
     return () => cancelAnimationFrame(frame);
   }, [fixture, libraryKey]);
 
+  useEffect(() => {
+    const changed = (event: StorageEvent) => {
+      if ((event.key === libraryKey || event.key === null) && event.storageArea === localStorage && localStorage.getItem(libraryKey) !== libraryRaw.current) {
+        setLibraryWritable(false);
+        setNotice({ text: "Another tab changed the saved library. Your open draft is preserved. Export it, then reload the saved library before saving.", warning: true });
+      }
+    };
+    window.addEventListener("storage", changed);
+    return () => window.removeEventListener("storage", changed);
+  }, [libraryKey]);
+
   const selected = layout.objects.find((object) => object.id === selectedId);
   const counts = layoutCounts(layout);
   const originalSeats = layoutCounts(library.entries.find(entry => entry.id === library.baselineId)!.layout).seats;
+  const activeEntry = library.entries.find(entry => entry.id === library.activeId)!;
+  const baselineEntry = library.entries.find(entry => entry.id === library.baselineId)!;
+  const activeProposal = proposal?.from === layout ? proposal.object : null;
   const insights = layoutInsights(layout);
   const overlaps = overlappingIds(layout.objects);
   const evidence = fixture.reviews.filter((review) => fixture.mission.evidenceIds.includes(review.id));
@@ -138,15 +165,17 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
   }, [isDirty]);
 
   function commit(next: Layout) {
-    const valid = layoutSchema.safeParse(next);
+    const valid = layoutSchema.safeParse({ ...next, schemaVersion: next.objects.some(object => object.seatOwnerId) ? 2 : next.schemaVersion });
     if (!valid.success) {
       setNotice({ text: valid.error.issues[0].message, warning: true });
-      return;
+      return false;
     }
     setFuture([]);
     setHistory((previous) => [...previous.slice(-49), layout]);
-    setLayout({ ...next, updatedAt: new Date().toISOString() });
+    setLayout({ ...valid.data, updatedAt: new Date().toISOString() });
+    setProposal(null);
     setNotice(null);
+    return true;
   }
 
   function changeLayout(next: Layout, baseline: Layout) {
@@ -156,6 +185,8 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
     setFuture([]);
     setSelectedId(null);
     setPlacing(null);
+    setHighlightedIds([]);
+    setProposal(null);
     setNotice(null);
     setRoomFormVersion((version) => version + 1);
   }
@@ -165,11 +196,12 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
     const room = mode === "saved" ? savedLayout : fixture.layout;
     if (!room) return;
     const next = mode === "blank" ? { ...room, name: "Blank floor plan", objects: [], updatedAt: new Date().toISOString() } : room;
-    changeLayout(next, next);
+    changeLayout(next, mode === "saved" ? next : activeEntry.layout);
     resetScenario();
   }
 
   function undo() {
+    setProposal(null);
     const previous = history.at(-1);
     if (!previous) return;
     setLayout(previous);
@@ -181,6 +213,7 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
   }
 
   function redo() {
+    setProposal(null);
     const next = future.at(-1);
     if (!next) return;
     setHistory((items) => [...items, layout]);
@@ -202,13 +235,44 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
   function persistLibrary(next: LayoutLibrary) {
     if (!loaded || !libraryWritable) return false;
     try {
-      localStorage.setItem(libraryKey, JSON.stringify(layoutLibrarySchema.parse(next)));
+      if (libraryRaw.current === undefined) throw new Error("Read saved storage before writing.");
+      libraryRaw.current = writeLibrary(localStorage, libraryKey, libraryRaw.current, next, fixture.profile.id);
       setLibrary(next);
       return true;
-    } catch {
-      setNotice({ text: "Could not save layout library. Your existing library and open draft are unchanged.", warning: true });
+    } catch (error) {
+      setNotice({ text: error instanceof Error ? error.message : "Could not save layout library. Your existing library and open draft are unchanged.", warning: true });
       return false;
     }
+  }
+
+  function applyLibrary(next: LayoutLibrary) {
+    setLibrary(next); setLibraryWritable(true);
+    const active = next.entries.find(entry => entry.id === next.activeId)!.layout;
+    changeLayout(active, active); setSavedLayout(active);
+    setScenario(null); setScenarioNotice(null);
+    setFormDefaults({ baselineSeats: layoutCounts(next.entries.find(entry => entry.id === next.baselineId)!.layout).seats, inputs: fixture.assumptions });
+    setFormVersion(value => value + 1);
+  }
+
+  function reloadLibrary() {
+    if (isDirty && !window.confirm("Reload saved configurations and discard your open edits? Export the current layout first to keep them.")) return;
+    try {
+      const raw = localStorage.getItem(libraryKey);
+      libraryRaw.current = raw;
+      applyLibrary(raw === null ? initialLibrary(fixture.layout) : parseLibraryBackup(raw, fixture.profile.id));
+      setNotice({ text: "Saved library reloaded from this browser." });
+    } catch { setLibraryWritable(false); setNotice({ text: "Stored library could not be read. Download its bytes for recovery, or import a valid backup. Your open draft is preserved.", warning: true }); }
+  }
+
+  function restoreLibrary(next: LayoutLibrary) {
+    if (!window.confirm("Replace this browser’s entire saved library and open draft with the previewed backup? Export your work first to keep it.")) return false;
+    try {
+      if (libraryRaw.current === undefined) throw new Error("Browser storage could not be read. Reload before importing a backup.");
+      libraryRaw.current = writeLibrary(localStorage, libraryKey, libraryRaw.current, next, fixture.profile.id, true);
+      applyLibrary(next);
+      setNotice({ text: "Library restored in this browser. The previous stored bytes were retained for recovery." });
+      return true;
+    } catch (error) { setNotice({ text: error instanceof Error ? error.message : "Could not restore the library. Existing work is preserved.", warning: true }); return false; }
   }
 
   function libraryAction(action: "open" | "rename" | "duplicate" | "delete" | "baseline", id: string, name = "") {
@@ -222,6 +286,7 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
       next = { ...library, entries: library.entries.map(item => item.id === id ? { ...item, layout: { ...item.layout, name } } : item) };
     }
     if (action === "duplicate") {
+      if (library.entries.length >= 50) { setNotice({ text: "Library limit: 50 configurations. Export a backup, then remove an unused configuration.", warning: true }); return; }
       const newId = makeId();
       next = { ...library, activeId: newId, entries: [...library.entries, { id: newId, layout: { ...entry.layout, name: name || `${entry.layout.name} copy` } }] };
     }
@@ -246,6 +311,12 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
       if (!persistLibrary({ ...library, entries: library.entries.map(entry => entry.id === library.activeId ? { ...entry, layout } : entry) })) return;
       setSavedLayout(layout);
       setCheckpoint(layout);
+      if (library.activeId === library.baselineId) {
+        setScenario(null);
+        setFormDefaults({ baselineSeats: layoutCounts(layout).seats, inputs: fixture.assumptions });
+        setFormVersion(value => value + 1);
+        setScenarioNotice("Saved baseline updated. New scenarios use its seat count; previously saved results are unchanged.");
+      }
       setNotice({ text: "Layout draft saved in this browser." });
     } catch {
       setNotice({ text: "Browser storage is unavailable. Your draft is still open here.", warning: true });
@@ -290,7 +361,7 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
 
   function newObject(kind: ObjectKind): LayoutObject {
     const { width, depth, seats } = furniture[kind];
-    return { id: makeId(), type: kind, width, depth, seats: seats || undefined, x: 0, y: 0, rotation: 0 };
+    return { id: makeId(), type: kind, width, depth, seats: seats || undefined, x: 0, y: 0, rotation: 0, ...(kind === "custom" ? { ...customDraft, aiSource: customAiSource } : {}) };
   }
 
   function addObject(object: LayoutObject, x?: number, y?: number) {
@@ -315,14 +386,14 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
         return;
       }
     }
-    commit({ ...layout, objects: [...layout.objects, next] });
+    if (!commit({ ...layout, objects: [...layout.objects, next] })) return;
     setSelectedId(next.id);
     setPlacing(null);
   }
 
   function moveObject(object: LayoutObject) {
     const existing = layout.objects.find(({ id }) => object.id === id);
-    if (!existing || (existing.x === object.x && existing.y === object.y && existing.rotation === object.rotation && existing.width === object.width && existing.depth === object.depth && existing.seats === object.seats && existing.name === object.name && existing.description === object.description)) return;
+    if (!existing || JSON.stringify(existing) === JSON.stringify(object)) return;
     commit({ ...layout, objects: layout.objects.map((item) => item.id === object.id ? object : item) });
   }
 
@@ -425,7 +496,7 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
     setScenario(null);
     setFormDefaults({ baselineSeats: originalSeats, inputs: fixture.assumptions, action: "turnover" });
     setFormVersion((version) => version + 1);
-    setTimeout(() => scenarioSection.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
+    setTimeout(() => scenarioSection.current?.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth", block: "start" }), 80);
   }
 
   function loadScenarioLayout(saved: Scenario) {
@@ -462,23 +533,38 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
         <nav className="workspace-links" aria-label="Tactical sections">
           {pages.map(([href, label]) => <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined}>{label}</Link>)}
         </nav>
+        <AiAccessProvider>
         <div hidden={section !== "floor" && section !== "scenarios" && section !== "decisions"}>
         <LayoutLibraryPanel library={library} assumptions={fixture.assumptions} disabled={!loaded || !libraryWritable} onAction={libraryAction} />
-        <div className="editor-grid">
+        <section className="panel layout-library"><LibraryBackup library={library} restaurantId={fixture.profile.id} ready={loaded}
+          onRestore={restoreLibrary} onReload={reloadLibrary} onExportStored={(recovery = false) => {
+            try {
+              const raw = localStorage.getItem(recovery ? `${libraryKey}:recovery` : libraryKey);
+              if (raw === null) { setNotice({ text: recovery ? "No previous library recovery copy is stored in this browser." : "No library has been saved in this browser yet.", warning: true }); return; }
+              downloadJson(raw, `${fixture.profile.id}-${recovery ? "previous" : "stored"}-library.json`);
+            }
+            catch { setNotice({ text: "Browser storage could not be read; export your open draft instead.", warning: true }); }
+          }} /></section>
+        <div className="editor-grid" inert={!loaded}>
           <section className="panel floor-panel" aria-labelledby="editor-title">
             <div className="floor-heading">
               <div>
                 <h2 id="editor-title" ref={editorTitle} tabIndex={-1}>Floor plan</h2>
                 <p>{layout.name}</p>
               </div>
-              <span className={`pill ${isDirty ? "pill-warm" : ""}`}>{isDirty ? "Unsaved changes" : savedLayout === layout ? "Saved draft" : "Layout draft"}</span>
+              <span className={`pill ${isDirty ? "pill-warm" : ""}`}>{isDirty ? "Unsaved changes" : "Matches saved configuration"}</span>
+            </div>
+            <div className="draft-context">
+              <p>Editing: <strong>{activeEntry.layout.name}</strong> · {counts.seats} draft seats. Save draft replaces this active configuration.</p>
+              <p>Comparison baseline: <strong>{baselineEntry.layout.name}</strong> · {originalSeats} saved seats. {library.activeId === library.baselineId ? "Saving this draft also updates the baseline for new scenarios." : "Saving this alternative leaves the baseline unchanged."}</p>
+              <p>Capacity counts each seating group’s included seats plus unassigned chairs. Assign chairs in furniture details when they represent seats already included in a group.</p>
             </div>
             <div className="layout-options" aria-label="Layout options">
               <button className="button compact quiet" onClick={() => openLayout("template")}>Demo template</button>
               <button className="button compact quiet" onClick={() => openLayout("blank")}><Plus size={14} /> Blank layout</button>
               <StateButton className="button compact quiet" onClick={() => openLayout("saved")} disabled={!savedLayout}>Open saved draft</StateButton>
             </div>
-            <LayoutTransfer layout={layout} onImport={importLayout}
+            <LayoutTransfer layout={layout} onImport={importLayout} disabled={!loaded}
               onNotice={(text) => setNotice({ text, warning: true })} />
             <div className="scene-controls" aria-label="Floor plan view">
               <span>Top-down view</span>
@@ -491,12 +577,31 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
             </div>
             <div className="scene-scroll" tabIndex={0} role="region" aria-label="Floor plan canvas. Scroll to pan when zoomed.">
               <div className="scene" style={{ width: `${zoom * 100}%` }}>
-                <FloorPlan layout={layout} zoom={zoom} unit={unit} selectedId={selectedId} placing={placing} snap={snap} overlaps={overlaps} onSelect={setSelectedId}
+                <FloorPlan layout={layout} zoom={zoom} unit={unit} selectedId={selectedId} placing={placing} snap={snap} overlaps={overlaps} highlightedIds={highlightedIds} proposedObject={activeProposal} aiPreview={aiPreview?.from === layout ? aiPreview.layout.objects.filter(object => aiPreview.ids.includes(object.id)) : []} aiHighlights={aiHighlights} onSelect={id => { setSelectedId(id); setHighlightedIds([]); }}
                   onPlace={(x, y) => { if (placing) addObject(newObject(placing), x, y); }} onMove={moveObject} />
               </div>
             </div>
+            {aiPreview?.from === layout && <div className="ai-surface" role="status"><h3>AI layout preview</h3><p>Purple outlines show proposed positions. The draft has not changed. Geometric validation does not establish comfort or compliance.</p><div className="button-row"><button className="button ai-button compact" onClick={() => { commit(aiPreview.layout); setAiPreview(null); }}>Apply AI layout</button><button className="button ai-button compact" onClick={() => setAiPreview(null)}>Reject AI layout</button></div></div>}
+            {activeProposal && <div className="move-preview" role="status">
+              <h3>Proposed move · {activeProposal.name ?? furniture[activeProposal.type].label}</h3>
+              <p>Dashed preview: {displayLength(activeProposal.x, unit).toFixed(2)} {unit} across, {displayLength(activeProposal.y, unit).toFixed(2)} {unit} down. Nearest available grid position with no footprint overlap. No walking clearance or comfort is guaranteed. Nothing has moved yet.</p>
+              <div className="button-row">
+                <button className="button secondary compact" onClick={() => { moveObject(activeProposal); setProposal(null); }}>Apply suggested move</button>
+                <button className="button quiet compact" onClick={() => setProposal(null)}>Reject suggested move</button>
+              </div>
+            </div>}
             {placing && <div className="placement">
               <p role="status">Click the floor to place: {furniture[placing].label}.</p>
+              {placing === "custom" && <div className="custom-object-form">
+                <label>New object description<textarea value={customDraft.description} maxLength={2000} placeholder="A large refrigerator next to the kitchen entrance" onChange={event => setCustomDraft({ ...customDraft, description: event.target.value })} /></label>
+                <label>New object name<input value={customDraft.name} maxLength={120} onChange={event => setCustomDraft({ ...customDraft, name: event.target.value })} /></label>
+                <label>Custom category<select value={customDraft.category} onChange={event => setCustomDraft({ ...customDraft, category: event.target.value as typeof customDraft.category })}><option value="equipment">Equipment</option><option value="storage">Storage</option><option value="decoration">Decoration</option><option value="other">Other</option></select></label>
+                <div className="inspector-fields">
+                  <label>New object width ({unit})<input type="number" min="0.01" step="any" value={Number(displayLength(customDraft.width, unit).toFixed(4))} onChange={event => setCustomDraft({ ...customDraft, width: toMeters(Number(event.target.value), unit) })} /></label>
+                  <label>New object depth ({unit})<input type="number" min="0.01" step="any" value={Number(displayLength(customDraft.depth, unit).toFixed(4))} onChange={event => setCustomDraft({ ...customDraft, depth: toMeters(Number(event.target.value), unit) })} /></label>
+                </div>
+                <p>Manual dimensions and category. The description is saved as context; it does not generate geometry or an AI prediction.</p>
+              </div>}
               <div className="button-row">
                 <button className="button compact secondary" onClick={() => addObject(newObject(placing))}>Place in clear spot</button>
                 <button className="button compact quiet" onClick={() => setPlacing(null)}>Cancel</button>
@@ -507,8 +612,8 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
               <div className="button-row">
                 <StateButton className="button quiet compact" disabled={!history.length} onClick={undo}><Undo2 size={15} /> Undo</StateButton>
                 <StateButton className="button quiet compact" disabled={!future.length} onClick={redo}><Redo2 size={15} /> Redo</StateButton>
-                <StateButton className="button quiet compact" disabled={!isDirty} onClick={() => changeLayout(checkpoint, checkpoint)}><RotateCcw size={14} /> Reset draft</StateButton>
-                <button className="button primary compact" onClick={saveLayout}><Save size={15} /> Save draft</button>
+                <StateButton className="button quiet compact" disabled={!isDirty} onClick={() => { if (window.confirm("Discard draft changes and return to the saved editing checkpoint?")) changeLayout(checkpoint, checkpoint); }}><RotateCcw size={14} /> Reset draft</StateButton>
+                <StateButton className="button primary compact" disabled={!loaded || !libraryWritable} onClick={saveLayout}><Save size={15} /> Save draft</StateButton>
               </div>
             </div>
             {overlaps.size > 0 && <p className="warning-message floor-notice" role="status">Overlapping objects are outlined. Move them apart to preview the scenario.</p>}
@@ -560,7 +665,9 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
                   <button className="icon-button" aria-label="Rotate" title="Rotate 90 degrees" onClick={rotate}><RotateCw size={17} /></button>
                   <button className="icon-button" aria-label="Duplicate" title="Duplicate" onClick={() => addObject({ ...selected, id: makeId() })}><Copy size={16} /></button>
                   <button className="icon-button danger" aria-label="Delete" title="Delete" onClick={() => {
-                    commit({ ...layout, objects: layout.objects.filter(({ id }) => id !== selected.id) });
+                    const linked = layout.objects.filter(object => object.seatOwnerId === selected.id);
+                    if (linked.length && !window.confirm(`Delete this seating group and its ${linked.length} assigned chair objects? Undo can restore the group.`)) return;
+                    commit({ ...layout, objects: layout.objects.filter(object => object.id !== selected.id && object.seatOwnerId !== selected.id) });
                     setSelectedId(null);
                   }}><Trash2 size={16} /></button>
                 </div>
@@ -587,8 +694,22 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
           </div>
         </div>
 
-        <section className="panel layout-library"><h2>Layout insights</h2><p>Rule-based hypotheses from your geometry. Select a finding to inspect its first affected object. No observed seating preferences or safety assessment are available.</p>
-          {insights.length ? insights.map(insight => <details key={insight.id}><summary>{insight.severity} · {insight.title}</summary><p>{insight.explanation}</p><button className="button secondary compact" onClick={() => { setSelectedId(insight.objectIds[0]); editorTitle.current?.scrollIntoView({ block: "start" }); }}>Inspect affected object</button></details>) : <p>No proximity or overlap findings. This does not establish that the layout is optimal.</p>}
+        <AiWorkbench title="AI floor-plan analysis" description="Connect the working layout with supplied customer feedback. Review hypotheses, evidence and optional proposed positions before applying changes." request={{ task: "floor", restaurantId: fixture.profile.id, layout, question: "" }}
+          onInspect={ids => { setAiHighlights(true); setHighlightedIds(ids); setSelectedId(ids[0]); editorTitle.current?.focus(); }}
+          onPreview={(moves, source) => {
+            try { const proposed = proposedAiLayout(layout, moves); setAiPreview({ from: layout, ids: moves.map(move => move.objectId), layout: { ...proposed, objects: proposed.objects.map(object => moves.some(move => move.objectId === object.id) ? { ...object, aiSource: { model: source.model, generatedAt: source.generatedAt, method: "move" } } : object) } }); setProposal(null); editorTitle.current?.focus(); }
+            catch { setNotice({ text: aiError, warning: true }); }
+          }} />
+        <AiWorkbench title="AI custom-object designer" description="Describe furniture or equipment. AI suggests editable metadata and estimated dimensions; you decide where to place it." inputLabel="Describe the object" request={{ task: "custom-object", restaurantId: fixture.profile.id, layout, question: "" }} onCustomObject={(object, source) => { setCustomDraft(object); setCustomAiSource({ model: source.model, generatedAt: source.generatedAt, method: "object" }); setPlacing("custom"); editorTitle.current?.focus(); }} />
+        <section className="panel layout-library"><h2>Layout insights</h2><p>Rule-based hypotheses from your geometry. Inspect a finding to highlight all affected objects; the first opens in the inspector. No observed seating preferences or safety assessment are available.</p>
+          {highlightedIds.length > 0 && <button className="button quiet compact" onClick={() => setHighlightedIds([])}>Clear object highlights</button>}
+          {insights.length ? insights.map(insight => <details className="layout-finding" key={insight.id}><summary>{insight.severity} · {insight.title}</summary><p>{insight.explanation}</p><div className="button-row"><button className="button secondary compact" onClick={() => { setSelectedId(insight.objectIds[0]); setAiHighlights(false); setHighlightedIds(insight.objectIds); setPlacing(null); editorTitle.current?.scrollIntoView({ block: "start" }); editorTitle.current?.focus({ preventScroll: true }); }}>Inspect affected objects</button>
+            {insight.id.startsWith("overlap-") && <button className="button secondary compact" onClick={() => {
+              const object = suggestClearPosition(layout, insight.objectIds[0]);
+              if (!object) { setNotice({ text: "No separate grid position is available for this object. Resize or rearrange furniture manually.", warning: true }); editorTitle.current?.focus(); return; }
+              setProposal({ object, from: layout }); setAiHighlights(false); setHighlightedIds(insight.objectIds); setSelectedId(object.id); setPlacing(null); editorTitle.current?.focus();
+            }}>Preview a clear position</button>}
+          </div></details>) : <p>No proximity or overlap findings. This does not establish that the layout is optimal.</p>}
         </section>
         <details className="panel layout-library"><summary>Estimate a separate draft from photos</summary><p>Photo estimates require manual measurements and verification. This separate draft does not change your saved restaurant layout.</p><AnalyzePlan plans={fixture.photoPlans} /></details>
         <div className="scenario-inline" ref={scenarioSection} tabIndex={-1}>
@@ -605,20 +726,27 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
         </div>
         </div>
         <div hidden={section !== "reviews"}>
+        <AiWorkbench title="AI review researcher" description="Interpret supplied reviews, extract themes and menu mentions, and suggest evidence-linked improvements. Counts and quoted excerpts stay tied to the supplied sample." request={{ task: "reviews", restaurantId: fixture.profile.id, question: "" }} />
+        <label className="ai-review-select">Review for an AI reply<select value={replyReviewId} onChange={event => setReplyReviewId(event.target.value)}>{fixture.reviews.map(review => <option key={review.id} value={review.id}>{review.id} · {review.text.slice(0, 80)}</option>)}</select></label>
+        <AiWorkbench title="AI review reply" description="Generate a response to the selected review, edit it and copy it. Nothing is published." request={{ task: "reply", restaurantId: fixture.profile.id, reviewId: replyReviewId, question: "" }} />
         <ReviewInsights reviews={fixture.reviews} mission={fixture.mission} onTrySeating={trySeating} />
         </div>
         <div hidden={section !== "hr"}>
+          <AiWorkbench title="AI job-description draft" description="Describe a role, schedule and requirements, or paste a draft to improve. Missing details remain placeholders. No Indeed posting is created." inputLabel="Role, requirements or draft" request={{ task: "job", restaurantId: fixture.profile.id, question: "" }} />
           <HrPage operations={fixture.operations} restaurantName={fixture.profile.name} />
         </div>
         <div hidden={section !== "supply"}>
+          <AiWorkbench title="AI supply advisor" description="Explain stock issues and code-calculated costs to reach reorder thresholds. These are planning suggestions, not purchase orders." request={{ task: "supply", restaurantId: fixture.profile.id, question: "" }} />
           <SupplyPage operations={fixture.operations} restaurantName={fixture.profile.name} />
         </div>
         <div hidden={section !== "finance"}>
+          <AiWorkbench title="AI financial analysis" description="Explain the full supplied ledger and menu contribution calculations. This uses the dataset totals, not the filters or unsaved price experiment below." request={{ task: "finance", restaurantId: fixture.profile.id, question: "" }} />
           <FinancePage assumptions={fixture.assumptions} operations={fixture.operations} restaurantName={fixture.profile.name} />
         </div>
         <div hidden={section !== "ai"}>
-          <AiAssistant />
+          <AiAssistant restaurantId={fixture.profile.id} layout={layout} />
         </div>
+        </AiAccessProvider>
         <footer className="workspace-footer"><Armchair size={16} /> Demo layouts and scenarios are saved in this browser.</footer>
       </main>
       <AnalysisDialog dialogRef={evidenceDialog} title="Mission evidence"><ReviewEvidence reviews={evidence} /></AnalysisDialog>

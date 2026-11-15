@@ -13,6 +13,9 @@ const objectSchema = z.object({
   type: z.enum(kinds),
   name: z.string().trim().min(1).max(120).optional(),
   description: z.string().trim().max(2000).optional(),
+  category: z.enum(["equipment", "storage", "decoration", "other"]).optional(),
+  seatOwnerId: id.optional(),
+  aiSource: z.object({ model: z.string().min(1).max(100), generatedAt: z.iso.datetime(), method: z.enum(["object", "move"]) }).optional(),
   x: z.number().min(0),
   y: z.number().min(0),
   width: z.number().positive(),
@@ -26,7 +29,7 @@ const objectSchema = z.object({
 
 export const objectLimit = 150;
 export const layoutSchema = z.object({
-  schemaVersion: z.literal(1),
+  schemaVersion: z.union([z.literal(1), z.literal(2)]),
   restaurantId: id,
   name: z.string().min(1),
   unit: z.literal("m"),
@@ -43,6 +46,16 @@ export const layoutSchema = z.object({
       ctx.addIssue({ code: "custom", path: ["objects", index], message: "Furniture must fit inside the room." });
     }
     ids.add(object.id);
+    if (object.seatOwnerId) {
+      const owner = layout.objects.find(item => item.id === object.seatOwnerId);
+      if (layout.schemaVersion !== 2 || object.type !== "chair" || !owner || !["table_2", "table_4", "booth", "counter"].includes(owner.type)) {
+        ctx.addIssue({ code: "custom", path: ["objects", index, "seatOwnerId"], message: "An assigned chair needs a seating group in a version 2 layout." });
+      }
+    }
+    const assignedSeats = layout.objects.filter(item => item.seatOwnerId === object.id).reduce((sum, item) => sum + (item.seats ?? 0), 0);
+    if (assignedSeats > (object.seats ?? 0)) {
+      ctx.addIssue({ code: "custom", path: ["objects", index, "seats"], message: "Assigned chair seats cannot exceed the seating group's included seats." });
+    }
   });
 });
 

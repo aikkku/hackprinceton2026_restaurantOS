@@ -4,6 +4,8 @@ import { layoutSchema, type Layout, type LayoutObject } from "../domain/schemas.
 export type ObjectMeasurements = {
   name?: string;
   description?: string;
+  category?: LayoutObject["category"];
+  seatOwnerId?: string | null;
   x: number;
   y: number;
   width: number;
@@ -32,6 +34,8 @@ export function applyObjectMeasurements(
     ...selected,
     ...(measurements.name !== undefined ? { name: measurements.name } : {}),
     ...(measurements.description !== undefined ? { description: measurements.description } : {}),
+    ...(measurements.category !== undefined ? { category: measurements.category } : {}),
+    ...(measurements.seatOwnerId !== undefined ? { seatOwnerId: measurements.seatOwnerId || undefined } : {}),
     x: convert(measurements.x, selected.x),
     y: convert(measurements.y, selected.y),
     width: convert(measurements.width, selected.width),
@@ -44,6 +48,7 @@ export function applyObjectMeasurements(
 
   const parsed = layoutSchema.safeParse({
     ...layout,
+    schemaVersion: updated.seatOwnerId ? 2 : layout.schemaVersion,
     objects: layout.objects.map((object) => object.id === selected.id ? updated : object),
   });
   if (!parsed.success) {

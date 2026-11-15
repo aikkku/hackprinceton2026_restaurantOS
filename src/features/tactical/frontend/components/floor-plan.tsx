@@ -12,6 +12,10 @@ type Props = {
   placing: ObjectKind | null;
   snap: boolean;
   overlaps: Set<string>;
+  highlightedIds?: string[];
+  proposedObject?: LayoutObject | null;
+  aiPreview?: LayoutObject[];
+  aiHighlights?: boolean;
   onSelect: (id: string | null) => void;
   onPlace: (x: number, y: number) => void;
   onMove: (object: LayoutObject) => void;
@@ -35,12 +39,12 @@ function FurnitureArt({ object }: { object: LayoutObject }) {
   return (
     <g transform={`translate(${size.width / 2} ${size.depth / 2}) rotate(${rotation}) scale(${scale.join(" ")}) translate(-0.5 -0.5)`}>
       {tables && <>
-        <rect className="svg-chair" x=".35" y=".02" width=".3" height=".22" rx=".08" />
-        <rect className="svg-chair" x=".35" y=".76" width=".3" height=".22" rx=".08" />
-        {type === "table_4" && <>
-          <rect className="svg-chair" x=".02" y=".35" width=".22" height=".3" rx=".08" />
-          <rect className="svg-chair" x=".76" y=".35" width=".22" height=".3" rx=".08" />
-        </>}
+        {Array.from({ length: Math.min(object.seats ?? 0, 12) }, (_, index) => {
+          const side = index % 4;
+          const countOnSide = Math.ceil((Math.min(object.seats ?? 0, 12) - side) / 4);
+          const offset = (Math.floor(index / 4) + 1) / (countOnSide + 1);
+          return <rect key={index} className="svg-chair" x={side === 0 ? .01 : side === 2 ? .8 : offset - .09} y={side === 1 ? .01 : side === 3 ? .8 : offset - .09} width=".18" height=".18" rx=".05" />;
+        })}
         <rect className="svg-furniture-shadow" x=".21" y=".25" width=".6" height=".57" rx=".1" />
         <rect className="svg-table" x=".2" y=".19" width=".6" height=".57" rx=".1" />
         <circle className="svg-plate" cx=".5" cy=".48" r=".075" />
@@ -85,7 +89,7 @@ function FurnitureArt({ object }: { object: LayoutObject }) {
   );
 }
 
-export function FloorPlan({ layout, zoom = 1, unit, selectedId, placing, snap, overlaps, onSelect, onPlace, onMove }: Props) {
+export function FloorPlan({ layout, zoom = 1, unit, selectedId, placing, snap, overlaps, highlightedIds = [], proposedObject, aiPreview = [], aiHighlights = false, onSelect, onPlace, onMove }: Props) {
   const svg = useRef<SVGSVGElement>(null);
   const drag = useRef<Drag | null>(null);
   const [preview, setPreview] = useState<LayoutObject | null>(null);
@@ -175,10 +179,16 @@ export function FloorPlan({ layout, zoom = 1, unit, selectedId, placing, snap, o
         return (
           <g key={object.id} data-object={object.id} transform={`translate(${object.x} ${object.y})`} className="svg-object" aria-label={object.name ?? furniture[object.type].label}>
             <FurnitureArt object={object} />
-            <rect width={width} height={depth} rx=".08" className={`svg-hit ${selected ? "is-selected" : ""} ${warning ? "is-overlap" : ""}`} />
+            <rect width={width} height={depth} rx=".08" className={`svg-hit ${selected ? "is-selected" : ""} ${warning ? "is-overlap" : ""} ${highlightedIds.includes(object.id) ? "is-highlighted" : ""} ${object.aiSource || (aiHighlights && highlightedIds.includes(object.id)) ? "is-ai-highlighted" : ""}`} />
+            {object.seats && <text x={width / 2} y={depth * .62} textAnchor="middle" className="svg-seat-label" fontSize={Math.min(.22, width / 3)} pointerEvents="none">{object.seatOwnerId ? "+0" : `${object.seats} seats`}</text>}
           </g>
         );
       })}
+      {proposedObject && <g transform={`translate(${proposedObject.x} ${proposedObject.y})`} pointerEvents="none" className="svg-proposed" aria-label="Proposed furniture position">
+        <FurnitureArt object={proposedObject} />
+        <rect width={footprint(proposedObject).width} height={footprint(proposedObject).depth} className="svg-proposed-outline" />
+      </g>}
+      {aiPreview.map(object => <g key={object.id} transform={`translate(${object.x} ${object.y})`} pointerEvents="none" className="svg-proposed svg-proposed-ai" aria-label="AI proposed furniture position"><FurnitureArt object={object} /><rect width={footprint(object).width} height={footprint(object).depth} className="svg-proposed-outline" /></g>)}
     </svg>
   );
 }

@@ -30,7 +30,7 @@ test("layout JSON preserves the saved plan and rejects incompatible or invalid f
   assert.deepEqual(parseLayoutFile(JSON.stringify(layout), "demo"), layout);
   assert.throws(() => parseLayoutFile("{", "demo"), /valid layout JSON/);
   assert.throws(() => parseLayoutFile(JSON.stringify(layout), "another"), /different restaurant/);
-  assert.throws(() => parseLayoutFile(JSON.stringify({ ...layout, schemaVersion: 2 }), "demo"), /could not be loaded/);
+  assert.throws(() => parseLayoutFile(JSON.stringify({ ...layout, schemaVersion: 3 }), "demo"), /could not be loaded/);
   assert.throws(() => parseLayoutFile(JSON.stringify({ ...layout, objects: [object, object] }), "demo"), /unique/);
 });
 

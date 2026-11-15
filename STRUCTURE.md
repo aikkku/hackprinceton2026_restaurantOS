@@ -113,3 +113,11 @@ Keep imports within each feature. Coordinate the app shell, design tokens, resta
 Use Node.js 22.18 or newer. Run `npm ci` and `npm run dev`, then open `/tactical` or `/expansion`. The verification commands are `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build`. `npm test` runs both features with Node's built-in test runner. Expansion browser tests run with `npm run test:e2e` after `npx playwright install chromium`, or use installed Chrome with `PLAYWRIGHT_CHANNEL=chrome npm run test:e2e`. [Package scripts](package.json)
 
 For Tactical browser regressions, build first and run `PLAYWRIGHT_CHANNEL=chrome npx playwright test --config playwright.tactical.config.ts`. This config uses port 3057 and Firefox as well as Chrome/Chromium; install the required browsers. The default root Playwright config continues to target Expansion.
+
+### Floor-plan editing increment
+
+`src/features/tactical/frontend/layout-storage.ts` handles full-library backup validation and stale-write/recovery checks; `components/library-backup.tsx` presents preview/apply/export actions. `domain/layout.ts` owns footprint-gap and proposed-move calculations; `domain/schemas.ts` accepts legacy layout v1 and ownership-aware layout v2. All changes stay Tactical-local. See [floor-plan guide](docs/tactical/FLOOR_PLAN_GUIDE.md).
+
+### Tactical AI
+
+`domain/ai.ts` defines validated AI contracts; `backend/gemini.ts`, `ai-context.ts`, `ai-service.ts` and `ai-access.ts` own provider requests, evidence, caching and signed access. Thin routes live at `src/app/api/tactical/ai/` and its `session/` subroute. `frontend/components/ai-workbench.tsx` and `ai.css` centralize purple AI controls/results. Photo analysis shares the Gemini/access boundary. See [AI guide](docs/tactical/AI_FEATURES.md).

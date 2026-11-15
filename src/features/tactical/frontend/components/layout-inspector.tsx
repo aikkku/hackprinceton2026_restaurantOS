@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { furniture, hasOverlap } from "../../domain/layout";
+import { furniture, hasOverlap, objectClearance, displayLength } from "../../domain/layout";
 import type { Layout, LayoutObject } from "../../domain/schemas";
 import { applyObjectMeasurements, displayedMeasurement } from "../layout-edit";
 import "./layout-tools.css";
@@ -19,6 +19,8 @@ function ObjectForm({ layout, selected, unit, onUpdate, onNotice }: Props & { se
   const [saved, setSaved] = useState(false);
   const isSeating = furniture[selected.type].seats > 0;
   const overlap = layout.objects.some((object) => object.id !== selected.id && hasOverlap(object, selected));
+  const clearance = objectClearance(layout, selected);
+  const nearest = layout.objects.find(object => object.id === clearance.nearest?.id);
 
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -27,6 +29,8 @@ function ObjectForm({ layout, selected, unit, onUpdate, onNotice }: Props & { se
       const object = applyObjectMeasurements(layout, selected, {
         name: String(data.get("objectName") ?? "").trim() || furniture[selected.type].label,
         description: String(data.get("description") ?? ""),
+        category: selected.type === "custom" ? String(data.get("category")) as LayoutObject["category"] : undefined,
+        seatOwnerId: selected.type === "chair" ? String(data.get("seatOwnerId") ?? "") : undefined,
         x: Number(data.get("x")),
         y: Number(data.get("y")),
         width: Number(data.get("width")),
@@ -48,9 +52,18 @@ function ObjectForm({ layout, selected, unit, onUpdate, onNotice }: Props & { se
   return (
     <form className="layout-inspector" onSubmit={submit} onChange={() => setSaved(false)}>
       <h3>{furniture[selected.type].label} details</h3>
+      {selected.aiSource && <p className="ai-surface">AI-assisted {selected.aiSource.method === "move" ? "position" : "object"} · {selected.aiSource.model}. Subsequent manual edits remain user-controlled; verify dimensions and placement.</p>}
       <p>Enter the furniture footprint and its position from the room’s top-left corner.</p>
       <label>Object name<input name="objectName" maxLength={120} defaultValue={selected.name ?? furniture[selected.type].label} required /></label>
       <label>Description<textarea name="description" maxLength={2000} defaultValue={selected.description ?? ""} placeholder="Purpose, material, airflow, or other context" /></label>
+      {selected.type === "custom" && <label>Object category<select name="category" defaultValue={selected.category ?? "other"}>
+        <option value="equipment">Equipment</option><option value="storage">Storage</option><option value="decoration">Decoration</option><option value="other">Other</option>
+      </select></label>}
+      {selected.type === "chair" && <label>Seat ownership<select name="seatOwnerId" defaultValue={selected.seatOwnerId ?? ""}>
+        <option value="">Standalone · adds capacity</option>
+        {layout.objects.filter(object => ["table_2", "table_4", "booth", "counter"].includes(object.type)).map(object => <option key={object.id} value={object.id}>Included in {object.name ?? furniture[object.type].label} · {object.id}</option>)}
+      </select></label>}
+      {isSeating && <p>Tables, booths and counters include their seats. Assigned chairs represent those existing seats and add zero capacity. Standalone chairs add their own seats.</p>}
       <div className="inspector-fields">
         <label>Across ({unit})<input name="x" type="number" min={0} step="any" required defaultValue={displayedMeasurement(selected.x, unit)} /></label>
         <label>Down ({unit})<input name="y" type="number" min={0} step="any" required defaultValue={displayedMeasurement(selected.y, unit)} /></label>
@@ -62,6 +75,12 @@ function ObjectForm({ layout, selected, unit, onUpdate, onNotice }: Props & { se
         {isSeating && <label>Seats<input name="seats" type="number" min={1} max={100} step={1} required defaultValue={selected.seats} /></label>}
       </div>
       {overlap && <p className="inspector-warning">This furniture overlaps another object.</p>}
+      <div className="clearance-summary">
+        <h4>Measured footprint gaps</h4>
+        <p>Nearest room edge: {displayLength(clearance.wallGap, unit).toFixed(2)} {unit}.</p>
+        <p>{nearest && clearance.nearest ? `Nearest object: ${nearest.name ?? furniture[nearest.type].label}, ${displayLength(clearance.nearest.gap, unit).toFixed(2)} ${unit}.` : "No other objects to measure."}</p>
+        <p>Shortest edge-to-edge distance from the recorded rectangles, including rotation. Zero means touching or overlapping. This is not walking clearance, door swing, comfort or code compliance.</p>
+      </div>
       {error && <p className="inspector-warning" role="alert">{error}</p>}
       <div className="button-row">
         <button type="submit" className="button compact secondary">Apply furniture details</button>

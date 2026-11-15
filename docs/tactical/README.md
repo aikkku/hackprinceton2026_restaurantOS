@@ -36,3 +36,7 @@ The later user refinement brief extends the earlier MVP (including demo HR and S
 - Separate demo, observed, assumed, simulated, unavailable and live-unverified states.
 - Mark proposed files/contracts as proposed until they exist.
 - Do not claim sponsor integration or eligibility from a fixture or placeholder.
+
+- [Floor-plan editing and recovery guide](FLOOR_PLAN_GUIDE.md) — seat ownership, object creation, geometry previews, baseline behavior and library backups.
+
+- [Tactical AI features and setup](AI_FEATURES.md) — Gemini workflows, purple provenance, access, evidence validation and generic failure behavior.

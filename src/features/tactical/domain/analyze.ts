@@ -81,7 +81,7 @@ export type AnalyzeApiRequest = {
 };
 
 export type AnalyzeApiResponse =
-  | { ok: true; draft: FloorPlanDraft; fixupApplied: boolean; source: "demo" | "ai" }
+  | { ok: true; draft: FloorPlanDraft; fixupApplied: boolean; source: "ai" }
   | { ok: false; error: string };
 
 const wallSchema = z.enum(["N", "E", "S", "W", "unknown"]);

@@ -17,6 +17,8 @@ import {
   loadLessons, saveLessons, loadMistakes, saveMistakes,
   diffPlans, diffScore, diffToLessons, mergeLessons, type Lesson,
 } from "../analyze-lessons";
+import { useAiAccess } from "./ai-workbench";
+import { aiError } from "../../domain/ai";
 import "./analyze.css";
 
 type Photo = { id: string; dataUrl: string; tag: string };
@@ -36,6 +38,7 @@ function emptyFacts(): AnalyzeFacts {
 function makeId() { return crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`; }
 
 export function AnalyzePlan({ plans }: { plans: Dataset["photoPlans"] }) {
+  const aiUnlocked = useAiAccess();
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [facts, setFacts] = useState<AnalyzeFacts>(emptyFacts());
   const [accuracy, setAccuracy] = useState<"standard" | "high">("standard");
@@ -134,9 +137,10 @@ export function AnalyzePlan({ plans }: { plans: Dataset["photoPlans"] }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ photos: photos.map((p) => p.dataUrl), facts, accuracy, lessons }),
+        signal: AbortSignal.timeout(70_000),
       });
       const data = await res.json();
-      if (!data.ok) throw new Error(data.error ?? "Analysis failed.");
+      if (!res.ok || !data.ok || data.source !== "ai") throw new Error(aiError);
       const incoming = floorPlanDraftSchema.parse(data.draft);
       setDraft(incoming);
       setOriginalDraft(incoming);
@@ -144,12 +148,11 @@ export function AnalyzePlan({ plans }: { plans: Dataset["photoPlans"] }) {
       setFuture([]);
       setSelectedId(null);
       setStatus("done");
-      setStatusMsg(data.source === "demo" ? "Demo sample — no AI key configured. Your photos were not analyzed." : `AI estimate — ${incoming.tables.length} tables. Verify counts and measurements.`);
+      setStatusMsg(`AI estimate — ${incoming.tables.length} tables. Verify counts and measurements.`);
       if (data.fixupApplied) setFixupMsg("A second pass corrected some issues.");
-    } catch (err) {
+    } catch {
       setStatus("error");
-      setStatusMsg(err instanceof Error ? err.message : "Analysis failed.");
-      showToast(err instanceof Error ? err.message : "Analysis failed.", "error");
+      setStatusMsg(aiError);
     }
   }
 
@@ -306,7 +309,7 @@ export function AnalyzePlan({ plans }: { plans: Dataset["photoPlans"] }) {
   const totalSeats = draft ? draft.tables.reduce((s, t) => s + t.seats, 0) : 0;
   const barStools = draft ? draft.fixtures.filter((f) => f.type === "bar").reduce((s, f) => s + (f.stool_count ?? 0), 0) : 0;
 
-  const analyzeDisabled = photos.length < 1 || status === "analyzing";
+  const analyzeDisabled = !aiUnlocked || photos.length < 1 || status === "analyzing";
   const analyzeTitle = status === "analyzing" ? "Analyzing…" : photos.length < 1 ? "Add at least 1 photo" : undefined;
 
   return (
@@ -391,7 +394,7 @@ export function AnalyzePlan({ plans }: { plans: Dataset["photoPlans"] }) {
           </div>
 
           <div className="analyze-card">
-            <h3 className="analyze-card-title">Accuracy</h3>
+            <h3 className="analyze-card-title">AI detail level</h3>
             <div className="accuracy-picker">
               <label className="accuracy-opt">
                 <input type="radio" name="accuracy" value="standard" checked={accuracy === "standard"} onChange={() => setAccuracy("standard")} />
@@ -399,20 +402,22 @@ export function AnalyzePlan({ plans }: { plans: Dataset["photoPlans"] }) {
               </label>
               <label className="accuracy-opt">
                 <input type="radio" name="accuracy" value="high" checked={accuracy === "high"} onChange={() => setAccuracy("high")} />
-                <span>High accuracy <small>(slower)</small></span>
+                <span>More detail <small>(estimates still need checking)</small></span>
               </label>
             </div>
           </div>
 
-          <StateButton className="button primary analyze-btn" onClick={() => void analyze()} disabled={analyzeDisabled} title={analyzeTitle}>
+          <StateButton className="button ai-button analyze-btn" onClick={() => void analyze()} disabled={analyzeDisabled} title={analyzeTitle}>
             {status === "analyzing" ? "Analyzing…" : "Analyze photos"}
           </StateButton>
-          {statusMsg && <p className={`analyze-status ${status === "error" ? "analyze-status-error" : ""}`}>{statusMsg}</p>}
+          <p className="ai-surface">AI photo analysis sends these photos to Google Gemini. Unlock AI above to enable analysis. Sample and blank plans are manual demos.</p>
+          {statusMsg && <p role={status === "error" ? "alert" : "status"} className={`analyze-status ${status === "error" ? "ai-error" : "ai-output"}`}>{statusMsg}</p>}
           {fixupMsg && <p className="analyze-status analyze-status-info">{fixupMsg}</p>}
         </aside>
 
         {/* CENTER: canvas + toolbar */}
-        <div className="analyze-center">
+        <div className={`analyze-center ${originalDraft ? "ai-photo-result" : ""}`}>
+          {originalDraft && <span className="ai-badge">AI-estimated plan · manual verification required</span>}
           {/* Toolbar */}
           <div className="analyze-toolbar" role="toolbar" aria-label="Plan editor toolbar">
             <StateButton className="button quiet compact" onClick={undo} disabled={!history.length} title="Undo"><Undo2 size={15} /></StateButton>

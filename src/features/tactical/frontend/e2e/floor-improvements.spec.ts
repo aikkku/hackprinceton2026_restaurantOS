@@ -1,0 +1,102 @@
+import { test, expect } from "@playwright/test";
+
+const libraryKey = "restaurant-os:tactical:juniper-table:layouts:v1";
+const table = { id: "group", type: "table_2", name: "Window table", seats: 2, x: 1, y: 1, width: 2, depth: 1, rotation: 0 };
+const chair = { id: "chair", type: "chair", seats: 1, x: 4, y: 1, width: .5, depth: .5, rotation: 0 };
+const plan = { schemaVersion: 1, restaurantId: "juniper-table", name: "Ownership test", unit: "m", room: { width: 8, depth: 6 }, objects: [table, chair], updatedAt: "2026-11-14T00:00:00.000Z" };
+
+test("custom objects and assigned seats save, reload and refresh the saved baseline", async ({ page }) => {
+  page.on("dialog", dialog => dialog.accept());
+  await page.goto("/tactical");
+  await expect(page.getByRole("button", { name: "Save draft", exact: true })).toBeEnabled();
+  await page.getByLabel("Import layout JSON file").setInputFiles({ name: "layout.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(plan)) });
+  await page.getByLabel("Select furniture").selectOption("chair");
+  await page.getByLabel("Seat ownership").selectOption("group");
+  await page.getByRole("button", { name: "Apply furniture details" }).click();
+  await expect(page.locator(".summary-stats dd").first()).toHaveText("2");
+  await expect(page.getByText("Measured footprint gaps", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Custom object", exact: true }).click();
+  await page.getByLabel("New object description").fill("Refrigerator beside the kitchen entrance");
+  await page.getByLabel("New object name").fill("Cold storage");
+  await page.getByLabel("Custom category").selectOption("storage");
+  await page.getByRole("button", { name: "Place in clear spot" }).click();
+  await expect(page.getByLabel("Object category")).toHaveValue("storage");
+  await page.getByRole("button", { name: "Save draft", exact: true }).click();
+  await expect(page.getByLabel("Baseline seats", { exact: true })).toHaveValue("2");
+  await page.reload();
+  await expect(page.locator(".summary-stats dd").first()).toHaveText("2");
+  await page.getByLabel("Select furniture").selectOption("chair");
+  await expect(page.getByLabel("Seat ownership")).toHaveValue("group");
+  const saved = await page.evaluate(key => JSON.parse(localStorage.getItem(key)!), libraryKey);
+  expect(saved.entries[0].layout.schemaVersion).toBe(2);
+  expect(saved.entries[0].layout.objects.find((o: { name: string }) => o.name === "Cold storage").description).toBe("Refrigerator beside the kitchen entrance");
+  await page.getByLabel("Select furniture").selectOption("group");
+  await page.getByRole("button", { name: "Delete", exact: true }).last().click();
+  await expect(page.getByLabel("Select furniture").locator('option[value="chair"]')).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(page.getByLabel("Select furniture").locator('option[value="chair"]')).toHaveCount(1);
+});
+
+test("overlap findings highlight both objects and proposals apply only on confirmation", async ({ page }) => {
+  await page.goto("/tactical");
+  await expect(page.getByRole("button", { name: "Save draft", exact: true })).toBeEnabled();
+  await page.getByLabel("Import layout JSON file").setInputFiles({ name: "overlap.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify({ ...plan, objects: [table, { ...chair, x: 1, y: 1 }] })) });
+  const finding = page.locator(".layout-finding").filter({ hasText: "Overlapping footprints" }).first();
+  await finding.locator("summary").click();
+  await finding.getByRole("button", { name: "Inspect affected objects" }).click();
+  await expect(page.locator(".svg-hit.is-highlighted")).toHaveCount(2);
+  const initial = await page.locator('[data-object="group"]').getAttribute("transform");
+  await finding.getByRole("button", { name: "Preview a clear position" }).click();
+  await expect(page.locator(".svg-proposed")).toHaveCount(1);
+  await expect(page.locator('[data-object="group"]')).toHaveAttribute("transform", initial!);
+  await page.getByRole("button", { name: "Reject suggested move" }).click();
+  await expect(page.locator(".svg-proposed")).toHaveCount(0);
+  await finding.getByRole("button", { name: "Preview a clear position" }).click();
+  await page.getByRole("button", { name: "Apply suggested move" }).click();
+  await expect(page.locator(".svg-hit.is-overlap")).toHaveCount(0);
+  await page.getByRole("button", { name: "Undo", exact: true }).click();
+  await expect(page.locator('[data-object="group"]')).toHaveAttribute("transform", initial!);
+  await expect(page.locator(".svg-hit.is-overlap")).toHaveCount(2);
+});
+
+test("library backups preview before restoration and preserve corrupted bytes", async ({ page }) => {
+  page.on("dialog", dialog => dialog.accept());
+  await page.goto("/tactical");
+  await page.getByRole("button", { name: "Save draft", exact: true }).click();
+  const raw = await page.evaluate(key => localStorage.getItem(key)!, libraryKey);
+  await page.evaluate(key => localStorage.setItem(key, "damaged{"), libraryKey);
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Save draft", exact: true })).toBeDisabled();
+  await page.getByText("Back up or recover saved floor plans", { exact: true }).click();
+  await page.getByLabel("Import library backup").setInputFiles({ name: "library.json", mimeType: "application/json", buffer: Buffer.from(raw) });
+  await expect(page.getByText("Backup preview · 1 configurations")).toBeVisible();
+  expect(await page.evaluate(key => localStorage.getItem(key), libraryKey)).toBe("damaged{");
+  await page.getByRole("button", { name: "Apply library backup" }).click();
+  await expect(page.getByRole("button", { name: "Save draft", exact: true })).toBeEnabled();
+  expect(await page.evaluate(key => localStorage.getItem(`${key}:recovery`), libraryKey)).toBe("damaged{");
+  const download = page.waitForEvent("download");
+  await page.getByRole("button", { name: "Export saved library" }).click();
+  expect((await download).suggestedFilename()).toBe("juniper-table-layouts.json");
+  await page.reload();
+  await expect(page.getByRole("button", { name: "Save draft", exact: true })).toBeEnabled();
+});
+
+test("a stale tab preserves its draft and cannot overwrite another tab's library", async ({ page, context }) => {
+  await page.goto("/tactical");
+  await page.getByRole("button", { name: "Save draft", exact: true }).click();
+  const other = await context.newPage();
+  other.on("dialog", dialog => dialog.accept());
+  await other.goto("/tactical");
+  await expect(other.getByRole("button", { name: "Save draft", exact: true })).toBeEnabled();
+  await other.getByRole("button", { name: "Blank layout" }).click();
+  await page.getByRole("button", { name: "Custom object", exact: true }).click();
+  await page.getByLabel("New object name").fill("New cabinet");
+  await page.getByRole("button", { name: "Place in clear spot" }).click();
+  await page.getByRole("button", { name: "Save draft", exact: true }).click();
+  await expect(other.getByRole("button", { name: "Save draft", exact: true })).toBeDisabled();
+  await expect(other.locator(".summary-stats dd").first()).toHaveText("0");
+  await other.getByText("Back up or recover saved floor plans", { exact: true }).click();
+  await other.getByRole("button", { name: "Reload saved library" }).click();
+  await expect(other.getByRole("button", { name: "Save draft", exact: true })).toBeEnabled();
+  await expect(other.getByLabel("Select furniture").locator("option").filter({ hasText: "New cabinet" })).toHaveCount(1);
+});

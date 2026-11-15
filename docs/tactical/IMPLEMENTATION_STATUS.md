@@ -4,7 +4,9 @@
 
 **Product target:** [Product refinement brief](PRODUCT_REFINEMENT_BRIEF.md). **Architecture map:** [repository structure](../../STRUCTURE.md). **Navigation guide:** [pages](PAGES.md). **Manual demo:** [walkthrough](FRONTEND_WALKTHROUGH.md).
 
-**Latest increment:** centralized mock data, shared `restaurantos` MongoDB database, protected dataset APIs and live Atlas round-trip verified. Rain’s latest remote work is merged; his shared Mongo helper remains unchanged pending connection consolidation. See [MongoDB setup/API guide](MONGODB_SETUP.md). The database remains synthetic; browser editor saves are not yet cloud-synchronized.
+**Latest AI increment:** the user requested all Tactical AI workflows and purple provenance. Gemini now serves floor analysis, custom-object suggestions, review research/replies, finance/supply explanations, job drafts, the advisor and existing photo estimation. Failures return only **Something is wrong**, with no demo fallback. See [AI setup and boundaries](AI_FEATURES.md).
+
+**Previous floor-plan increment:** main floor-plan improvements: custom-object creation, explicit chair ownership, footprint-gap measurements, affected-object highlights and reversible move previews, clearer baseline/draft behavior, library backup/recovery and stale-tab checks. Photo work was deferred at the user’s request. The preceding MongoDB increment remains available; Rain’s module is unchanged in this batch. See [MongoDB setup/API guide](MONGODB_SETUP.md). The database remains synthetic; browser editor saves are not yet cloud-synchronized.
 
 This is the canonical implementation inventory and backlog. Product specifications describe intended behavior; this file records what the code actually does. Update this inventory when a feature ships, and include the verification that justifies changing its status.
 
@@ -52,7 +54,7 @@ RestaurantOS currently provides a **working browser-local restaurant layout and 
 | HR | Demo | Eight-person roster, schedule and profiles | Synthetic pay/contact/availability data, labor calculation, job-post draft concept |
 | Supply Management | Demo | Inventory filters, stock indicators, supplier directory | Derived stock status, estimated costs and consistent restock summary |
 | Financial Intelligence | Working mock ledger and simulations | Reconciled ledger totals, channel unit costs, price/volume experiments | Real-data imports, saved pricing scenarios and shared edited assumptions |
-| AI Assistant | Intentionally deferred | Clearly inactive placeholder | No full chat is required now |
+| AI Assistant | Working contextual request UI | Single-turn Gemini advisor with evidence and purple results | Durable history, multi-turn context and real business data |
 
 **Do not currently claim:** production accounting, real customer sentiment analysis, automated space optimization, observed seating preference, legal/safety compliance assessment, live banking, CoStar interior geometry, Arlequin network analysis, or a functioning restaurant-wide assistant.
 
@@ -68,7 +70,7 @@ RestaurantOS currently provides a **working browser-local restaurant layout and 
 | `/tactical/hr` | Fictional team directory and schedule. |
 | `/tactical/supply` | Fictional inventory and suppliers. |
 | `/tactical/finance` | Overview, transactions, menu pricing and simulator tabs. |
-| `/tactical/ai` | Advisor placeholder. |
+| `/tactical/ai` | Single-turn evidence-linked Gemini advisor. |
 | `/tactical/scenarios`, `/tactical/decisions`, `/tactical/analyze` | Compatibility redirects to `/tactical`; no additional top-level experience. |
 | `POST /api/tactical/analyze` | Server entry point for photo analysis. |
 | `/expansion` | Rain-owned module, reached through shared workspace navigation. |
@@ -89,7 +91,7 @@ RestaurantOS currently provides a **working browser-local restaurant layout and 
 | [domain/analyze.ts](../../src/features/tactical/domain/analyze.ts) | Photo draft/request schemas, rotation, checks | Validated photo interpretation and conversion boundary |
 | [frontend/storage.ts](../../src/features/tactical/frontend/storage.ts) | Legacy layout and scenario reads/recovery | Centralize library persistence here or in a dedicated frontend repository |
 | [frontend/analyze-lessons.ts](../../src/features/tactical/frontend/analyze-lessons.ts) | Photo correction differences and browser-stored prompt lessons | Honest correction-memory behavior, not model training |
-| [backend/analyze.ts](../../src/features/tactical/backend/analyze.ts) | Anthropic request, fallback and corrective pass | Existing server AI adapter foundation |
+| [backend/analyze.ts](../../src/features/tactical/backend/analyze.ts) | Gemini photo request, validation and generic failure | Shared Gemini/access foundation |
 | [frontend/components/state-button.tsx](../../src/features/tactical/frontend/components/state-button.tsx) | Opts stateful buttons out of browser disabled-state restoration | Retain for dynamic controls and hydration consistency |
 | Component CSS and [globals.css](../../src/app/globals.css) | Tactical styling and root tokens | Extend the established visual language |
 
@@ -115,7 +117,7 @@ All synthetic business records now live in [demo-restaurant.json](../../src/feat
 | Finance | 90 synthetic income/expense summaries, eight menu cost records and three dated sample dish comparisons |
 | HR | Eight fictional employees, reserved-domain contacts, assumed pay, schedule hours, availability and mood |
 | Supply | Fifteen inventory items with costs/thresholds and eight fictional suppliers |
-| Photo examples | Sample, blank and no-key fallback plans |
+| Photo examples | Manual sample/blank plans and an unused legacy fallback fixture; provider failures never load it |
 
 `TACTICAL_DATA_SOURCE=demo` reads the local fixture. `mongodb` reads the selected restaurant by `TACTICAL_RESTAURANT_ID` and displays source/revision. All six sections receive the selected profile; the UI still has no interactive restaurant picker. All records are explicitly synthetic, including after MongoDB storage. Real staff/banking uploads are not supported by this contract.
 
@@ -130,7 +132,7 @@ All synthetic business records now live in [demo-restaurant.json](../../src/feat
 | Photo correction records | `restaurant-os:tactical:analyze:mistakes:v1` | Global to Tactical browser storage; limited recent history |
 | Unsaved layout edits, current photo plan, photos and page form state | React memory | Lost on reload unless explicitly saved/exported through the supported flow |
 
-Library migration loads the old valid draft into a new in-memory library and persists on the next explicit write. A corrupt library is preserved and writes are disabled. Scenario recovery retains valid snapshots alongside invalid entries and reports an issue. MongoDB dataset persistence is now implemented with optimistic revision checks. There is still no end-user account system, automatic browser-editor cloud sync or browser-storage backup service.
+Library migration loads the old valid draft into a new in-memory library and persists on the next explicit write. A corrupt library is preserved and writes are disabled. Scenario recovery retains valid snapshots alongside invalid entries and reports an issue. MongoDB dataset persistence is now implemented with optimistic revision checks. The browser library now supports full JSON backup/restore and stale-tab detection before writes. Corrupt bytes remain preserved and can be downloaded; explicit restore keeps a recovery copy. These checks are not an atomic multi-client database transaction. There is still no end-user account system, automatic browser-editor cloud sync or remote backup service.
 
 ### Data foundation backlog
 
@@ -167,34 +169,34 @@ Sources: [canvas](../../src/features/tactical/frontend/components/floor-plan.tsx
 
 ### What the current behavior means
 
-- A custom object is a manually named/described generic footprint. Natural-language object generation and AI categorization are not implemented.
+- Custom objects have a description-first placement form with editable name, category and dimensions. Manual inputs remain available; a separate purple AI designer can suggest editable metadata and estimated dimensions before explicit placement.
 - New object categories use simple vector primitives; they do not yet have distinctive, polished sprites.
-- Table graphics represent their object type; changing the seat count does not necessarily redraw the matching number of chairs.
-- Standalone chairs add capacity independently. Adding them around a table that already includes seats can double-count capacity; seat ownership is not modeled yet.
+- Table graphics now draw up to 12 chair markers from the declared seat count; the capacity label remains authoritative for larger counts. Booth/counter art is illustrative.
+- Standalone chairs add capacity independently. A chair can explicitly belong to a table, booth or counter and represent seats already included in that group. Assigned seats cannot exceed group capacity. Assignment requires layout schema version 2; version 1 layouts retain their original counts. Geometry alone never infers ownership. Deleting a group confirms removal of its assigned chair objects; Undo restores them.
 - Windows, walls and AC units are regular floor objects. There are no wall attachments, ceiling layers, airflow directions or circulation-path semantics.
 - Duplicate copies a **saved** configuration. Save current edits first; switching actions can discard unsaved edits after confirmation.
-- Editing checkpoint, active configuration and scenario baseline are different concepts. Reset returns to the editing checkpoint; it does not necessarily select the business baseline.
+- The editor names the active save target and saved comparison baseline. Template/blank choices are unsaved replacements of the active configuration; Reset confirms returning to its saved checkpoint. Saving the baseline refreshes new scenario defaults without rewriting historical snapshots.
 - The comparison uses saved versions, not every unsaved draft edit. Area/seat includes kitchen and all other room space; it is not measured clearance or comfort.
 
 ### Insights implemented today
 
-The deterministic rule finds seating centers within 2 m of AC, windows, doors or kitchen zones. Overlapping footprints produce separate findings. Findings carry object IDs, explanations and either `Suggestion` or `Potential problem`. Clicking one selects its first object and scrolls to the editor. Results are capped at 20.
+The deterministic rule finds seating centers within 2 m of AC, windows, doors or kitchen zones. Overlapping footprints produce separate findings. Findings carry object IDs, explanations and either `Suggestion` or `Potential problem`. Inspecting one highlights every affected object and selects the first in the inspector. Overlap findings can preview the nearest non-overlapping 0.25 m grid position for one object. Apply commits one undoable move; Reject changes nothing. Any layout edit invalidates a pending proposal. Results are capped at 20.
 
-There is no live AI analysis, review-to-object matching, automatic proposed-layout preview, observed table utilization, or evidence-supported critical/safety classification. Gray/yellow/red severity styling is not a complete three-level card system yet.
+The selected-object inspector reports the nearest room-edge gap and shortest Euclidean rectangle-edge gap to another object, with rotation applied. Zero means touching or overlapping. These are not circulation clearance or compliance measures. A separate purple Gemini workflow now interprets review/object context and can propose bounded position changes. There is still no whole-layout optimization, observed table utilization or evidence-supported critical/safety classification. Gray/yellow/red severity styling is not a complete three-level card system yet.
 
 ### Floor Plan backlog
 
-- [ ] **FP-01 · P0:** Clarify custom-object creation: description-first form, editable category/name/dimensions, manual placement. Optional AI suggestions must remain estimates.
-- [ ] **FP-02 · P0:** Define seat ownership so table seats and standalone chairs cannot accidentally double-count. Migrate existing layouts compatibly.
-- [ ] **FP-03 · P0:** Make active layout, unsaved draft, baseline and saved comparison labels unambiguous. Verify baseline seat edits refresh new scenario defaults consistently.
+- [x] **FP-01 · Manual scope:** Description-first creation, editable category/name/dimensions and manual placement. No AI suggestions claimed.
+- [x] **FP-02:** Explicit seat ownership with validated group capacity, version 2 layout storage and backward-compatible version 1 reads. Users still need to declare whether a standalone chair is additional or included.
+- [x] **FP-03:** Active/draft/baseline labels, template/blank dirty-state correction and baseline-seat refresh on save; saved snapshots unchanged.
 - [ ] **FP-04 · P1:** Add physical semantics only where useful: wall/window anchoring, optional ceiling objects and user-described service paths.
-- [ ] **FP-05 · P1:** Add minimum spacing/clearance metrics with explicit geometric definitions. Do not label them code compliance.
+- [x] **FP-05 · Footprint scope:** Selected-object wall and nearest-object gaps with explicit geometry definitions; no walking-clearance or code-compliance claim.
 - [ ] **FP-06 · P1:** Provide Spacious/Balanced/Higher-density comparison labels as user preferences, not AI aesthetic scores; show known costs and unknown comfort evidence.
 - [ ] **FP-07 · P1:** Add measured operational records and a source panel: arrivals, occupancy, table assignment and actual service intervals where supplied.
 - [ ] **FP-08 · P1:** Join interior-review evidence to object/area hypotheses; expose uncertainty and missing observations.
-- [ ] **FP-09 · P1:** Add contextual finding cards with supported severity, all affected-object highlights, proposed-change preview and explicit apply/reject.
+- [x] **FP-09 · Geometry scope:** All affected-object highlights and one-object overlap move preview with explicit apply/reject and undo. Review-linked AI proposals and supported critical severity remain future work.
 - [ ] **FP-10 · P2:** Improve new object art, floor composition, library density, mobile controls and restrained motion without replacing the SVG editor.
-- [ ] **FP-11 · P1:** Library-level backup/import, useful capacity-limit messages and corruption recovery UI.
+- [x] **FP-11 · Browser scope:** Whole-library JSON export/import with preview, restaurant validation, 4 MB cap, 50-layout limit, stored-byte download, explicit reload/recovery and preserved prior bytes on replacement.
 
 **Acceptance:** create “Current Restaurant,” duplicate “Comfortable Dining,” change AC/custom metadata, compare both, preview an action, save, reload, and recover all geometry/metadata without altering the original configuration. Capacity must have a documented seat-count convention.
 
@@ -251,10 +253,10 @@ Payback is available only when additional covers and monthly contribution are po
 - Expandable Floor Plan section with separate photo editor.
 - Up to ten photos; browser resizing to maximum 1280 px and JPEG encoding.
 - Optional entrance/bar/cashier wall facts, table counts, spacing and notes.
-- Standard/high provider model paths; the API key remains server-side.
-- Bounded Zod request fields, structured draft validation and invalid-import rejection.
-- No-key fallback explicitly says photos were not analyzed and returns `source: demo`.
-- AI result handling, error messages, geometric checks and optional corrective pass.
+- Standard/more-detail requests use the shared Gemini model (optional configured photo model); the API key remains server-side.
+- Bounded streamed JSON bodies, signed session/origin checks, Zod requests, structured draft validation and invalid-import rejection.
+- Missing/failed providers return only Something is wrong. Manual sample/blank plans remain separate.
+- Strict Gemini results, geometric checks and generic errors; no silent corrective/fallback result on provider failure.
 - Sample/blank plan, table and fixture editing, whole-plan rotation, undo/redo, SVG/PNG/JSON export.
 - Selection, duplicate-ID, undo-per-drag and entrance-rotation fixes.
 - Correction differences generate reusable prompt lessons stored in the browser.
@@ -267,7 +269,7 @@ This is a second representation: approximate feet, `tables`/`fixtures`/`door`, s
 
 “Teach it” stores text for future prompts; it does not train the model. Lesson storage is not restaurant-scoped, and storage failures are swallowed by its helpers. Editing dimensions marks objects verified in code, but that should not be interpreted as independent measurement verification.
 
-Photo sample/fallback records now come from the central dataset fixture. The provider response is parsed/normalized and then validated; this is not a fully reusable provider-independent structured-output service. Schema validity does not guarantee an accurate or geometrically valid room. Some geometric problems remain warnings/checks rather than blocked editing. Current export does not preserve a full provenance record.
+Photo sample/blank records come from the central fixture. Gemini now shares the structured-output adapter and validates the exact response rather than filling missing coordinates or counts with invented defaults. Schema validity does not guarantee an accurate or geometrically valid room. Some geometric problems remain warnings/checks rather than blocked editing. Current export does not preserve a full provenance record.
 
 ### Remaining
 
@@ -301,15 +303,15 @@ Sources: [review UI](../../src/features/tactical/frontend/components/review-insi
 | --- | --- | --- |
 | Authorized CSV/JSON/text imports | Missing | Bounded parser, mapping preview, validation, duplicates, explicit source and retention policy |
 | Source/platform filter | Missing | Source metadata and consistent platform taxonomy |
-| Positive/neutral/negative feedback | Missing | Separate supplied rating signals from AI text sentiment and explain method |
+| Positive/neutral/negative feedback | Purple AI classification implemented for supplied reviews | Imported datasets and integrated sentiment filters remain queued |
 | Date ranges and period comparison | Dates stored, filtering/trends missing | Period selector, comparable windows, sample sizes and insufficient-evidence state |
 | Author filter/contact | Missing | Optional authorized identity fields; no inferred identities or contacts |
 | Dish mentions/menu intelligence | Missing | Stable dish IDs/aliases, evidence-linked mention extraction and polarity |
 | Topics and keyword | Working for supplied themes | Classify imported text; preserve original evidence |
-| AI researcher | Missing | Structured findings, verified citations, uncertainty, suggested actions and unknown costs |
+| AI researcher | Gemini findings with validated citations, uncertainty and suggested actions | Real review imports and durable analysis history |
 | Engagement/platform comparison | Missing | Actual post/engagement records with observation dates |
 | Interaction/network analysis | Missing | Observed edges, graph calculations and explanation; sentiment alone is insufficient |
-| Suggested replies | Missing | Generate editable drafts, copy action, explicit provenance; no automatic publishing |
+| Suggested replies | Gemini draft/edit/copy workflow | No publishing integration |
 
 ### Implementation backlog
 
@@ -317,10 +319,10 @@ Sources: [review UI](../../src/features/tactical/frontend/components/review-insi
 - [ ] **REV-02 · P0:** CSV/JSON import preview, row-level errors, file/row limits, stable IDs, deduplication and safe persistence.
 - [ ] **REV-03 · P0:** Source/date/sentiment/dish/author filters with accurate denominators and empty states.
 - [ ] **REV-04 · P0:** Deterministic overview and period comparison over supplied records, including sample sizes and rating-derived labels.
-- [ ] **REV-05 · P1:** Server-side text classification with Zod output and evidence-ID validation; demo/rule-based fallback must be labeled.
-- [ ] **REV-06 · P1:** Research findings: title, evidence IDs, action, confidence/limits, missing data and cost assumptions. Never invent precise costs.
+- [x] **REV-05 · Supplied dataset scope:** Server-side Gemini classification with Zod, evidence-ID and exact-quote validation. No fallback output on failure; imported review datasets remain queued.
+- [x] **REV-06 · Supplied dataset scope:** Structured findings with evidence, actions, model confidence, limitations and costs instructed to remain unknown unless supplied.
 - [ ] **REV-07 · P1:** Dish mention trends and menu opportunities; distinguish review popularity from sales.
-- [ ] **REV-08 · P1:** Editable positive/negative review reply drafts with copy/download. Publishing remains outside scope without authorized APIs.
+- [x] **REV-08 · Copy scope:** Editable Gemini reply drafts and clipboard copy. No posting or file-download action.
 - [ ] **REV-09 · P1 conditional:** Social post/engagement ingestion and observed graph analysis when relationship data exists.
 
 **Acceptance:** import an authorized dataset, inspect rejected rows, filter a period/platform, open evidence for a finding, follow its Floor Plan/menu action, and draft a reply without publishing. Every statistic must use the selected dataset rather than the old demo reviews.
@@ -398,34 +400,37 @@ Fifteen inventory records and eight suppliers now come from the central dataset.
 
 ## 11. AI Assistant and contextual AI
 
-### Placeholder
+**Current implementation supersedes the earlier placeholder restriction.** The user’s latest request enabled the advisor and contextual workflows. See [AI_FEATURES.md](AI_FEATURES.md) for the current feature map, purple treatment, access setup, validation, caching and limitations. The original brief’s no-chatbot-first approach is retained through contextual page actions; the advisor now supports a single grounded question at a time.
 
-The AI Assistant page has preview feature cards and a disabled input/send button with an explicit inactive message. This satisfies the requested placeholder scope. Some card descriptions use present tense; revise them to consistently describe planned capability.
+### Implemented now
 
-Do not build a full chatbot before the contextual workflows work.
+- Gemini structured output through one Tactical-local transport; no provider-failure demo substitution.
+- Purple AI controls, findings, classifications, drafts, photo estimates and applied AI object/move provenance.
+- Evidence-cited floor/review/finance/supply findings; exact review-quote validation; complete classification of the bounded review sample.
+- Explicit preview/apply/reject for validated layout moves and editable object suggestions before manual placement.
+- Editable review replies and job drafts, copy actions and no publishing.
+- Single-turn advisor grounded in current Tactical context, with unavailable data declared.
+- Signed workspace access cookie, same-origin actions, bounded request streams, deadlines and local request budgets.
+- Ten-minute exact-context/model/prompt cache with visible provenance; changed layout/instructions disable stale reuse.
 
-### Shared AI foundation
+- [x] **AI-01:** Local structured result/evidence schemas and bounded tasks.
+- [x] **AI-02:** Existing evidence/object/menu IDs and verbatim review excerpt validation. This does not guarantee all generated prose is factually correct.
+- [x] **AI-03:** Shared Gemini adapter; canonical financial calculations remain TypeScript.
+- [x] **AI-04 · Workspace demo scope:** Visible data-sending explanation and user-triggered generation; exact generic errors with no fallback.
+- [x] **AI-05 · In-memory scope:** Model/prompt/context-keyed cache and stale-result controls. Durable/account-scoped history is still missing.
+- [x] **AI-06 · Updated user scope:** Advisor placeholder replaced by a usable single-turn workflow. No Expansion data or multi-turn memory.
 
-The photo handler is the only current Tactical provider path. There is no common finding schema/service, review researcher, global advisor context, reusable analysis cache, streaming explanation layer or analysis persistence model.
-
-- [ ] **AI-01 · P1:** Tactical-local finding schema: ID, title, evidence IDs, object/page references, severity, confidence/limits, assumptions, suggested action and optional numeric scenario reference.
-- [ ] **AI-02 · P1:** Validate that every returned evidence/object ID belongs to the submitted dataset; reject fabricated citations.
-- [ ] **AI-03 · P1:** Extract provider access behind a bounded server interface, reusing the existing SDK. Keep deterministic calculations outside model output.
-- [ ] **AI-04 · P1:** Define explicit permission/data-sending UX for uploaded business content, retry/error states and provenance of fallback outputs.
-- [ ] **AI-05 · P1:** Cache/persist results by restaurant, dataset version, model and prompt version; invalidate stale analysis honestly.
-- [ ] **AI-06 · P2:** Update placeholder copy and document future context contracts; full assistant remains deferred.
-
-**Acceptance:** supplied data produces a schema-valid finding whose citations open actual records; unavailable providers show a clear error or explicitly labeled fallback. AI explanations cannot replace canonical arithmetic.
+Remaining: production user/role authentication, distributed limits and quotas, durable analysis history, imported review datasets, observed social graphs, and external integrations. The current shared access code is not a full account system.
 
 ## 12. Integrations and Expansion coordination
 
 | Service/track | Current Tactical implementation | What is still required |
 | --- | --- | --- |
-| Anthropic | Server photo handler and demo fallback; live path unverified | Successful authorized request, model availability, output/failure tests and cost controls |
+| Gemini | Shared text/vision adapter and Tactical page workflows; live text requests verified | Real-photo accuracy/measurement validation, account-scoped production controls and durable history |
 | Capital One Nessie | UI placeholder only | Adapter, sandbox credentials/access, source mapping and verifiable request-to-scenario journey |
 | CoStar | No Tactical adapter | Agreed property/building record handoff with Rain; authorized relevant fields; manual geometry fallback |
 | Arlequin | No graph integration or network analysis | Verify requirements and available relationship data; implement observed edges and graph-derived findings |
-| Amazon AI | No verified Tactical Amazon integration | Verify challenge/service requirements; existing Anthropic use does not prove eligibility |
+| Amazon AI | No verified Tactical Amazon integration | Verify challenge/service requirements; Gemini use does not prove eligibility |
 | Peri/outreach | No supplied consultation dataset wired here | Team-provided permitted findings and a demonstrable adaptation to that restaurant |
 | Indeed | No posting integration | Draft preview only unless later explicitly implemented/authorized |
 | Social/review publishing | None | Copyable drafts first; supported authorized posting adapter only later |
@@ -448,7 +453,7 @@ No sponsor eligibility is verified by this document. Do not count demo output or
 
 - Invalid photo-plan import no longer replaces the valid draft and crashes rendering.
 - Photo selection persists after click; table IDs are unique; one drag produces one undo entry; entrance fraction rotates correctly.
-- Missing photo API key is explicitly a demo result.
+- Missing/failed photo AI now returns only Something is wrong; no automatic sample fallback. Manual Sample plan remains separate.
 - Legacy extra routes redirect to Floor Plan.
 - Firefox's restored disabled button state is disabled via `StateButton`; Chrome/Firefox reload behavior has regression coverage.
 
@@ -460,7 +465,7 @@ No sponsor eligibility is verified by this document. Do not count demo output or
 | QA-02 | Delivered for mocks | Ledger reconciliation and canonical capacity math; unsupported average-order metric removed |
 | QA-03 | P1 | Separate library persistence/editor actions into tested helpers or hooks; workspace currently carries many responsibilities |
 | QA-04 | P1 | Avoid treating a hidden mounted panel as an independently loaded page; consider lazy mounting only with explicit state preservation |
-| QA-05 | P1 | Multi-tab/storage error handling; scenario writes currently consume recovered read results without a full conflict policy |
+| QA-05 | Partial | Library stale-tab changes block writes and allow explicit reload/export/recovery. Scenario writes still need their own conflict/recovery policy; simultaneous browser writes are not an atomic transaction |
 | QA-06 | P1 | Photo lesson save failures, dataset scope and draft-loss handling |
 | QA-07 | P1 | Full keyboard/focus/screen-reader audit, especially photo canvas selection and clickable findings; a mobile route test is not an accessibility audit |
 | QA-08 | P2 | Check reduced-motion behavior of imperative scrolling as well as CSS; some handlers explicitly request smooth scrolling |
@@ -482,7 +487,7 @@ This sequence implements the brief without rebuilding the app. Owners are Tactic
 | 3 | Financial ledger and reconciled overview | Finance tabs and table styling | Step 1 financial schema | Dashboard exactly reconciles to selected records; unknown values stay unavailable |
 | 4 | Menu/channel cost and pricing scenarios | Canonical scenario conventions | Step 3 cost/sales records | Dine-in/delivery candidates calculated with explicit demand assumptions |
 | 5 | Scenario/context connections | Layout library and saved-snapshot engine | Steps 1–4 | Layout/finance share declared assumptions and retain historical snapshots |
-| 6 | Contextual AI review findings/replies | Existing server provider, review evidence | Step 2 | Validated citations, transparent fallback, copyable human-edited replies |
+| 6 | Contextual AI review findings/replies | Existing server provider, review evidence | Step 2 | Validated citations, generic failure without fallback, copyable human-edited replies |
 | 7 | Floor analytics and photo conversion | Main editor, photo draft/schema, insights | Measurement/provenance decisions | Confirmed conversion to new layout; supported operational metrics only |
 | 8 | HR/Supply demo completion | Existing pages | Step 1 | Consistent derived totals, fictional contacts/costs and preview-only actions |
 | 9 | Conditional sponsor work | Separate adapters | Credentials, permitted datasets, verified requirements | Real end-to-end integration proof, demo/live states separated |
@@ -516,7 +521,7 @@ The MongoDB/data increment ran and passed:
 - ESLint, TypeScript typecheck and production build.
 - Browser journeys cover named-layout save/rename/delete/baseline/metadata, photo selection/invalid import/redirects/mobile navigation, disabled-state reload behavior, and financial filters/pricing with HR/Supply data.
 
-Live Atlas create/read/validate/update and 401/409 behavior were also verified. This does not claim live AI-provider, full accessibility or exhaustive visual testing. The main suite is stronger around geometry/calculations/storage than around newer financial and supporting-page behavior.
+Live Atlas create/read/validate/update and 401/409 behavior were also verified. That earlier verification did not cover AI. Live Gemini text verification is recorded in the latest AI batch below; full accessibility and exhaustive visual testing remain incomplete. The main suite is stronger around geometry/calculations/storage than around newer financial and supporting-page behavior.
 
 ### Commands
 
@@ -543,7 +548,7 @@ Use Node >=22.18; this workspace has used `mise exec node@24 -- ...`. Tactical b
 | Photo conversion | Feet/meters, dimensions, object IDs, provenance and unsupported categories validated before apply |
 | Persistence failures | Quota/read errors and concurrent tabs preserve last valid work and show useful recovery paths |
 | Accessibility | Full journey with keyboard, screen reader labels/focus, narrow viewport and reduced motion |
-| Provider integration | Authorized real request, schema-valid response, timeout/error handling and unmistakable fallback |
+| Provider integration | Authorized real request, schema-valid response, timeout/error handling and no fabricated fallback |
 | Expansion handoff | Only agreed parameters cross the boundary; no Tactical change breaks Rain's routes/types |
 
 ## 16. Decisions and data still needed
@@ -573,8 +578,8 @@ These are not blockers for continuing with labeled fixtures. They determine whet
 - [x] AC and manually customizable object types.
 - [x] Seating/turnover scenarios integrated in Floor Plan.
 - [x] Deterministic, explained capacity calculations and saved comparisons.
-- [x] HR/Supply demo labels and intentionally inactive AI Assistant.
-- [x] Missing photo key clearly distinguished from real analysis.
+- [x] HR/Supply demo labels and a purple, evidence-linked single-turn advisor.
+- [x] Failed/missing AI provider shows only Something is wrong, without fallback results.
 - [x] Code checks and the documented browser regression suite passed in the preceding implementation work.
 
 ### Still required for the full refinement brief
@@ -590,8 +595,24 @@ These are not blockers for continuing with labeled fixtures. They determine whet
 - [ ] Responsive, keyboard, reduced-motion and failure/recovery journeys have a complete audit.
 - [ ] Conditional external integrations have separate, verifiable proof before being claimed.
 
-**Current next implementation task:** REV-01/REV-02, saved pricing scenarios and intentional browser-editor/cloud synchronization with proper end-user authorization. DATA-01 through DATA-04 and the mock ledger/unit-economics foundation are delivered. Keep the working editor/scenario path intact while making the surrounding business data credible and replaceable.
+**Current next implementation focus (user-prioritized):** continue main floor-plan work: wall/window semantics, deliberate layout preference comparisons, review-linked interior hypotheses, and shared Floor Plan/Finance assumption context. Photos are deferred. REV-01/REV-02, saved pricing scenarios and authenticated cloud synchronization remain queued. DATA-01 through DATA-04 and the mock ledger/unit-economics foundation are delivered.
 
 ### Integration check after Rain’s latest push
 
 Merged remote `974622d` while preserving Expansion and shared Mongo helper code. Resolved only package script/dependency declarations; both sets of commands remain available. The combined app passed 134 unit tests, lint, typecheck and production build. The build reports two filesystem-tracing warnings at `src/features/expansion/backend/runs.ts` (dynamic run-storage paths); Rain should review deployment tracing scope. Tactical browser verification above preceded this merge; no Tactical runtime code changed during the merge.
+
+### Main floor-plan improvement batch
+
+Implemented after the user prioritized floor-plan work and deferred photos. Added `frontend/layout-storage.ts`, `components/library-backup.tsx`, seat-ownership validation in `domain/schemas.ts`, geometry helpers in `domain/layout.ts`, inspector/custom-object controls and reversible finding previews. No new dependencies, MongoDB writes, Expansion changes or photo implementation changes.
+
+Focused checks cover legacy/version-2 capacity, invalid ownership, rotated/diagonal gaps, blocked move proposals, stale writes, corrupted backups and storage failures. Browser journeys cover chair assignment and baseline refresh, custom metadata reload, proposal apply/reject/undo, backup recovery and two-tab conflicts. See [floor-plan guide](FLOOR_PLAN_GUIDE.md).
+
+Verification for this floor-plan batch: **140 unit tests**, **16 browser runs** (eight journeys in Chrome and Firefox), lint, typecheck and production build passed. The browser run found and prompted a fix for an import/initial-storage-load race; editing now waits for initialization. The build retains the two previously documented Expansion filesystem-tracing warnings.
+
+### AI implementation batch
+
+Gemini credentials are kept in ignored local environment configuration. Live schema-valid responses were verified for all eight text tasks on synthetic restaurant data. Browser tests distinguish controlled test responses from provider verification. Photo AI shares Gemini and now fails closed rather than silently producing a sample. See the dedicated AI guide for exact boundaries.
+
+AI verification: **147 unit tests**, **24 Chrome/Firefox browser runs**, lint, typecheck and production build passed. Authenticated live review generation succeeded against the running MongoDB-backed app; unauthenticated and post-lock requests returned 401. Desktop/mobile purple rendering was inspected with no horizontal overflow at 390 px. Browser test responses are controlled test fixtures; separate Gemini live calls verified all eight text workflows.
+
+Photo verification: the Gemini photo handler returned a validated estimate from a synthetic floor-plan screenshot. Real-photo measurement accuracy remains unverified. Earlier invalid door-position output correctly returned Something is wrong; the clarified fractional-unit prompt passed.

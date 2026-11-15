@@ -67,11 +67,11 @@ Place an **AC unit**, **Window** or **Custom object**. Edit its name and descrip
 
 Expand **Estimate a separate draft from photos** on Floor Plan. Use **Sample plan** to exercise selection, editing, undo/redo and exports without credentials. Invalid JSON should show an error and retain the current draft. The sample editor uses feet and a different JSON format; it cannot yet be imported directly into the main editor.
 
-For an authorized photo, the no-key path explicitly says that photos were not analyzed. A configured Anthropic key enables the server provider path, whose live behavior still requires verification. Correction lessons are prompt memory, not model training. Current photo drafts are not automatically saved across reloads: export them first.
+For an authorized photo, unlock AI and generate with Gemini. A missing key or failed/invalid response shows only Something is wrong; no sample substitutes for the result. Correction lessons are prompt memory, not model training. Current photo drafts are not automatically saved across reloads: export them first.
 
 ## 12. Review the supporting sections
 
-HR shows a fictional roster and schedule. Supply shows fictional inventory/suppliers. Finance shows sample charts, transactions, menu comparisons and a simplified capacity slider. These pages consume the central validated mock dataset, from the local fixture or MongoDB. Finance filters reconcile to the displayed ledger; menu/channel costs and price/volume experiments are explicit assumptions. HR/Supply derive labor/stock summaries. These remain synthetic examples, not real payroll or accounting. AI Assistant is intentionally inactive.
+HR shows a fictional roster and schedule. Supply shows fictional inventory/suppliers. Finance shows sample charts, transactions, menu comparisons and a simplified capacity slider. These pages consume the central validated mock dataset, from the local fixture or MongoDB. Finance filters reconcile to the displayed ledger; menu/channel costs and price/volume experiments are explicit assumptions. HR/Supply derive labor/stock summaries. These remain synthetic examples, not real payroll or accounting. AI Assistant now supports a grounded single-turn Gemini question. Purple AI workflows also appear on the other pages; see [AI setup](AI_FEATURES.md).
 
 For exact remaining capabilities, use the [page guide](PAGES.md) and [implementation inventory](IMPLEMENTATION_STATUS.md).
 

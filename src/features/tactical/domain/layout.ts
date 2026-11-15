@@ -85,7 +85,48 @@ export function overlappingIds(objects: LayoutObject[]) {
 
 export function layoutCounts(layout: Layout) {
   return {
-    seats: layout.objects.reduce((seats, object) => seats + (object.seats ?? 0), 0),
+    seats: layout.objects.reduce((seats, object) => seats + (object.seatOwnerId ? 0 : object.seats ?? 0), 0),
     tables: layout.objects.filter(({ type }) => type === "table_2" || type === "table_4" || type === "booth").length,
   };
+}
+
+/** Shortest Euclidean gap between the rotated, axis-aligned footprint edges. */
+export function footprintGap(a: LayoutObject, b: LayoutObject) {
+  const first = footprint(a), second = footprint(b);
+  return Math.hypot(
+    Math.max(0, a.x - b.x - second.width, b.x - a.x - first.width),
+    Math.max(0, a.y - b.y - second.depth, b.y - a.y - first.depth),
+  );
+}
+
+export function objectClearance(layout: Layout, object: LayoutObject) {
+  const size = footprint(object);
+  const neighbors = layout.objects.filter(item => item.id !== object.id)
+    .map(item => ({ id: item.id, gap: footprintGap(object, item) }))
+    .sort((a, b) => a.gap - b.gap || a.id.localeCompare(b.id));
+  return {
+    wallGap: Math.max(0, Math.min(object.x, object.y, layout.room.width - object.x - size.width, layout.room.depth - object.y - size.depth)),
+    nearest: neighbors[0] ?? null,
+  };
+}
+
+/** A bounded grid search for a single move, not a layout optimizer or route planner. */
+export function suggestClearPosition(layout: Layout, id: string): LayoutObject | null {
+  const object = layout.objects.find(item => item.id === id);
+  if (!object) return null;
+  const size = footprint(object);
+  const obstacles = layout.objects.filter(item => item.id !== id);
+  let best: LayoutObject | null = null;
+  let distance = Infinity;
+  for (let y = 0; y <= layout.room.depth - size.depth + 1e-8; y += gridStep) {
+    for (let x = 0; x <= layout.room.width - size.width + 1e-8; x += gridStep) {
+      const candidateDistance = Math.hypot(x - object.x, y - object.y);
+      if (candidateDistance >= distance || candidateDistance < 1e-8) continue;
+      const candidate = { ...object, x: roundLength(x), y: roundLength(y) };
+      if (obstacles.every(other => !hasOverlap(candidate, other))) {
+        best = candidate; distance = candidateDistance;
+      }
+    }
+  }
+  return best;
 }

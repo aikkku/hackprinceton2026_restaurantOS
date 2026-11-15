@@ -11,7 +11,7 @@ All six sections share the persistent Tactical shell and one validated, server-s
 | HR — `/tactical/hr` | Central fictional directory, schedule, contact/pay/availability/mood profiles and base-labor estimate | Structured shift validation and job-description preview |
 | Supply Management — `/tactical/supply` | Central inventory, category filters, suppliers, costs, thresholds and derived stock/restock indicators | Reorder-cost preview and UI polish |
 | Financial Intelligence — `/tactical/finance` | Reconciled synthetic ledger, month/channel/type filters, channel contribution, dated sample dish prices, price/volume and capacity experiments | Real-data imports, saved pricing scenarios and shared edited assumptions |
-| AI Assistant — `/tactical/ai` | Explicit inactive placeholder | Intentionally deferred |
+| AI Assistant — `/tactical/ai` | Purple single-turn Gemini advisor with evidence | Durable history, multi-turn context and external data remain deferred |
 
 Legacy `/tactical/scenarios`, `/tactical/decisions`, and `/tactical/analyze` redirect to Floor Plan. Photo analysis is an expandable separate editor inside Floor Plan. It does not update the measured floor plan or financial model.
 
@@ -24,3 +24,7 @@ Save draft updates the active configuration. Duplicate copies the selected saved
 ## Verification
 
 Use Node >=22.18. Run `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build`. After building, run `PLAYWRIGHT_CHANNEL=chrome npx playwright test --config playwright.tactical.config.ts` for the named-layout and photo-editor regression journeys. The tests run Chrome/Chromium and Firefox on port 3057. Install Firefox with `npx playwright install firefox`; use installed Chrome with the channel variable, or omit it with Playwright Chromium installed. Reload tests check that Firefox does not restore stale disabled button states before hydration.
+
+Floor Plan now also provides manual custom-object categories, explicit chair ownership, selected-footprint gaps, all-object finding highlights, reversible overlap-move previews, saved-baseline refresh and browser-library backup/recovery. See the [floor-plan guide](FLOOR_PLAN_GUIDE.md) for a review sequence and remaining boundaries.
+
+All Tactical sections now have purple AI workflows: floor analysis/custom-object suggestions, review research/replies, financial explanations, supply recommendations, job-description drafts and the advisor. The photo AI path uses Gemini and never falls back to sample output on failure. See [AI features and setup](AI_FEATURES.md).
