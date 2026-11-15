@@ -5,7 +5,7 @@ import type { Map as LibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { FIT_ICON, FIT_LABEL, type Fit } from "./model.ts";
 
-export type MapPlace = { id: string; name: string; lat: number | null; lng: number | null; fit: Fit; price: string; saved: boolean };
+export type MapPlace = { id: string; name: string; subtitle: string; lat: number | null; lng: number | null; fit: Fit; price: string; saved: boolean };
 type Spot = { key: string; lat: number; lng: number; places: MapPlace[] };
 
 const FIT_ORDER: Fit[] = ["meets", "verify", "other", "fails"];
@@ -24,7 +24,7 @@ function toSpots(places: MapPlace[]): Spot[] {
   return [...spots.values()];
 }
 
-function pinElement(spot: Spot, selectedId: string | null, onSelect: (id: string) => void): HTMLButtonElement {
+function pinElement(spot: Spot, selectedId: string | null, onPick: (id: string, spotKey: string) => void): HTMLButtonElement {
   const selectedHere = spot.places.find((p) => p.id === selectedId);
   const lead = selectedHere ?? spot.places[0];
   const fit = spot.places.length > 1 ? bestFit(spot.places) : lead.fit;
@@ -51,19 +51,70 @@ function pinElement(spot: Spot, selectedId: string | null, onSelect: (id: string
     event.stopPropagation();
     // Clicking a shared address cycles through the places there.
     const index = selectedHere ? spot.places.indexOf(selectedHere) : -1;
-    onSelect(spot.places[(index + 1) % spot.places.length].id);
+    onPick(spot.places[(index + 1) % spot.places.length].id, spot.key);
   });
   return button;
 }
 
-export function PlacesMap({ places, selectedId, onSelect, center, note }: {
-  places: MapPlace[]; selectedId: string | null; onSelect: (id: string) => void; center: [number, number] | null; note: string;
+/** Simple address info card shown next to the clicked pin (DOM for the popup). */
+function cardElement(spot: Spot, selectedId: string | null, onDetails: (id: string) => void, onClose: () => void): HTMLElement {
+  const selected = spot.places.find((p) => p.id === selectedId) ?? spot.places[0];
+  const card = document.createElement("div");
+  card.className = "sx-map-card";
+  // Clicks inside the card never close it via a background/plane handler.
+  card.addEventListener("click", (event) => event.stopPropagation());
+  const close = document.createElement("button");
+  close.type = "button";
+  close.className = "sx-map-card-close";
+  close.setAttribute("aria-label", "Close");
+  close.textContent = "×";
+  close.addEventListener("click", () => onClose());
+  card.append(close);
+  const name = document.createElement("span");
+  name.className = "sx-map-card-name";
+  name.textContent = selected.name;
+  const sub = document.createElement("span");
+  sub.className = "sx-map-card-sub";
+  sub.textContent = selected.subtitle;
+  const row = document.createElement("span");
+  row.className = "sx-map-card-row";
+  const dot = document.createElement("span");
+  dot.className = `sx-dot sx-s-${selected.fit}`;
+  dot.setAttribute("aria-hidden", "true");
+  dot.textContent = FIT_ICON[selected.fit];
+  const fit = document.createElement("span");
+  fit.textContent = FIT_LABEL[selected.fit];
+  const price = document.createElement("span");
+  price.textContent = selected.price;
+  row.append(dot, fit, price);
+  card.append(name, sub, row);
+  if (spot.places.length > 1) {
+    const more = document.createElement("span");
+    more.className = "sx-map-card-more";
+    more.textContent = `${spot.places.length - 1} more ${spot.places.length - 1 === 1 ? "place" : "places"} at one address — tap the pin to switch.`;
+    card.append(more);
+  }
+  const details = document.createElement("button");
+  details.type = "button";
+  details.className = "sx-map-card-btn";
+  details.setAttribute("aria-label", `Open details for ${selected.name}`);
+  details.textContent = "See details ›";
+  details.addEventListener("click", () => onDetails(selected.id));
+  card.append(details);
+  return card;
+}
+
+export function PlacesMap({ places, selectedId, onSelect, onOpen, center, note }: {
+  places: MapPlace[]; selectedId: string | null; onSelect: (id: string) => void; onOpen: (id: string) => void; center: [number, number] | null; note: string;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LibreMap | null>(null);
   const markers = useRef<Marker[]>([]);
   const selectRef = useRef(onSelect);
+  const openRef = useRef(onOpen);
   const [state, setState] = useState<"loading" | "ready" | "fallback">("loading");
+  // The address card's spot: set by a pin click, cleared by background/close.
+  const [openSpotKey, setOpenSpotKey] = useState<string | null>(null);
   const spots = useMemo(() => toSpots(places), [places]);
   const bounds = useMemo(() => {
     if (!spots.length) return null;
@@ -72,6 +123,9 @@ export function PlacesMap({ places, selectedId, onSelect, center, note }: {
   }, [spots]);
   const missing = places.filter((p) => p.lat === null || p.lng === null).length;
   useEffect(() => { selectRef.current = onSelect; }, [onSelect]);
+  useEffect(() => { openRef.current = onOpen; }, [onOpen]);
+  const closeCard = () => setOpenSpotKey(null);
+  const pick = (id: string, spotKey: string) => { selectRef.current(id); setOpenSpotKey(spotKey); };
 
   useEffect(() => {
     let disposed = false;
@@ -102,10 +156,36 @@ export function PlacesMap({ places, selectedId, onSelect, center, note }: {
     void import("maplibre-gl").then(({ Marker }) => {
       if (cancelled) return;
       markers.current.forEach((m) => m.remove());
-      markers.current = spots.map((spot) => new Marker({ element: pinElement(spot, selectedId, (id) => selectRef.current(id)), anchor: "bottom", offset: [0, -6] }).setLngLat([spot.lng, spot.lat]).addTo(map));
+      markers.current = spots.map((spot) => new Marker({ element: pinElement(spot, selectedId, pick), anchor: "bottom", offset: [0, -6] }).setLngLat([spot.lng, spot.lat]).addTo(map));
     });
     return () => { cancelled = true; };
   }, [spots, selectedId, state]);
+
+  // Address info card: a MapLibre popup anchored to the picked spot. Closing
+  // the card (×, background click, or picking elsewhere) just clears the key.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (state !== "ready" || !map) return;
+    let cancelled = false;
+    let popup: { remove: () => void } | null = null;
+    const spot = openSpotKey === null ? null : spots.find((s) => s.key === openSpotKey) ?? null;
+    if (spot) {
+      void import("maplibre-gl").then(({ Popup }) => {
+        if (cancelled) return;
+        popup = new Popup({ closeButton: false, closeOnClick: false, offset: 44, maxWidth: "300px" })
+          .setLngLat([spot.lng, spot.lat])
+          .setDOMContent(cardElement(spot, selectedId, (id) => openRef.current(id), closeCard))
+          .addTo(map);
+      });
+    }
+    const onBackgroundClick = () => closeCard();
+    map.on("click", onBackgroundClick);
+    return () => {
+      cancelled = true;
+      map.off("click", onBackgroundClick);
+      try { popup?.remove(); } catch { /* already removed */ }
+    };
+  }, [openSpotKey, selectedId, spots, state]);
 
   const fitAll = () => {
     const map = mapRef.current;
@@ -124,7 +204,7 @@ export function PlacesMap({ places, selectedId, onSelect, center, note }: {
   return (
     <div className="sx-map" aria-label="Map of places">
       {state !== "fallback" && <div ref={container} className="sx-map-canvas" />}
-      {state === "fallback" && <FallbackPlane spots={spots} selectedId={selectedId} onSelect={onSelect} />}
+      {state === "fallback" && <FallbackPlane spots={spots} selectedId={selectedId} openSpotKey={openSpotKey} onPick={pick} onOpen={(id) => openRef.current(id)} onCloseCard={closeCard} />}
       {state === "ready" && (
         <div className="sx-map-ctrl">
           <button type="button" aria-label="Zoom in" onClick={() => mapRef.current?.zoomIn()}>+</button>
@@ -140,7 +220,9 @@ export function PlacesMap({ places, selectedId, onSelect, center, note }: {
   );
 }
 
-function FallbackPlane({ spots, selectedId, onSelect }: { spots: Spot[]; selectedId: string | null; onSelect: (id: string) => void }) {
+function FallbackPlane({ spots, selectedId, openSpotKey, onPick, onOpen, onCloseCard }: {
+  spots: Spot[]; selectedId: string | null; openSpotKey: string | null; onPick: (id: string, spotKey: string) => void; onOpen: (id: string) => void; onCloseCard: () => void;
+}) {
   const host = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const node = host.current;
@@ -154,9 +236,19 @@ function FallbackPlane({ spots, selectedId, onSelect }: { spots: Spot[]; selecte
       wrap.className = "sx-plane-pin";
       wrap.style.left = `${maxLng === minLng ? 50 : 12 + ((spot.lng - minLng) / (maxLng - minLng)) * 76}%`;
       wrap.style.top = `${maxLat === minLat ? 50 : 16 + ((maxLat - spot.lat) / (maxLat - minLat)) * 68}%`;
-      wrap.append(pinElement(spot, selectedId, onSelect));
+      wrap.append(pinElement(spot, selectedId, onPick));
       node.append(wrap);
     }
-  }, [spots, selectedId, onSelect]);
-  return <><div className="sx-map-grid" aria-hidden="true" /><div ref={host} style={{ position: "absolute", inset: 0 }} /></>;
+    // The address card sits above its pin in the same relative layout.
+    const cardSpot = openSpotKey === null ? null : spots.find((s) => s.key === openSpotKey) ?? null;
+    if (cardSpot) {
+      const card = document.createElement("div");
+      card.className = "sx-plane-card";
+      card.style.left = `${maxLng === minLng ? 50 : 12 + ((cardSpot.lng - minLng) / (maxLng - minLng)) * 76}%`;
+      card.style.top = `${maxLat === minLat ? 50 : 16 + ((maxLat - cardSpot.lat) / (maxLat - minLat)) * 68}%`;
+      card.append(cardElement(cardSpot, selectedId, onOpen, onCloseCard));
+      node.append(card);
+    }
+  }, [spots, selectedId, openSpotKey, onPick, onOpen, onCloseCard]);
+  return <><div className="sx-map-grid" aria-hidden="true" /><div ref={host} style={{ position: "absolute", inset: 0 }} onClick={() => onCloseCard()} /></>;
 }

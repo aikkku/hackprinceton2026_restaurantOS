@@ -67,7 +67,8 @@ export function Places({ workspace, views, saved, selectedId, notice, onSelect, 
     const cost = monthlyCost(assessed.candidate);
     const estimate = workspace.rentEstimates.get(assessed.candidate.id);
     return {
-      id: assessed.candidate.id, name: assessed.candidate.name, lat: assessed.candidate.latitude, lng: assessed.candidate.longitude,
+      id: assessed.candidate.id, name: assessed.candidate.name, subtitle: placeSubtitle(assessed.candidate),
+      lat: assessed.candidate.latitude, lng: assessed.candidate.longitude,
       fit: fitForGroup(assessed.group),
       price: cost.kind === "unknown" && estimate ? estimatePin(estimate) : costPin(cost),
       saved: saved.includes(assessed.candidate.id),
@@ -136,7 +137,7 @@ export function Places({ workspace, views, saved, selectedId, notice, onSelect, 
         </div>
       </section>
       <section className="sx-mapbox" aria-label="Map">
-        <PlacesMap places={mapPlaces} selectedId={selectedId} onSelect={onSelect} center={null} note={workspace.isSynthetic ? "Synthetic test positions" : "Positions from listing records"} />
+        <PlacesMap places={mapPlaces} selectedId={selectedId} onSelect={onSelect} onOpen={onOpen} center={null} note={workspace.isSynthetic ? "Synthetic test positions" : "Positions from listing records"} />
       </section>
     </main>
   );
