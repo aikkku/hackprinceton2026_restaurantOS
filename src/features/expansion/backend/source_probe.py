@@ -36,10 +36,11 @@ def probe(provider: str, property_id: str, latitude: float | None, longitude: fl
             if not model_id:
                 return {"status": "configured", "reason": "No property/model association in the supplied index."}
             model = access.matterport_model(model_id)
-            allowed = os.environ.get("EXPANSION_MATTERPORT_EMBED_MODELS", "").split(",")
+            # Comma-separated model IDs permitted for the embedded viewer; "*" permits all.
+            allowed = {item.strip() for item in os.environ.get("EXPANSION_MATTERPORT_EMBED_MODELS", "").split(",") if item.strip()}
             return {"status": "verified", "reason": "Model metadata retrieved; offered-suite association and measurements remain unavailable.",
                     "link": {"modelId": model_id, "propertyId": property_id, "candidateId": None, "verifiedAt": None,
-                             "reference": "Authorized commercial-properties.csv property/model join", "viewerPermitted": model_id in allowed},
+                             "reference": "Authorized commercial-properties.csv property/model join", "viewerPermitted": "*" in allowed or model_id in allowed},
                     "model": {"id": model_id, "name": model.get("name"), "capturedAt": None, "measurements": None}}
         if provider == "vexcel":
             if latitude is None or longitude is None:

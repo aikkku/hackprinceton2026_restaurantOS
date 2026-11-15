@@ -25,7 +25,17 @@ export async function GET(
       return localResponse({ error: { code: "invalid_query", message: "Unknown agent artifact name." } }, 400);
     }
     try {
-      return localResponse(isEvidence ? getAgentEvidence({}, ownerId, id) : getAgentArtifact({}, ownerId, id, name as AgentArtifactName));
+      if (!isEvidence) return localResponse(getAgentArtifact({}, ownerId, id, name as AgentArtifactName));
+      const evidence = getAgentEvidence({}, ownerId, id);
+      // Same image link the live investigation route attaches; bytes are served (and re-gated) by /imagery.
+      for (const snapshot of evidence?.snapshots ?? []) {
+        for (const observation of snapshot.observations) {
+          if (observation.provider === "vexcel" && !observation.isSynthetic) {
+            observation.imageUrl = `/api/expansion/investigations/${encodeURIComponent(id)}/imagery?candidateId=${encodeURIComponent(snapshot.candidateId)}`;
+          }
+        }
+      }
+      return localResponse(evidence);
     } catch (error) {
       // Durable fallback when the run directory is gone (new host / disk loss).
       const repo = isNotFound(error) ? await getRepository() : null;
