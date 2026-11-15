@@ -27,3 +27,12 @@
 .social-rank-shift.up { background: #e6f1ec; color: #2f5d4e; }
 .social-rank-shift.down { background: #f6ebe3; color: #8a4f22; }
 .social-fix-first .social-rank { white-space: nowrap; }
+.social-fix-actions { display: grid; gap: 10px; }
+.social-fix-actions h4, .social-fix-actions p { margin: 0; }
+.social-fix-actions ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.social-fix-actions li { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(0, 2fr) auto; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--surface, #fff); border: 1px solid var(--ai-border, #d6c2f0); }
+.social-fix-issue { font-weight: 600; }
+.social-fix-record { display: grid; gap: 2px; min-width: 0; }
+.social-fix-record small { color: var(--muted, #54615c); }
+.social-fix-actions .button { white-space: nowrap; }
+@media(max-width: 640px) { .social-fix-actions li { grid-template-columns: 1fr; } }

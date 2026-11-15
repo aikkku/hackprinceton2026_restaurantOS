@@ -2,7 +2,8 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { analyzeSocial, socialDatasetSchema, validateSemantics, type Semantics } from "./domain/social.ts";
-import { issueReason, issueSignals, rankIssues, rankingHeadline } from "./domain/social-operations.ts";
+import { issueAction, issueReason, issueSignals, operationsLinksApply, rankIssues, rankingHeadline } from "./domain/social-operations.ts";
+import { datasetSchema } from "./domain/dataset.ts";
 
 const read = (name: string) => JSON.parse(readFileSync(new URL(`./frontend/data/${name}`, import.meta.url), "utf8"));
 const sample = socialDatasetSchema.parse(read("demo-social.json"));
@@ -45,4 +46,32 @@ test("unlinked or all-positive samples never produce NaN or a false priority", (
   assert.ok(issues.every(issue => issue.negativeMentions === 0 && issue.scores.combined === 0));
   assert.equal(rankingHeadline(issues), "No negative issue to prioritize in this sample.");
   assert.equal(rankingHeadline([]), "No negative issue to prioritize in this sample.");
+});
+
+const restaurant = datasetSchema.parse(read("demo-restaurant.json"));
+const topicTexts = (id: string) => sample.messages.filter(message => recorded.annotations.find(item => item.messageId === message.id)!.topicIds.includes(id)).map(message => message.text);
+const action = (id: string) => issueAction(recorded.topics.find(topic => topic.id === id)!.area, topicTexts(id), restaurant);
+
+test("each demo issue routes to the operations record customers describe, with stored values only", () => {
+  const packaging = action("packaging")!;
+  assert.deepEqual(packaging.target, { page: "supply", kind: "inventory", id: "i34", label: "Vented takeaway boxes" });
+  assert.equal(packaging.detail, "22 of 60 each on hand (below threshold) · next delivery 2026-11-18");
+  // Tuesday has the highest load per floor-staff hour, but guests describe weekend nights; Saturday is named most.
+  const wait = action("wait")!;
+  assert.deepEqual(wait.target, { page: "hr", kind: "day", id: "2026-11-14", label: "Sat, Nov 14 schedule" });
+  assert.match(wait.detail, /^61 peak orders · 10\.17 per floor-staff hour \(target 6\) · day named in \d+ messages$/);
+  assert.equal(action("food")!.record, "Braised Short Rib");
+  assert.equal(action("pricing")!.target.page, "finance");
+});
+
+test("routing fails closed: unknown words, other areas, missing workforce and public discussions get no link", () => {
+  assert.equal(issueAction("supply", ["The music was too loud tonight."], restaurant), null);
+  assert.equal(issueAction("food", ["Nothing about any dish here."], restaurant), null);
+  assert.equal(issueAction("other", topicTexts("packaging"), restaurant), null);
+  const noWorkforce = { ...restaurant, operations: { ...restaurant.operations, workforce: undefined } };
+  assert.equal(issueAction("staffing", topicTexts("wait"), noWorkforce), null);
+  const quiet = issueAction("staffing", ["Service felt slow."], restaurant)!;
+  assert.equal(quiet.target.id, "2026-11-10"); assert.match(quiet.detail, /no weekday named by guests$/);
+  assert.equal(issueAction("floor", [], restaurant)!.target.page, "floor");
+  assert.equal(operationsLinksApply(sample), true); assert.equal(operationsLinksApply({ ...sample, id: "hn-story-42302171" }), false);
 });

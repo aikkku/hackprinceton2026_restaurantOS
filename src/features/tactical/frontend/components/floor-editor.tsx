@@ -344,7 +344,7 @@ export function FloorEditor({ template, saved, cloud, analysisRequested, onConte
   }
 
   return (
-    <section className="floor-editor" aria-label="Floor plan editor" aria-busy={!ready || saving} inert={!ready || saving}>
+    <section className="floor-editor" aria-label="Floor plan editor" data-assistant-page="floor" aria-busy={!ready || saving} inert={!ready || saving}>
       <div className="floor-studio">
         <div className="floor-topbar">
           <details className="floor-palette" ref={paletteMenu} onToggle={event => {

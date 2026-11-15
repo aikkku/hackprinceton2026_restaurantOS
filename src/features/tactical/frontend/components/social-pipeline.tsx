@@ -1,7 +1,9 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { analyzeSocial, socialDatasetSchema, validateSemantics, type SocialDataset, type Semantics } from "../../domain/social";
-import { issueReason, issueSignals, rankIssues, rankingFormulas, rankingHeadline, type RankingKey } from "../../domain/social-operations";
+import { issueAction, issueReason, issueSignals, operationsLinksApply, rankIssues, rankingFormulas, rankingHeadline, type RankingKey } from "../../domain/social-operations";
+import type { Dataset } from "../../domain/dataset";
+import type { AssistantTarget } from "../../domain/assistant";
 import demo from "../data/demo-social.json";
 import { StateButton } from "./state-button";
 import { useAiAccess } from "./ai-workbench";
@@ -13,7 +15,7 @@ function downloadJson(name: string, data: unknown) {
   const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
   const anchor = document.createElement("a"); anchor.href = url; anchor.download = name; anchor.click(); URL.revokeObjectURL(url);
 }
-export function SocialPipeline({ restaurantId }: { restaurantId: string }) {
+export function SocialPipeline({ restaurantId, dataset: restaurant, onLocate }: { restaurantId: string; dataset?: Dataset; onLocate?: (target: AssistantTarget) => void }) {
   const [dataset, setDataset] = useState<SocialDataset>(sample); const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [storyId, setStoryId] = useState("42302171"); const [permission, setPermission] = useState(false);
   const [topicId, setTopicId] = useState(""); const [groupId, setGroupId] = useState(""); const [query, setQuery] = useState("");
@@ -24,6 +26,16 @@ export function SocialPipeline({ restaurantId }: { restaurantId: string }) {
   const storageKey = `restaurantos:tactical:social:v1:${restaurantId}`;
   const metrics = useMemo(() => analyzeSocial(dataset, analysis?.semantics), [dataset, analysis]);
   const issues = useMemo(() => analysis ? rankIssues(issueSignals(dataset, metrics, analysis.semantics)) : [], [dataset, metrics, analysis]);
+  const linksApply = Boolean(restaurant && onLocate) && operationsLinksApply(dataset);
+  const actions = useMemo(() => {
+    if (!analysis || !restaurant || !linksApply) return [];
+    const texts = new Map(dataset.messages.map(message => [message.id, message.text]));
+    return issues.filter(issue => issue.negativeMentions > 0).map(issue => {
+      const meta = analysis.semantics.topics.find(item => item.id === issue.topicId)!;
+      const topicMessages = metrics.topics.find(item => item.id === issue.topicId)!.messageIds.map(id => texts.get(id)!);
+      return { issue, action: issueAction(meta.area, topicMessages, restaurant) };
+    });
+  }, [analysis, restaurant, linksApply, dataset, issues, metrics]);
   const topic = metrics.topics.find(item => item.id === topicId);
   const groupByActor = new Map(metrics.groups.flatMap(group => group.actors.map(actor => [actor, group.id] as const)));
   const annotations = new Map(analysis?.semantics.annotations.map(item => [item.messageId, item]));
@@ -102,6 +114,12 @@ export function SocialPipeline({ restaurantId }: { restaurantId: string }) {
           <td className="social-rank"><strong>#{issue.ranks.combined}</strong>{shift !== 0 && <span className={`social-rank-shift ${shift > 0 ? "up" : "down"}`}>{shift > 0 ? "↑" : "↓"}{Math.abs(shift)} vs. text only</span>}</td>
           <td className="social-rank"><button className="button ai-button compact" onClick={() => { setTopicId(issue.topicId); setGroupId(""); setQuery(""); }} aria-label={`Trace ${issue.label}`}>Trace</button></td>
         </tr>; })}</tbody></table></div>
+      {linksApply ? actions.length > 0 && <div className="social-fix-actions" aria-label="Where to fix it" role="group"><h4>Where to fix it</h4><ol>{actions.map(({ issue, action }) => <li key={issue.topicId} data-action-issue={issue.topicId}>
+        <span className="social-fix-issue">#{issue.ranks.combined} {issue.label}</span>
+        {action ? <><span className="social-fix-record"><b>{action.page} · {action.record}</b><small>{action.detail}</small></span><button className="button secondary compact" onClick={() => onLocate!(action.target)}>Open in {action.page}</button></>
+          : <span className="social-fix-record"><small>No matching record in this restaurant&apos;s data.</small></span>}
+      </li>)}</ol><p>AI chose each issue&apos;s area (staffing, supply, pricing, food or floor). Code picked the record from words guests wrote and shows only stored values.</p></div>
+        : <p>Operations links apply only to this restaurant&apos;s own customer conversation, not public discussions.</p>}
       <details><summary>How the rankings are calculated</summary><ul>{(Object.keys(rankingFormulas) as RankingKey[]).map(key => <li key={key}><strong>{rankingFormulas[key].label}:</strong> {rankingFormulas[key].formula}.</li>)}</ul><p>Ties fall back to the issue name. Groups are calculated from this sample&apos;s reply/repost structure, so reach describes this conversation, not every customer.</p></details>
     </section>}
     {analysis && <section className="ai-surface social-joined" aria-label="Content connectivity findings"><h3>Where AI themes meet observed connections</h3><p>Counts below are calculated from AI topic labels plus explicit reply/repost records. Same-topic replies show linked discussion; they do not prove adoption or information spread.</p>{metrics.topics.map(item => <article key={item.id}><h4>{item.label}</h4><p>{item.description}</p><p>{item.messageIds.length} messages · {item.actorCount} actors · {item.groups.filter(group => group.count).length} structural groups · {item.crossGroupLinks.length} same-topic cross-group interactions</p><button className="button ai-button compact" onClick={() => { setTopicId(item.id); setGroupId(""); setQuery(""); }}>Trace this theme</button><details><summary>Explicit message paths · {item.conversationLinks.length}</summary>{item.conversationLinks.map(link => <p key={link.messageId}><button className="button ai-button compact" onClick={() => setSelectedMessage(link.messageId)}>{link.parentId} → {link.messageId}</button> · {link.kind} · {link.timestamp}</p>)}{!item.conversationLinks.length && <p>Shared content only; no explicit same-topic message path in this sample.</p>}</details></article>)}</section>}

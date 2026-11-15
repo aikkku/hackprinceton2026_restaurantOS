@@ -5,7 +5,7 @@ import { layoutLibrarySchema } from "./layout-library.ts";
 
 export const assistantTargetSchema = z.object({
   page: z.enum(["supply", "finance", "hr", "reviews", "floor"]),
-  kind: z.enum(["inventory", "menu", "employee", "review", "object", "overview"]),
+  kind: z.enum(["inventory", "menu", "employee", "review", "object", "overview", "day"]),
   id: z.string().max(120), label: z.string().max(500),
 }).strict();
 export type AssistantTarget = z.infer<typeof assistantTargetSchema>;

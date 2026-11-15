@@ -1,4 +1,7 @@
-import type { Semantics, SocialDataset, analyzeSocial } from "./social.ts";
+import type { IssueArea, Semantics, SocialDataset, analyzeSocial } from "./social.ts";
+import type { AssistantTarget } from "./assistant.ts";
+import type { Dataset } from "./dataset.ts";
+import { workforceMetrics } from "./hr.ts";
 
 // Pure, deterministic issue ranking: AI supplies topics and tone; everything here is counted from source records.
 type SocialAnalysis = ReturnType<typeof analyzeSocial>;
@@ -78,3 +81,70 @@ export function rankingHeadline(issues: RankedIssue[]) {
   if (content.topicId === combined.topicId) return `${combined.label} leads on both mentions and reach.`;
   return `Mentions alone point to ${content.label}. Counting how far issues spread across customer groups puts ${combined.label} first.`;
 }
+
+// ---- Step 3: route an issue to the operations record it concerns ----
+// AI chose the area. Code chooses the record by matching words customers actually wrote, and shows only stored values.
+export type IssueAction = { area: IssueArea; target: AssistantTarget; page: string; record: string; detail: string };
+
+const generic = new Set("and the with of for each house fresh local premium".split(" "));
+const stem = (word: string) => word.length > 3 ? word.replace(/(es|s)$/, "") : word;
+const words = (text: string) => (text.toLowerCase().match(/[a-z]+/g) ?? []).map(stem);
+const nameTokens = (name: string) => words(name).filter(word => word.length >= 3 && !generic.has(word));
+const money = (cents: number) => `$${(cents / 100).toFixed(2)}`;
+const weekdays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"];
+
+function matchInventory(texts: string[], dataset: Dataset): IssueAction | null {
+  const vocabulary = new Set(texts.flatMap(words));
+  const best = dataset.operations.inventory
+    .map(item => ({ item, score: new Set(nameTokens(item.name).filter(token => vocabulary.has(token))).size, short: item.current < item.threshold }))
+    .filter(row => row.score > 0)
+    .sort((a, b) => b.score - a.score || Number(b.short) - Number(a.short) || a.item.current / a.item.threshold - b.item.current / b.item.threshold || a.item.id.localeCompare(b.item.id))[0];
+  if (!best) return null;
+  const { item } = best;
+  return { area: "supply", page: "Supply", record: item.name, target: { page: "supply", kind: "inventory", id: item.id, label: item.name },
+    detail: `${item.current} of ${item.threshold} ${item.unit} on hand${best.short ? " (below threshold)" : ""}${item.nextDelivery ? ` · next delivery ${item.nextDelivery}` : ""}` };
+}
+
+function matchMenu(area: IssueArea, texts: string[], dataset: Dataset): IssueAction | null {
+  const messages = texts.map(text => new Set(words(text)));
+  const best = dataset.operations.menu.map(item => {
+    const tokens = nameTokens(item.name); const head = tokens.at(-1);
+    return { item, messages: head ? messages.filter(set => set.has(head)).length : 0, tokens: tokens.filter(token => messages.some(set => set.has(token))).length };
+  }).filter(row => row.messages > 0)
+    .sort((a, b) => b.messages - a.messages || b.tokens - a.tokens || a.item.id.localeCompare(b.item.id))[0];
+  if (!best) return null;
+  const { item } = best;
+  return { area, page: "Finance", record: item.name, target: { page: "finance", kind: "menu", id: item.id, label: item.name },
+    detail: `${money(item.dineInPriceCents)} dine-in · ${money(item.deliveryPriceCents)} delivery app · named in ${best.messages} ${best.messages === 1 ? "message" : "messages"}` };
+}
+
+function matchStaffingDay(texts: string[], dataset: Dataset): IssueAction | null {
+  let days: ReturnType<typeof workforceMetrics>["days"];
+  try { days = workforceMetrics(dataset).days; } catch { return null; }
+  const target = dataset.operations.workforce!.assumptions.targetOrdersPerFloorHour;
+  const messages = texts.map(text => new Set(words(text)));
+  const named = (date: string) => {
+    const day = weekdays[new Date(`${date}T12:00:00Z`).getUTCDay()];
+    const weekend = day === "saturday" || day === "sunday";
+    return messages.filter(set => set.has(stem(day)) || (weekend && set.has("weekend"))).length;
+  };
+  const best = days.filter(day => day.peakOrdersPerFloorHour !== null)
+    .map(day => ({ day, named: named(day.date) }))
+    .sort((a, b) => b.named - a.named || b.day.peakOrdersPerFloorHour! - a.day.peakOrdersPerFloorHour! || a.day.date.localeCompare(b.day.date))[0];
+  if (!best) return null;
+  const { day } = best;
+  const label = new Date(`${day.date}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" });
+  return { area: "staffing", page: "HR", record: label, target: { page: "hr", kind: "day", id: day.date, label: `${label} schedule` },
+    detail: `${day.peakOrders} peak orders · ${day.peakOrdersPerFloorHour} per floor-staff hour (target ${target})${best.named ? ` · day named in ${best.named} ${best.named === 1 ? "message" : "messages"}` : " · busiest day in the schedule; no weekday named by guests"}` };
+}
+
+export function issueAction(area: IssueArea, texts: string[], dataset: Dataset): IssueAction | null {
+  if (area === "supply") return matchInventory(texts, dataset);
+  if (area === "food" || area === "pricing") return matchMenu(area, texts, dataset);
+  if (area === "staffing") return matchStaffingDay(texts, dataset);
+  if (area === "floor") return { area, page: "Floor Plan", record: "Seating layout", detail: "Open the floor plan to review seating and waiting space", target: { page: "floor", kind: "overview", id: "floor", label: "Floor plan" } };
+  return null;
+}
+
+// Public discussions (Hacker News) are not this restaurant's customers, so they get rankings but no operations links.
+export const operationsLinksApply = (data: SocialDataset) => !data.id.startsWith("hn-story-");

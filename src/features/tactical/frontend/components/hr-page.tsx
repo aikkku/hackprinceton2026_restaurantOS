@@ -19,6 +19,7 @@ export function HrPage({ dataset, active }: { dataset: Dataset; active: boolean 
   const unlocked = useAiAccess();
   const [section, setSection] = useState("schedule");
   useAssistantLocation("employee", useCallback(() => setSection("team"), []));
+  useAssistantLocation("day", useCallback(() => setSection("schedule"), []));
   const [retry, setRetry] = useState(0);
   const [analysis, setAnalysis] = useState<{ result: HrOverview; evidence: HrEvidence[]; model: string; generatedAt: string; source: string } | null>(null);
   const [pending, setPending] = useState(false);

@@ -9,6 +9,8 @@ import { useAiAccess } from "./ai-workbench";
 import { ReviewReply } from "./review-reply";
 import { StateButton } from "./state-button";
 import type { Fixture } from "../../domain/schemas";
+import type { Dataset } from "../../domain/dataset";
+import type { AssistantTarget } from "../../domain/assistant";
 import "./review-insights.css";
 import { useAssistantLocation } from "../assistant-navigation";
 import { NetworkPanel } from "./network-panel";
@@ -17,8 +19,10 @@ import { SocialPipeline } from "./social-pipeline";
 const percentage = new Intl.NumberFormat("en-US", { style: "percent", maximumFractionDigits: 0 });
 const decimal = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
 
-export function ReviewInsights({ reviews, onTrySeating, restaurantId, active = true }: {
+export function ReviewInsights({ reviews, onTrySeating, restaurantId, active = true, dataset, onLocate }: {
   restaurantId: string;
+  dataset?: Dataset;
+  onLocate?: (target: AssistantTarget) => void;
   reviews: Fixture["reviews"];
   active?: boolean;
   onTrySeating: () => void;
@@ -63,7 +67,7 @@ export function ReviewInsights({ reviews, onTrySeating, restaurantId, active = t
         <button aria-pressed={tab === "network"} onClick={() => setTab("network")}><Network size={17} aria-hidden="true" />Relationship network</button>
         <button aria-pressed={tab === "social"} onClick={() => setTab("social")}><GitBranch size={17} aria-hidden="true" />Content & connectivity</button>
       </nav>
-      <div hidden={tab !== "social"}><SocialPipeline restaurantId={restaurantId} /></div>
+      <div hidden={tab !== "social"}><SocialPipeline restaurantId={restaurantId} dataset={dataset} onLocate={onLocate} /></div>
       <div hidden={tab !== "network"}><NetworkPanel restaurantId={restaurantId} /></div>
       <div hidden={tab !== "reviews"}>
       <div className="review-analysis-status" aria-label="AI review classification">

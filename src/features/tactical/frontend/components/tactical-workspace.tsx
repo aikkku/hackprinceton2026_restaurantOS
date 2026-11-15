@@ -55,7 +55,7 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
         </div>
         {section === "analyze" && <AnalyzePlan plans={fixture.photoPlans} />}
         <div hidden={section !== "reviews"}>
-        <ReviewInsights restaurantId={fixture.profile.id} reviews={data.reviews} active={section === "reviews"} onTrySeating={openSeatingAnalysis} />
+        <ReviewInsights restaurantId={fixture.profile.id} reviews={data.reviews} dataset={data} onLocate={locate} active={section === "reviews"} onTrySeating={openSeatingAnalysis} />
         </div>
         <div hidden={section !== "hr"}>
           <HrPage dataset={data} active={section === "hr"} />

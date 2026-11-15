@@ -20,8 +20,12 @@ export const socialDatasetSchema = z.object({
   }
 });
 export type SocialDataset = z.infer<typeof socialDatasetSchema>;
+// Which part of the restaurant a theme concerns. AI picks the area; code picks the exact record (social-operations.ts).
+export const issueAreas = ["staffing", "supply", "pricing", "food", "floor", "other"] as const;
+export const issueAreaSchema = z.enum(issueAreas);
+export type IssueArea = z.infer<typeof issueAreaSchema>;
 export const semanticSchema = z.object({
-  topics: z.array(z.object({ id, label: z.string().min(1).max(80), description: z.string().min(1).max(300) }).strict()).max(6),
+  topics: z.array(z.object({ id, label: z.string().min(1).max(80), description: z.string().min(1).max(300), area: issueAreaSchema }).strict()).max(6),
   annotations: z.array(z.object({ messageId: id, topicIds: z.array(id).max(3), tone: z.enum(["positive", "negative", "mixed", "neutral", "unclear"]), quote: z.string().min(1).max(160) }).strict()).max(40),
   limitations: z.array(z.string().min(1).max(400)).min(1).max(5),
 }).strict();

@@ -90,7 +90,11 @@ Connectivity alone ranks praise #2. Content alone ranks wait time #1. Only the c
 
 ---
 
-## Step 3 — Send each issue to the right Tactical page
+## Step 3 — Send each issue to the right Tactical page · ✅ done
+
+Implemented as `issueAction()` / `operationsLinksApply()` in `domain/social-operations.ts`, the **Where to fix it** list in the Fix first panel, the `day` target kind, and HR calendar day keys. On the demo: packaging → Supply · Vented takeaway boxes (22 of 60, below threshold); wait time → HR · Sat, Nov 14 (61 peak orders, 10.17 per floor-staff hour vs. target 6); prices → Finance menu item.
+
+One change from the design below: for staffing, code picks the day guests **name** most (weekend → Sat/Sun), then the highest load. The highest load overall is Tue, Nov 10 (14.0 per floor-staff hour), but no guest talks about Tuesday. That day is used only when no weekday is named, and the link says so. Issues with no negative mentions (praise) get no fix link.
 
 **AI picks the area, code picks the record.** Extend `semanticModelSchema`/`semanticSchema` so each topic carries `area: "staffing" | "supply" | "pricing" | "floor" | "food" | "other"`, and update the prompt in `backend/social-service.ts`. The AI is good at "soggy fries → packaging/supply". Code then selects exact records, so the model never names a record ID:
 

@@ -6,7 +6,7 @@ import { loadHackerNews, plainHnText } from "./backend/adapters/hacker-news.ts";
 import { createSocialAnalysisHandler, createSocialSourceHandler } from "./backend/social-service.ts";
 
 const sample = socialDatasetSchema.parse(JSON.parse(readFileSync(new URL("./frontend/data/demo-social.json", import.meta.url), "utf8")));
-const semantics: Semantics = { topics: [{ id: "clarity", label: "Clear expectations", description: "Messages about setting expectations." }], annotations: sample.messages.map(message => ({ messageId: message.id, topicIds: ["clarity"], tone: "neutral", quote: message.text.slice(0, 50) })), limitations: ["Fictional test labels, not live AI."] };
+const semantics: Semantics = { topics: [{ id: "clarity", label: "Clear expectations", description: "Messages about setting expectations.", area: "other" }], annotations: sample.messages.map(message => ({ messageId: message.id, topicIds: ["clarity"], tone: "neutral", quote: message.text.slice(0, 50) })), limitations: ["Fictional test labels, not live AI."] };
 const modelResult = { ...semantics, annotations: semantics.annotations.map(({ messageId, topicIds, tone }) => ({ messageId, topicIds, tone, excerptIndex: 0 })) };
 const request = (data: unknown) => new Request("http://localhost/api/tactical/integrations/social/analyze", { method: "POST", headers: { origin: "http://localhost", "Content-Type": "application/json" }, body: JSON.stringify(data) });
 

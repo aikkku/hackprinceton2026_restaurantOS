@@ -3,22 +3,26 @@
     {
       "id": "wait",
       "label": "Weekend table wait",
-      "description": "Long waits at the door, unclear estimates and a busy host stand on weekend nights."
+      "description": "Long waits at the door, unclear estimates and a busy host stand on weekend nights.",
+      "area": "staffing"
     },
     {
       "id": "packaging",
       "label": "Soggy takeaway packaging",
-      "description": "Fries and sandwiches arriving soft or soggy, damp or crushed boxes, missing vents."
+      "description": "Fries and sandwiches arriving soft or soggy, damp or crushed boxes, missing vents.",
+      "area": "supply"
     },
     {
       "id": "pricing",
       "label": "App and menu prices",
-      "description": "Delivery app markups compared with in-restaurant prices, and lunch value."
+      "description": "Delivery app markups compared with in-restaurant prices, and lunch value.",
+      "area": "pricing"
     },
     {
       "id": "food",
       "label": "Dishes guests praise",
-      "description": "Positive comments about specific dishes and quick lunch service."
+      "description": "Positive comments about specific dishes and quick lunch service.",
+      "area": "food"
     }
   ],
   "annotations": [

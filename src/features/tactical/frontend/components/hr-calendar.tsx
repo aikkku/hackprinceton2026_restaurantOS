@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useContext, useState } from "react";
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import type { Operations } from "../../domain/dataset";
 import { clockLabel, dateOffset, stations } from "../../domain/workforce";
+import { AssistantLocationContext, useAssistantLocation } from "../assistant-navigation";
 const dateLabel = (date: string, options: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat("en-US", { ...options, timeZone: "UTC" }).format(new Date(`${date}T12:00:00Z`));
 
 export function HrCalendar({ operations }: { operations: Operations }) {
@@ -11,6 +12,13 @@ export function HrCalendar({ operations }: { operations: Operations }) {
   const [offset, setOffset] = useState(0);
   const [filter, setFilter] = useState("All stations");
   const [selectedDay, setSelectedDay] = useState(0);
+  // A linked day (e.g. from Reviews → Fix first) opens the week that contains it and selects it.
+  const location = useContext(AssistantLocationContext);
+  useAssistantLocation("day", useCallback(() => {
+    if (!location || !workforce || !/^\d{4}-\d{2}-\d{2}$/.test(location.target.id)) return;
+    const diff = Math.round((Date.parse(`${location.target.id}T12:00:00Z`) - Date.parse(`${workforce.weekStart}T12:00:00Z`)) / 86_400_000);
+    setOffset(Math.floor(diff / 7)); setSelectedDay(((diff % 7) + 7) % 7); setFilter("All stations");
+  }, [location, workforce]));
   if (!workforce) return <p>No dated schedule available.</p>;
   const start = dateOffset(workforce.weekStart, offset * 7);
   const days = Array.from({ length: 7 }, (_, index) => dateOffset(start, index));
@@ -29,7 +37,7 @@ export function HrCalendar({ operations }: { operations: Operations }) {
     {offset !== 0 && <p className="hr-empty">No shifts saved for this week.</p>}
     <div className="hr-week-scroll" role="region" tabIndex={0} aria-label="Schedule calendar"><div className="hr-week-grid">{days.map((day, index) => {
       const shifts = workforce.shifts.filter(shift => shift.date === day && (filter === "All stations" || workforce.assignments.some(row => row.employeeId === shift.employeeId && row.station === filter))).sort((a, b) => a.startMinute - b.startMinute);
-      return <section key={day} className={`hr-day ${index === selectedDay ? "is-selected" : ""}`} aria-label={dateLabel(day, { weekday: "long", month: "long", day: "numeric" })}>
+      return <section key={day} data-assistant-key={`day:${day}`} className={`hr-day ${index === selectedDay ? "is-selected" : ""}`} aria-label={dateLabel(day, { weekday: "long", month: "long", day: "numeric" })}>
         <header><span>{dateLabel(day, { weekday: "short" })}</span><b>{day.slice(-2)}</b><small>{shifts.length} shifts</small></header>
         <div className="hr-shifts">{shifts.map(shift => {
           const employee = operations.employees.find(row => row.id === shift.employeeId)!;

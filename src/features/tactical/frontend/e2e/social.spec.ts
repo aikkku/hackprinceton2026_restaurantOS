@@ -4,7 +4,7 @@ import recorded from "../data/demo-social-semantics.json" with { type: "json" };
 
 function semanticResponse(data = sample) {
   return { model: "browser-test-model", generatedAt: "2026-11-14T13:00:00.000Z", datasetHash: "test-hash", pipelineVersion: "social-v1", semantics: {
-    topics: [{ id: "expectations", label: "Clear expectations", description: "Test interpretation of pricing and wait-time expectations." }],
+    topics: [{ id: "expectations", label: "Clear expectations", description: "Test interpretation of pricing and wait-time expectations.", area: "other" as const }],
     annotations: data.messages.map(message => ({ messageId: message.id, topicIds: ["expectations"], tone: "neutral", quote: message.text.slice(0, 40) })),
     limitations: ["Synthetic browser-test interpretation."],
   } };
@@ -46,6 +46,37 @@ test("Fix first ranks spread-out issues above loud but contained ones and traces
   await expect(panel.locator(".social-timeline li")).toHaveCount(recorded.annotations.filter(item => item.topicIds.includes("packaging")).length);
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+});
+const recordedResponse = { model: "browser-test-model", generatedAt: "2026-11-15T23:00:00.000Z", datasetHash: "test-hash", pipelineVersion: "social-v1", semantics: recorded };
+test("Where to fix it opens the matching Supply item and HR day", async ({ page }) => {
+  await page.route("**/api/tactical/integrations/social/analyze", route => route.fulfill({ json: recordedResponse }));
+  const panel = page.getByRole("region", { name: "Content and connectivity pipeline" });
+  await panel.getByRole("button", { name: "Analyze message content with AI" }).click();
+  const actions = panel.getByRole("group", { name: "Where to fix it" });
+  await expect(actions.locator("li")).toHaveCount(3);
+  const packaging = actions.locator('li[data-action-issue="packaging"]');
+  await expect(packaging).toContainText("Supply · Vented takeaway boxes");
+  await expect(packaging).toContainText("22 of 60 each on hand (below threshold)");
+  await packaging.getByRole("button", { name: "Open in Supply" }).click();
+  await expect(page).toHaveURL(/\/tactical\/supply$/);
+  await expect(page.locator('[data-assistant-key="inventory:i34"]')).toHaveClass(/assistant-location-highlight/);
+  await page.getByRole("link", { name: /Customer Reviews/ }).click();
+  const wait = actions.locator('li[data-action-issue="wait"]');
+  await expect(wait).toContainText("HR · Sat, Nov 14");
+  await wait.getByRole("button", { name: "Open in HR" }).click();
+  await expect(page).toHaveURL(/\/tactical\/hr$/);
+  const day = page.locator('[data-assistant-key="day:2026-11-14"]');
+  await expect(day).toHaveClass(/assistant-location-highlight/); await expect(day).toHaveClass(/is-selected/);
+});
+test("public discussions get rankings but no operations links", async ({ page }) => {
+  const panel = page.getByRole("region", { name: "Content and connectivity pipeline" });
+  await panel.getByText("Choose data, import or reopen", { exact: true }).click();
+  await panel.getByLabel(/I have permission to use imported messages/).check();
+  await panel.getByLabel("Import conversation JSON").setInputFiles({ name: "hn.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify({ ...sample, id: "hn-story-1", provenance: "observed" })) });
+  await page.route("**/api/tactical/integrations/social/analyze", route => route.fulfill({ json: recordedResponse }));
+  await panel.getByRole("button", { name: "Analyze message content with AI" }).click();
+  await expect(panel.getByRole("region", { name: "Fix first" })).toContainText("Operations links apply only to this restaurant's own customer conversation");
+  await expect(panel.getByRole("group", { name: "Where to fix it" })).toHaveCount(0);
 });
 test("observed imports require permission, save/reopen and source failures preserve work", async ({ page }) => {
   const panel = page.getByRole("region", { name: "Content and connectivity pipeline" });
