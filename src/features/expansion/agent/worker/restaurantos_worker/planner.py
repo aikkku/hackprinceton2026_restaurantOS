@@ -94,7 +94,9 @@ FINANCE_SYSTEM_PROMPT = """You are the finance specialist. Call evaluate_finance
 deterministic TypeScript finance tools with the run's profile snapshot and writes the validated
 finance artifact. Then call finalize_finance with your text explanation. You must not compute
 numbers yourself and must not invent fixed costs or margins: unavailable inputs stay unavailable
-and are listed under missingInputs."""
+and are listed under missingInputs. Required sales use baseline fixed costs EXCLUDING occupancy;
+never describe this as a location's complete break-even sales. Preserve mock/synthetic labels
+from the intake and artifact assumptions; mock results are not the owner's financial records."""
 
 
 class StageTracker:
@@ -428,11 +430,24 @@ def _finalize_finance_tool(context: AgentContext) -> StructuredTool:
     def finalize_finance(summary: str, assumptions: list[str], missing_inputs: list[str]) -> str:
         """Record the finance result. Numbers never belong here: they live in the validated finance artifact."""
         context.tool_guard()
+        try:
+            artifact = context.directory.read_artifact("finance.json", FinanceArtifact)
+        except FileNotFoundError:
+            return "evaluate_finance has not produced a validated artifact yet; call it first."
+        # A model's missing_inputs list cannot turn an unavailable calculation
+        # into success (or mark a successful calculation unavailable).
+        missing = list(artifact.missingInputs)
+        if artifact.requiredSales is None:
+            missing.append("Required-sales calculation was not produced.")
+        elif artifact.requiredSales.status != "available":
+            reason = artifact.requiredSales.reason or "Required sales are unavailable."
+            if reason not in missing:
+                missing.append(reason)
         tracker.stage_completed(
             "finance",
-            "completed" if not missing_inputs else "unavailable",
+            "completed" if not missing else "unavailable",
             summary or "Finance evaluated with deterministic tools.",
-            missing=missing_inputs,
+            missing=missing,
         )
         return "Finance recorded."
 
@@ -457,7 +472,11 @@ def _finalize_run_tool(context: AgentContext) -> StructuredTool:
         context.summaries["summary_text"] = summary_text
         context.summaries["missing_evidence"] = missing_evidence
         context.summaries["follow_ups"] = follow_ups
-        context.summaries["assumptions"] = assumptions
+        try:
+            finance_assumptions = context.directory.read_artifact("finance.json", FinanceArtifact).assumptions
+        except FileNotFoundError:
+            finance_assumptions = []
+        context.summaries["assumptions"] = list(dict.fromkeys([*assumptions, *finance_assumptions]))
         tracker.digests["planner"] = summary_text
         return "Run summary recorded; the orchestrator validates and persists it."
 
@@ -538,6 +557,12 @@ def _build_finance_tool(context: AgentContext) -> StructuredTool:
             contributionMargin=finance_inputs.contributionMargin if finance_inputs.origin == "derived" else None,
             inputOrigin=finance_inputs.origin,
         )
+        if required_sales.status == "unavailable" and required_sales.reason and required_sales.reason not in missing_inputs:
+            missing_inputs.append(required_sales.reason)
+
+        assumptions = ["Required sales use baseline fixed costs excluding occupancy; add candidate rent and extra building charges for a complete location scenario."]
+        if profile.intake.isDemo and "mock-finance-monthly-v1" in profile.intake.financialBaseline.sourceAnswerIds:
+            assumptions.append("MOCK financial data: synthetic monthly sales and expenses, not the owner's records or a demand forecast.")
 
         artifact = FinanceArtifact(
             artifactVersion=ARTIFACT_VERSION,
@@ -547,7 +572,7 @@ def _build_finance_tool(context: AgentContext) -> StructuredTool:
             occupancy=occupancy,
             requiredSales=required_sales,
             missingInputs=missing_inputs,
-            assumptions=[],
+            assumptions=assumptions,
         )
         context.directory.write_artifact("finance.json", artifact)
         return json.dumps(artifact.model_dump(), ensure_ascii=False)

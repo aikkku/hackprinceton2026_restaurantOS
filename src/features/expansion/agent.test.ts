@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { exampleIntake } from "./frontend/data/intake-example.ts";
+import { withMockFinance } from "./frontend/data/mock-finance.ts";
 import {
   agentEventSchema,
   agentRunRecordSchema,
@@ -348,6 +349,17 @@ test("scout/inspector/finance tools stay run-scoped and validated", async () => 
   await assert.rejects(
     () => invokeAgentTool(config, "local", "bridge-run-3", "filesystem.read_file", { path: "../../.env" }),
   );
+});
+
+test("mock finance uses the run snapshot and rejects model-proposed amounts", async () => {
+  const config = { runsDir: testRunsDir, db: settings, spawn: false };
+  await createAgentRun(config, { ...createInput("mock-finance-run"), intake: withMockFinance(exampleIntake()) });
+  assert.deepEqual(await invokeAgentTool(config, "local", "mock-finance-run", "finance.required_sales", {
+    fixedCostsMonthly: 16000, contributionMargin: 0.4,
+  }), { status: "available", requiredSalesMonthly: 40000 });
+  await assert.rejects(() => invokeAgentTool(config, "local", "mock-finance-run", "finance.required_sales", {
+    fixedCostsMonthly: 1, contributionMargin: 0.9,
+  }), /profile snapshot/);
 });
 
 test("market context tool persists a validated artifact", async () => {

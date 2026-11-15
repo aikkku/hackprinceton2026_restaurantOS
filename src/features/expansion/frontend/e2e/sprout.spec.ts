@@ -81,7 +81,8 @@ test("full journey: needs → specialists → places → check → compare → c
   await expect(page.getByText("Your check").first()).toBeVisible();
 
   await page.getByRole("button", { name: "Ask Sprout about this" }).click();
-  await expect(page.getByRole("dialog")).toContainText("isn’t connected in Expansion yet");
+  await expect(page.getByRole("dialog", { name: "Ask Sprout" })).toBeVisible();
+  await expect(page.getByRole("dialog").getByRole("alert")).toContainText("disabled in this test workspace");
   await page.keyboard.press("Escape");
 
   await page.getByRole("button", { name: "Compare saved places", exact: true }).click();

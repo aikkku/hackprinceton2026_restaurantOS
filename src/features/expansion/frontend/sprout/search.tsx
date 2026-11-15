@@ -1,10 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { agentStages, type AgentEvent, type AgentRunRecord, type AgentStage, type AgentStageStatus, type SearchArtifact, type SummaryArtifact } from "../../domain/agent.ts";
+import { agentStages, type AgentEvent, type AgentRunRecord, type AgentStage, type AgentStageStatus, type FinanceArtifact, type SearchArtifact, type SummaryArtifact } from "../../domain/agent.ts";
 import type { RestaurantIntake } from "../../domain/intake.ts";
 import { cancelAgentRun, createAgentRun, getAgentArtifact, getAgentRun, loadAgentCapabilities, openAgentEventStream } from "../data/agent-client.ts";
 import { LocalDataError, cancelProfileRun, createProfileRun, getProfileRun, loadMarkets } from "../data/local-market.ts";
+import { usesMockFinance, withMockFinance } from "../data/mock-finance.ts";
+import { money } from "./model.ts";
 import { Back, Disclosure } from "./ui.tsx";
 
 type StageState = AgentStageStatus | "running";
@@ -18,7 +20,7 @@ const SPECIALISTS: Record<AgentStage, { name: string; role: string; uses: string
   market: { name: "Market analyst", role: "Looks at the market data we have", uses: "CoStar market snapshot" },
   site_scout: { name: "Site scout", role: "Finds spaces for lease", uses: "CoStar property listings" },
   space_inspector: { name: "Space inspector", role: "Checks kitchens, parking and seats", uses: "Listing details, Matterport scans and Vexcel aerial photos when available" },
-  finance: { name: "Finance specialist", role: "Works out monthly costs", uses: "Listings and your budget" },
+  finance: { name: "Finance specialist", role: "Works out rent and required sales before occupancy", uses: "Listings and the supplied monthly financial baseline" },
 };
 const STAGE_STATUS_LABEL: Record<StageState, string> = { completed: "Finished", unavailable: "Missing information", failed: "Couldn’t finish", running: "Working", not_run: "Waiting" };
 
@@ -49,7 +51,7 @@ function userSteps(stages: Record<AgentStage, StageState>, done: boolean, includ
   return [
     { title: "Finding properties", ...view([stages.readiness, stages.market, stages.site_scout], { done: included === null ? "Done" : `${included} ${included === 1 ? "place" : "places"} can fit a restaurant`, unavailable: "Partly done" }) },
     { title: "Checking buildings and parking", ...view([stages.space_inspector], { done: "Done", unavailable: "Partly done" }) },
-    { title: "Comparing costs", ...view([stages.finance], { done: "Done", unavailable: "We’ll ask about your opening costs later" }) },
+    { title: "Comparing costs", ...view([stages.finance], { done: "Done", unavailable: "Some financial inputs are missing; see the specialist details" }) },
   ];
 }
 
@@ -66,6 +68,7 @@ export function SearchProgress({ profile, cityId, onSeeLocations, onBack }: {
   const [run, setRun] = useState<AgentRunRecord | null>(null);
   const [summary, setSummary] = useState<SummaryArtifact | null>(null);
   const [search, setSearch] = useState<SearchArtifact | null>(null);
+  const [finance, setFinance] = useState<FinanceArtifact | null>(null);
   const [error, setError] = useState<{ message: string; fallback: boolean } | null>(null);
   const [attempt, setAttempt] = useState(0);
   const mounted = useRef(true);
@@ -74,7 +77,8 @@ export function SearchProgress({ profile, cityId, onSeeLocations, onBack }: {
   const fallbackRun = useRef<string | null>(null);
   // The run is bound to the profile revision it started with; later parent
   // re-renders must not restart it.
-  const request = useRef({ profile, cityId });
+  const request = useRef({ profile: { ...profile, intake: withMockFinance(profile.intake) }, cityId });
+  const mockFinance = usesMockFinance(request.current.profile.intake);
 
   const stopWatching = () => { stream.current?.close(); if (timer.current) clearTimeout(timer.current); };
 
@@ -86,13 +90,15 @@ export function SearchProgress({ profile, cityId, onSeeLocations, onBack }: {
         setRun(record);
         if (record.status === "completed" || record.status === "completed_with_gaps") {
           setStages(record.stages);
-          const [summaryArtifact, searchArtifact] = await Promise.all([
+          const [summaryArtifact, searchArtifact, financeArtifact] = await Promise.all([
             getAgentArtifact(runId, "summary").catch(() => null),
             getAgentArtifact(runId, "candidates").catch(() => null),
+            getAgentArtifact(runId, "finance").catch(() => null),
           ]);
           if (!mounted.current) return;
           setSummary(summaryArtifact as SummaryArtifact | null);
           setSearch(searchArtifact as SearchArtifact | null);
+          setFinance(financeArtifact as FinanceArtifact | null);
           setPhase("done");
           stopWatching();
           return;
@@ -163,7 +169,7 @@ export function SearchProgress({ profile, cityId, onSeeLocations, onBack }: {
     return () => { mounted.current = false; controller.abort(); stopWatching(); };
   }, [attempt, finish]);
 
-  const retry = () => { stopWatching(); setStages(INITIAL); setRun(null); setSummary(null); setSearch(null); setError(null); setPhase("starting"); setAttempt((value) => value + 1); };
+  const retry = () => { stopWatching(); setStages(INITIAL); setRun(null); setSummary(null); setSearch(null); setFinance(null); setError(null); setPhase("starting"); setAttempt((value) => value + 1); };
 
   const startFallback = async () => {
     setPhase("fallback");
@@ -260,17 +266,18 @@ export function SearchProgress({ profile, cityId, onSeeLocations, onBack }: {
               </div>
               <p className="sx-small sx-muted">{info.role} · Uses: {info.uses}</p>
               {report && <ul><li>{report.digest}</li>{report.missing.map((item) => <li key={item}>{item}</li>)}</ul>}
+              {stage === "finance" && finance && <div className="sx-stack">
+                {finance.requiredSales?.status === "available" && <p className="sx-small">{mockFinance ? "Mock baseline" : "Baseline"}: {money(finance.requiredSales.fixedCostsMonthly!)} monthly fixed costs ÷ {Math.round(finance.requiredSales.contributionMargin! * 100)}% contribution margin = {money(finance.requiredSales.requiredSalesMonthly!)} required monthly sales before rent and extra building charges.</p>}
+                <p className="sx-small sx-muted">Rent checked for {finance.occupancy.length} {finance.occupancy.length === 1 ? "location" : "locations"}. Unknown rent or extra charges stay unknown. Full location costs can be worked out after choosing a place.</p>
+              </div>}
             </div>
           );
         })}
-        {run && (
+        {run?.executionMode === "scripted" && (
           <p className="sx-small sx-muted">
-            {run.completedAt ? `Finished ${new Date(run.completedAt).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })} · ` : ""}
-            Property data: {run.datasetId ?? "not loaded"}{run.datasetDate ? ` as of ${run.datasetDate}` : " (undated snapshot)"} ·{" "}
-            {run.executionMode === "scripted" ? "Test mode: scripted model (not a live AI run)" : "Live model"}
+            Test mode: scripted model (not a live AI run)
           </p>
         )}
-        <p className="sx-small sx-muted">Specialists only call the same checked tools. Matching and money math always run in code, never in the AI.</p>
       </Disclosure>
     </main>
   );

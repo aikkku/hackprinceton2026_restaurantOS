@@ -14,6 +14,7 @@ import { createServer, type Server } from "node:http";
 import { mkdtemp, mkdir, writeFile, rm, readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { exampleIntake } from "./frontend/data/intake-example.ts";
+import { withMockFinance } from "./frontend/data/mock-finance.ts";
 import {
   agentEventSchema,
   financeArtifactSchema,
@@ -32,6 +33,7 @@ import {
   verifyToolToken,
 } from "./backend/agent.ts";
 import { importLocalDataset, type LocalConfig } from "./backend/local-dataset.ts";
+import { defaultScriptFile } from "./backend/worker.ts";
 
 const property = (id: number) => ({
   id,
@@ -72,13 +74,23 @@ const capabilities = agentCapabilities({});
 if (!capabilities.workerReady) {
   test("cross-language worker integration", { skip: "worker venv not available" }, () => {});
 } else {
-  test("real worker + real bridge complete the five-stage run", { timeout: 240000 }, async () => {
+  for (const mockFinance of [false, true]) {
+  test(`real worker + real bridge complete the five-stage run (${mockFinance ? "mock finance" : "missing baseline"})`, { timeout: 240000 }, async () => {
+    const intake = mockFinance ? withMockFinance(exampleIntake()) : exampleIntake();
+    const expectedStatus = mockFinance ? "completed" : "completed_with_gaps";
     // Workspace-scoped temp dirs: spawned children must write inside the
     // repository (platform temp dirs can be sandbox-restricted for them).
     const agentTmp = join(process.cwd(), "src", "features", "expansion", "agent", ".tmp");
     await mkdir(agentTmp, { recursive: true });
     const dbDir = await mkdtemp(join(agentTmp, "int-db-"));
     const runsDir = await mkdtemp(join(agentTmp, "int-runs-"));
+    const scriptPath = join(runsDir, "test.script.json");
+    const script = JSON.parse(await readFile(defaultScriptFile(), "utf8"));
+    if (mockFinance) {
+      // A stale model-only gap must not override an available tool result.
+      script.agents.finance[1].tool_calls[0].args.missing_inputs = ["Stale model-only gap"];
+    }
+    await writeFile(scriptPath, JSON.stringify(script));
     const settings: LocalConfig = {
       rootPath: dbDir,
       dbPath: join(dbDir, "cache.sqlite"),
@@ -139,12 +151,12 @@ if (!capabilities.workerReady) {
       const workerLog = join(runsDir, "worker-stderr.log");
       process.env.EXPANSION_AGENT_WORKER_LOG = workerLog;
       const created = await createAgentRun(
-        { runsDir, db: settings, bridgeBaseUrl: bridgeUrl, spawn: true },
+        { runsDir, db: settings, bridgeBaseUrl: bridgeUrl, spawn: true, scriptPath },
         {
           runId,
           sessionId: "local",
           cityId: "houston",
-          intake: exampleIntake(),
+          intake,
           revisionId: "integration-revision",
           revisionNumber: 1,
           executionMode: "scripted",
@@ -162,7 +174,7 @@ if (!capabilities.workerReady) {
         await new Promise((resolve) => setTimeout(resolve, 300));
       }
       assert.ok(record, "run record missing");
-      if (record.status !== "completed_with_gaps") {
+      if (record.status !== expectedStatus) {
         let log = "no worker stderr captured";
         try {
           log = await readFile(workerLog, "utf8");
@@ -171,7 +183,7 @@ if (!capabilities.workerReady) {
         }
         console.error("worker stderr:", log.slice(0, 4000));
       }
-      assert.equal(record.status, "completed_with_gaps");
+      assert.equal(record.status, expectedStatus);
       assert.equal(record.executionMode, "scripted");
       assert.equal(record.model?.framework, "deepagents");
       assert.deepEqual(record.stages, {
@@ -179,7 +191,7 @@ if (!capabilities.workerReady) {
         market: "completed",
         site_scout: "completed",
         space_inspector: "completed",
-        finance: "unavailable", // Cedar Kitchen baseline is unavailable (honest)
+        finance: mockFinance ? "completed" : "unavailable",
       });
 
       const dir = join(runsDir, "local", `agent-${runId}`);
@@ -192,7 +204,7 @@ if (!capabilities.workerReady) {
       assert.equal(events[events.length - 1].type, "run.completed");
       assert.ok(events.some((event) => event.type === "tool.completed" && event.payload?.tool === "scout.search_city"));
       assert.ok(events.some((event) => event.type === "tool.completed" && event.payload?.tool === "finance.monthly_occupancy"));
-      assert.ok(events.some((event) => event.type === "unavailable" && event.stage === "finance"));
+      assert.ok(events.some((event) => event.type === (mockFinance ? "stage.completed" : "unavailable") && event.stage === "finance"));
 
       // Every required artifact exists and validates; IDs ground in the search.
       const search = searchArtifactSchema.parse(JSON.parse(await readFile(join(dir, "candidates.json"), "utf8")));
@@ -200,32 +212,44 @@ if (!capabilities.workerReady) {
       marketArtifactSchema.parse(JSON.parse(await readFile(join(dir, "market.json"), "utf8")));
       inspectionArtifactSchema.parse(JSON.parse(await readFile(join(dir, "inspection.json"), "utf8")));
       const finance = financeArtifactSchema.parse(JSON.parse(await readFile(join(dir, "finance.json"), "utf8")));
-      assert.equal(finance.requiredSales?.status, "unavailable");
+      assert.equal(finance.requiredSales?.status, mockFinance ? "available" : "unavailable");
+      if (mockFinance) {
+        assert.equal(finance.requiredSales?.requiredSalesMonthly, 40000);
+        assert.equal(finance.requiredSales?.fixedCostsMonthly, 16000);
+        assert.equal(finance.requiredSales?.contributionMargin, 0.4);
+        assert.deepEqual(finance.missingInputs, []);
+        assert.ok(finance.assumptions.some((item) => item.includes("MOCK financial data")));
+      }
       assert.ok(finance.occupancy.length > 0);
       const summary = summaryArtifactSchema.parse(JSON.parse(await readFile(join(dir, "summary.json"), "utf8")));
       validateSummaryAgainstSearch(summary, search);
+      if (mockFinance) {
+        assert.deepEqual(summary.stageReports.find((report) => report.stage === "finance")?.missing, []);
+        assert.ok(summary.assumptions.some((item) => item.includes("MOCK financial data")));
+      }
       assert.ok(summary.groundedCandidateIds.length > 0);
       assert.equal(record.datasetId, "synthetic-agent-integration");
 
       // Worker restart behavior: a second create returns the terminal record.
       const again = await createAgentRun(
-        { runsDir, db: settings, bridgeBaseUrl: bridgeUrl, spawn: true },
+        { runsDir, db: settings, bridgeBaseUrl: bridgeUrl, spawn: true, scriptPath },
         {
           runId,
           sessionId: "local",
           cityId: "houston",
-          intake: exampleIntake(),
+          intake,
           revisionId: "integration-revision",
           revisionNumber: 1,
           executionMode: "scripted",
         },
       );
       assert.equal(again.created, false);
-      assert.equal(again.record.status, "completed_with_gaps");
+      assert.equal(again.record.status, expectedStatus);
     } finally {
       if (server) await new Promise<void>((resolve) => server!.close(() => resolve()));
       await rm(dbDir, { recursive: true, force: true });
       await rm(runsDir, { recursive: true, force: true });
     }
   });
+  }
 }

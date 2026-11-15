@@ -9,7 +9,7 @@ import json
 import unittest
 from pathlib import Path
 
-from restaurantos_worker.models import SummaryArtifact
+from restaurantos_worker.models import FinanceArtifact, SummaryArtifact
 from restaurantos_worker.orchestrator import Orchestrator
 from restaurantos_worker.testing import (
     SCRIPT,
@@ -76,6 +76,29 @@ class SafetyTests(unittest.TestCase):
                 )
                 self.assertEqual(report.candidateIds, [])
                 self.assertNotIn("space-invented-999", report.candidateIds)
+
+    def test_finance_cannot_finalize_without_running_its_tools(self) -> None:
+        directory = make_run_dir(self.dir, "finance-skipped")
+        script = base_script()
+        script["agents"]["finance"] = script["agents"]["finance"][1:]
+        code = run_with_script(str(self.dir), self.bridge.url, self.token, script)
+        self.assertEqual(code, 0)
+        self.assertEqual(read_run(directory).stages["finance"], "failed")
+        self.assertFalse(Path(directory.path("finance.json")).exists())
+        self.assertEqual(self.bridge.calls.get("finance.required_sales", 0), 0)
+
+    def test_finance_cannot_hide_missing_inputs_with_an_empty_model_list(self) -> None:
+        directory = make_run_dir(self.dir, "finance-missing")
+        script = base_script()
+        script["agents"]["finance"][1]["tool_calls"][0]["args"]["missing_inputs"] = []
+        code = run_with_script(str(self.dir), self.bridge.url, self.token, script)
+        self.assertEqual(code, 0)
+        self.assertEqual(read_run(directory).stages["finance"], "unavailable")
+        finance = directory.read_artifact("finance.json", FinanceArtifact)
+        summary = directory.read_artifact("summary.json", SummaryArtifact)
+        report = next(item for item in summary.stageReports if item.stage == "finance")
+        self.assertTrue(report.missing)
+        self.assertTrue(all(item in report.missing for item in finance.missingInputs))
 
     def test_malformed_tool_args_never_corrupt_the_run(self) -> None:
         directory = make_run_dir(self.dir, "run-2")

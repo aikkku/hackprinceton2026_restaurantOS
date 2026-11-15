@@ -430,35 +430,36 @@ export default function ExpansionPage() {
   };
 
   // ---------------------------------------------------------------- ask
-  const needsContext = () => workspace ? {
-    restaurant: workspace.restaurantName, city: workspace.cityLabel, profileRevision: workspace.profileRevisionNumber,
-    needs: workspace.requirements.requirements.filter((r) => r.state === "known").map((r) => ({ id: r.id, kind: r.kind, value: r.value })),
-    propertyData: { datasetId: workspace.datasetId, datasetDate: workspace.datasetDate, synthetic: workspace.isSynthetic },
-  } : null;
+  const needsContext = (current: Workspace) => ({
+    restaurant: current.restaurantName, city: current.cityLabel, profileRevision: current.profileRevisionNumber,
+    needs: current.requirements.requirements,
+    propertyData: { datasetId: current.datasetId, datasetDate: current.datasetDate, synthetic: current.isSynthetic },
+  });
   const placeContext = (choice: BriefChoice) => ({
     id: choice.candidateId, name: choice.assessment.candidate.name, address: choice.assessment.candidate.address, suite: choice.assessment.candidate.suite,
     fit: FIT_LABEL[fitForGroup(choice.assessment.group)],
     monthlyCost: rangeLabel(choice.financeResults.occupancy, "/mo") ?? costLabel(monthlyCost(choice.assessment.candidate)),
-    checks: choice.assessment.assessments.map((a) => ({ requirement: a.requirementId, status: a.status, reason: a.reason, recordSays: a.sourceValue })),
-    stillToCheck: choice.assessment.assessments.map(checkQuestion).filter(Boolean),
+    sourceIds: choice.assessment.candidate.sourceIds,
+    checks: choice.assessment.assessments,
+    stillToCheck: choice.assessment.assessments.map(checkQuestion).filter((q): q is string => Boolean(q)),
   });
   const askAboutPlace = (id: string) => {
     const choice = choiceFor(id);
     if (!choice || !workspace) return;
-    setAsk({ question: `Is ${choice.assessment.candidate.name} a good fit for ${workspace.restaurantName}?`, context: { topic: "property", ...needsContext(), place: placeContext(choice) } });
+    setAsk({ question: `Is ${choice.assessment.candidate.name} a good fit for ${workspace.restaurantName}?`, context: { topic: "property", ...needsContext(workspace), place: placeContext(choice) } });
   };
   const askCompare = () => {
     if (!workspace) return;
-    setAsk({ question: `Which place should ${workspace.restaurantName} look at first?`, context: { topic: "comparison", ...needsContext(), places: compareChoices.map(placeContext), pick } });
+    setAsk({ question: `Which place should ${workspace.restaurantName} look at first?`, context: { topic: "comparison", ...needsContext(workspace), places: compareChoices.map(placeContext), pick } });
   };
   const askCosts = (id: string) => {
     const choice = choiceFor(id);
     if (!choice || !workspace) return;
-    setAsk({ question: `What would it take for ${workspace.restaurantName} to open at ${choice.assessment.candidate.name}?`, context: { topic: "opening_costs", ...needsContext(), place: placeContext(choice), costInputs: choice.financeInputs, costResults: choice.financeResults } });
+    setAsk({ question: `What would it take for ${workspace.restaurantName} to open at ${choice.assessment.candidate.name}?`, context: { topic: "opening_costs", ...needsContext(workspace), place: placeContext(choice), costInputs: choice.financeInputs, costResults: choice.financeResults } });
   };
   const askPlan = (choice: BriefChoice) => {
     if (!workspace) return;
-    setAsk({ question: `What should ${workspace.restaurantName} do next about ${choice.assessment.candidate.name}?`, context: { topic: "plan", ...needsContext(), pick: placeContext(choice), biggestConcern: biggestConcern(choice, workspace), nextSteps: nextQuestionsFor(workspace, [choice]) } });
+    setAsk({ question: `What should ${workspace.restaurantName} do next about ${choice.assessment.candidate.name}?`, context: { topic: "plan", ...needsContext(workspace), pick: placeContext(choice), biggestConcern: biggestConcern(choice, workspace), nextSteps: nextQuestionsFor(workspace, [choice]) } });
   };
 
   // ------------------------------------------------------------- render

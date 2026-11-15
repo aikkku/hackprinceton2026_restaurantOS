@@ -75,7 +75,7 @@
             "id": "plan_6",
             "name": "finalize_run",
             "args": {
-              "summary_text": "Agent-assisted scouting completed: readiness lists the profile gaps and follow-ups; market context came from the dated local snapshot with explicit unavailable sources; the site scout evaluated every offered space deterministically; the space inspector reported suite-scoped gaps and verification tasks for the top candidates; finance ran the deterministic tools and kept missing baseline inputs unavailable. No scores, quotes or candidate facts were invented; all grounded details live in the validated artifacts.",
+              "summary_text": "Agent-assisted scouting completed: readiness lists the profile gaps and follow-ups; market context came from the dated local snapshot with explicit unavailable sources; the site scout evaluated every offered space deterministically; the space inspector reported suite-scoped gaps and verification tasks for the top candidates; finance evaluated the supplied baseline with deterministic tools and preserved unavailable results. All grounded amounts, data labels and missing inputs live in the validated artifacts.",
               "missing_evidence": [
                 "Emergency reserve amount (budget.cashReserveToKeep)",
                 "Ventilation/cooking equipment requirements (space.ventilationRequirements)",
@@ -223,11 +223,9 @@
             "id": "f2",
             "name": "finalize_finance",
             "args": {
-              "summary": "Deterministic finance tools ran for the top candidates. Required-sales stays unavailable because the financial baseline is missing; occupancy ranges reflect only what the source records support.",
+              "summary": "Deterministic finance tools evaluated the supplied monthly baseline and listing occupancy. Calculated amounts, mock-data labels and missing inputs are recorded in the finance results; required sales exclude occupancy.",
               "assumptions": [],
-              "missing_inputs": [
-                "The financial baseline is unavailable, so no fixed costs or margin can be derived."
-              ]
+              "missing_inputs": []
             }
           }
         ]

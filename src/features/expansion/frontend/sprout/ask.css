@@ -1,0 +1,22 @@
+.sx-root .sx-ask-drawer { width: min(540px, 100%); overflow: hidden; padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+.sx-ask-heading { flex-wrap: nowrap; }
+.sx-ask-heading h2 { font-size: 21px; flex: 1; }
+.sx-ask-heading .sx-btn { min-height: 40px; }
+.sx-ask-avatar { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; color: var(--sx-surface); background: var(--sx-primary); }
+.sx-ask-transcript { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 18px; padding: 4px 4px 16px 0; }
+.sx-ask-exchange { display: flex; flex-direction: column; gap: 18px; }
+.sx-ask-message { border-radius: var(--sx-r); padding: 14px 16px; overflow-wrap: anywhere; }
+.sx-ask-message strong { font-size: 13px; display: block; margin-bottom: 6px; color: var(--sx-primary); }
+.sx-ask-message p { white-space: pre-wrap; }
+.sx-ask-message ul { margin: 12px 0; padding-left: 20px; }
+.sx-ask-message small { display: block; margin-top: 12px; font-size: 11px; }
+.sx-ask-message details { margin-top: 8px; }
+.sx-ask-user { background: var(--sx-card); margin-left: 24px; }
+.sx-ask-answer { background: var(--sx-bg); }
+.sx-ask-compose { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; border-top: 1px solid var(--sx-line); padding-top: 14px; }
+.sx-ask-compose form { display: flex; align-items: flex-end; gap: 8px; }
+.sx-ask-compose textarea { min-width: 0; flex: 1; resize: vertical; max-height: 140px; border: 1.5px solid var(--sx-line); border-radius: var(--sx-r-sm); background: var(--sx-bg); padding: 12px; font-size: 16px; }
+.sx-ask-compose form .sx-btn { min-width: 44px; min-height: 44px; padding: 10px; }
+.sx-ask-compose details { max-height: 130px; overflow-y: auto; overflow-wrap: anywhere; }
+.sx-ask-drawer summary { cursor: pointer; }
+@media (max-width: 560px) { .sx-root .sx-ask-drawer { padding: 18px 16px max(18px, env(safe-area-inset-bottom)); gap: 10px; } }

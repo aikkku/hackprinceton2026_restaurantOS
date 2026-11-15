@@ -15,7 +15,7 @@ import { resolve } from "node:path";
 export type WorkerMode = "live" | "scripted" | "offline";
 
 export const workerMainDir = () =>
-  resolve(process.cwd(), "src/features/expansion/agent/worker");
+  resolve(/* turbopackIgnore: true */ process.cwd(), "src/features/expansion/agent/worker");
 
 export const defaultScriptFile = () =>
   resolve(workerMainDir(), "fixtures", "cedar-kitchen-run.script.json");
@@ -23,8 +23,10 @@ export const defaultScriptFile = () =>
 export function resolveWorkerPython(): string {
   const configured = process.env.EXPANSION_AGENT_PYTHON;
   if (configured) return configured;
+  // The Python environment is provisioned on the host, not bundled into the
+  // Next.js app. Tracing its absolute interpreter symlink breaks Turbopack.
   const venv = resolve(
-    workerMainDir(),
+    /* turbopackIgnore: true */ workerMainDir(),
     "..",
     process.platform === "win32" ? ".venv/Scripts/python.exe" : ".venv/bin/python",
   );
