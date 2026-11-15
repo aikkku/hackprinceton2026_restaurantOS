@@ -79,7 +79,12 @@ const MODE_LABELS: Record<ExecutionMode, string> = {
   scripted: "Deep Agents · scripted test model",
 };
 
-const FALLBACK_CODES = new Set(["model_unavailable", "provider_not_configured", "worker_spawn_failed"]);
+// Every failure that leaves the deterministic search usable offers it explicitly;
+// the fallback is labeled separately and never shown as a Deep Agents success.
+const FALLBACK_CODES = new Set([
+  "model_unavailable", "provider_not_configured", "worker_spawn_failed",
+  "worker_exited", "worker_not_started", "interrupted", "stalled", "run_timeout", "model_or_framework_failed",
+]);
 
 export function AgentRunSection({
   profile,

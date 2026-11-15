@@ -5,7 +5,8 @@ import {
   createRun,
   runSchema,
 } from "../../../../features/expansion/backend/runs.ts";
-import { localFailure, localResponse } from "../../../../features/expansion/backend/http.ts";
+import { localResponse } from "../../../../features/expansion/backend/http.ts";
+import { ownerRoute } from "../../../../features/expansion/backend/api.ts";
 
 export const dynamic = "force-dynamic";
 
@@ -20,12 +21,9 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: Request) {
-  try {
+  return ownerRoute(request, async ({ ownerId: sessionId }) => {
+    // body.sessionId is accepted for compatibility and ignored (owner = signed cookie).
     const body = bodySchema.parse(await request.json());
-    const sessionId = request.headers.get("x-expansion-session") ?? body.sessionId ?? "local";
-    if (!/^[a-zA-Z0-9_-]{1,64}$/.test(sessionId)) {
-      return localResponse({ error: { code: "invalid_run", message: "Invalid session identifier." } }, 400);
-    }
     const result = await createRun({}, {
       runId: body.runId,
       sessionId,
@@ -36,7 +34,5 @@ export async function POST(request: Request) {
       facts: body.facts,
     });
     return localResponse(runSchema.parse(result.record), result.created ? 201 : 200);
-  } catch (error) {
-    return localFailure(error);
-  }
+  });
 }

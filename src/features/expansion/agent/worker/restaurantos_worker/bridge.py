@@ -64,6 +64,9 @@ class ToolBridge:
         self.max_retries = max_retries
         self.retry_backoff_s = retry_backoff_s
         self.total_retry_budget_s = total_retry_budget_s
+        # Phase 5: the owner id the server bound to this run (request.json).
+        # The server verifies the token inside that owner's run directory.
+        self.session_id: str | None = None
 
     def cancelled_check(self) -> None:
         if self.directory.is_cancelled():
@@ -79,7 +82,10 @@ class ToolBridge:
         if not tool or not isinstance(tool, str) or len(tool) > 120:
             raise BridgeError("invalid_input", "Invalid tool name.")
         timeout = min(timeout_s or self.default_timeout_s, MAX_TIMEOUT_S)
-        body = json.dumps({"runId": self.run_id, "tool": tool, "input": input_payload}).encode("utf-8")
+        envelope: dict[str, Any] = {"runId": self.run_id, "tool": tool, "input": input_payload}
+        if self.session_id:
+            envelope["sessionId"] = self.session_id
+        body = json.dumps(envelope).encode("utf-8")
         request = urllib.request.Request(
             f"{self.base_url}/api/expansion/agent-tools",
             data=body,

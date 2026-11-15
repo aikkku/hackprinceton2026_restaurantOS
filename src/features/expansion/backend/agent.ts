@@ -2,6 +2,7 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import {
   existsSync,
   mkdirSync,
+  readdirSync,
   readFileSync,
   renameSync,
   rmSync,
@@ -43,12 +44,16 @@ import {
   type CandidateFact,
 } from "../domain/matching.ts";
 import { financeInputsFromBaseline } from "../domain/scenario.ts";
+import { sourceSnapshotSchema, type SourceSnapshot } from "../domain/evidence.ts";
+import type { SpaceCandidate } from "../domain/matching.ts";
+import { collectCandidateSources } from "./investigation-sources.ts";
 import { invokeTool } from "../domain/tools.ts";
 import { requirementsHashOf, RunError } from "./runs.ts";
 import {
   openDatabase,
   type LocalConfig,
-} from "./local-dataset.ts";import {
+} from "./local-dataset.ts";
+import {
   metadataFor,
   searchOfferedSpaces,
   SEARCH_MODEL_VERSION,
@@ -225,6 +230,24 @@ export type CreateAgentRunInput = {
   executionMode?: ExecutionMode;
 };
 
+/** Canonical requirements hash + execution mode (idempotency and duplicate detection). */
+export function agentRequestHash(
+  rawConfig: Partial<AgentServiceConfig>,
+  input: Omit<CreateAgentRunInput, "runId" | "sessionId">,
+): string {
+  const config = serviceConfig(rawConfig);
+  const mode = input.executionMode ?? config.defaultMode ?? "live";
+  const facts = z.array(factSchema).parse(input.facts ?? []);
+  const baseHash = requirementsHashOf({
+    intake: intakeSchema.parse(input.intake),
+    revisionId: input.revisionId,
+    revisionNumber: input.revisionNumber,
+    cityId: input.cityId,
+    facts,
+  });
+  return stableHash(`${baseHash}~${mode}`);
+}
+
 /**
  * Create (idempotently) an agent run and spawn the detached Python worker.
  * The same run id with the same requirement hash + mode returns the existing
@@ -242,15 +265,7 @@ export async function createAgentRun(
     revisionNumber: input.revisionNumber,
     createdAt: new Date().toISOString(),
   });
-  const facts = z.array(factSchema).parse(input.facts ?? []);
-  const baseHash = requirementsHashOf({
-    intake: parsedIntake,
-    revisionId: input.revisionId,
-    revisionNumber: input.revisionNumber,
-    cityId: input.cityId,
-    facts,
-  });
-  const hash = stableHash(`${baseHash}~${mode}`);
+  const hash = agentRequestHash(config, input);
 
   const existingPath = artifactPath(config, input.sessionId, input.runId, "run.json");
   if (existsSync(existingPath)) {
@@ -344,6 +359,76 @@ export async function createAgentRun(
   return { record, created: true };
 }
 
+/** A worker that exited without a terminal write is recovered after this grace. */
+export const WORKER_EXIT_GRACE_MS = 30 * 1000;
+/** A queued run whose worker never wrote a heartbeat is recovered after this. */
+export const WORKER_START_GRACE_MS = 2 * 60 * 1000;
+/** Even a live worker process is recovered when it makes no progress this long. */
+export const AGENT_RUN_HARD_STALE_MS = 20 * 60 * 1000;
+
+type WorkerHeartbeat = { pid: number | null; updatedAt: number | null; alive: boolean | null };
+
+function workerHeartbeat(config: AgentServiceConfig, sessionId: string, runId: string): WorkerHeartbeat {
+  const path = artifactPath(config, sessionId, runId, "run.worker.json");
+  if (!existsSync(path)) return { pid: null, updatedAt: null, alive: null };
+  try {
+    const raw = z.object({ pid: z.number().int().positive(), updatedAt: z.string() }).parse(readJson(path));
+    let alive: boolean | null = null;
+    try {
+      process.kill(raw.pid, 0);
+      alive = true;
+    } catch (error) {
+      const code = error && typeof error === "object" && "code" in error ? error.code : "";
+      alive = code === "EPERM" ? true : code === "ESRCH" ? false : null;
+    }
+    const updatedAt = Date.parse(raw.updatedAt);
+    return { pid: raw.pid, updatedAt: Number.isFinite(updatedAt) ? updatedAt : null, alive };
+  } catch {
+    return { pid: null, updatedAt: null, alive: null };
+  }
+}
+
+/**
+ * Decide whether a non-terminal run must be recovered. Recovery is honest:
+ * the run becomes `failed` with an actionable code, completed artifacts are
+ * kept, and a cancel flag stops any zombie worker at its next tool boundary.
+ * The worker itself never overwrites a terminal run.json (orchestrator guard).
+ */
+export function staleRunReason(
+  record: AgentRunRecord,
+  heartbeat: WorkerHeartbeat,
+  now = Date.now(),
+): { code: string; message: string } | null {
+  if (record.status !== "running" && record.status !== "queued") return null;
+  const lastProgress = Math.max(Date.parse(record.updatedAt), heartbeat.updatedAt ?? 0);
+  const idle = now - lastProgress;
+  if (heartbeat.alive === false && idle > WORKER_EXIT_GRACE_MS) {
+    return {
+      code: "worker_exited",
+      message: "The Deep Agents worker stopped before finishing (it crashed or the host restarted). Completed stage results are kept; start a new run to retry, or continue with the deterministic search.",
+    };
+  }
+  if (record.status === "queued" && heartbeat.pid === null && now - Date.parse(record.createdAt) > WORKER_START_GRACE_MS && idle > WORKER_START_GRACE_MS) {
+    return {
+      code: "worker_not_started",
+      message: "The Deep Agents worker never started. Check the worker setup (EXPANSION_AGENT_PYTHON / worker venv) and the health endpoint, then start a new run.",
+    };
+  }
+  if (idle > AGENT_RUN_STALE_MS && heartbeat.alive !== true) {
+    return {
+      code: "interrupted",
+      message: "The agent run was interrupted and recovered as failed. Start a new run to retry.",
+    };
+  }
+  if (idle > AGENT_RUN_HARD_STALE_MS) {
+    return {
+      code: "stalled",
+      message: "The agent run made no progress for 20 minutes and was stopped. Start a new run to retry.",
+    };
+  }
+  return null;
+}
+
 export function getAgentRun(
   rawConfig: Partial<AgentServiceConfig>,
   sessionId: string,
@@ -351,23 +436,94 @@ export function getAgentRun(
 ): AgentRunRecord {
   const config = serviceConfig(rawConfig);
   const record = readRunFile(config, sessionId, runId);
-  if (
-    (record.status === "running" || record.status === "queued") &&
-    Date.now() - Date.parse(record.updatedAt) > AGENT_RUN_STALE_MS
-  ) {
+  const reason = staleRunReason(record, workerHeartbeat(config, sessionId, runId));
+  if (reason) {
+    const now = new Date().toISOString();
+    // Stop a zombie worker at its next tool boundary; the bridge rejects
+    // cancelled runs and the worker's terminal guard leaves run.json alone.
+    try {
+      atomicWrite(cancelledFlag(config, sessionId, runId), JSON.stringify({ requestedAt: now, reason: reason.code }));
+    } catch {
+      /* best effort */
+    }
     const recovered = agentRunRecordSchema.parse({
       ...record,
       status: "failed",
-      updatedAt: new Date().toISOString(),
-      error: {
-        code: "interrupted",
-        message: "The agent run was interrupted and recovered as failed. Start a new run to retry.",
-      },
+      updatedAt: now,
+      error: reason,
     });
     writeRunFile(config, recovered);
     return recovered;
   }
   return record;
+}
+
+/** Find a non-terminal run of the same owner with the same requirements hash and mode. */
+export function findActiveAgentRun(
+  rawConfig: Partial<AgentServiceConfig>,
+  sessionId: string,
+  input: Omit<CreateAgentRunInput, "runId" | "sessionId">,
+): AgentRunRecord | null {
+  const config = serviceConfig(rawConfig);
+  const hash = agentRequestHash(config, input);
+  const directory = sessionDir(config, sessionId);
+  if (!existsSync(directory)) return null;
+  for (const entry of readdirSync(directory)) {
+    if (!entry.startsWith("agent-")) continue;
+    const runId = entry.slice("agent-".length);
+    try {
+      const record = getAgentRun(config, sessionId, runId);
+      if (record.requirementsHash === hash && (record.status === "queued" || record.status === "running")) return record;
+    } catch {
+      /* unreadable runs never block a new submission */
+    }
+  }
+  return null;
+}
+
+/** List an owner's agent runs (newest first), recovering stale ones on read. */
+export function listAgentRuns(rawConfig: Partial<AgentServiceConfig>, sessionId: string, limit = 50): AgentRunRecord[] {
+  const config = serviceConfig(rawConfig);
+  const directory = sessionDir(config, sessionId);
+  if (!existsSync(directory)) return [];
+  const records: AgentRunRecord[] = [];
+  for (const entry of readdirSync(directory)) {
+    if (!entry.startsWith("agent-")) continue;
+    try {
+      records.push(getAgentRun(config, sessionId, entry.slice("agent-".length)));
+    } catch {
+      /* skip unreadable */
+    }
+  }
+  return records.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, limit);
+}
+
+/** Startup/readiness sweep: recover every stale run across owners. */
+export function recoverStaleAgentRuns(rawConfig: Partial<AgentServiceConfig> = {}): { scanned: number; recovered: number; active: number } {
+  const config = serviceConfig(rawConfig);
+  const result = { scanned: 0, recovered: 0, active: 0 };
+  if (!existsSync(config.runsDir)) return result;
+  for (const owner of readdirSync(config.runsDir)) {
+    if (!/^[a-zA-Z0-9_-]{1,64}$/.test(owner)) continue;
+    const directory = sessionDir(config, owner);
+    let entries: string[] = [];
+    try { entries = readdirSync(directory); } catch { continue; }
+    for (const entry of entries) {
+      if (!entry.startsWith("agent-")) continue;
+      const runId = entry.slice("agent-".length);
+      try {
+        const before = readRunFile(config, owner, runId);
+        if (before.status !== "running" && before.status !== "queued") { result.scanned += 1; continue; }
+        const after = getAgentRun(config, owner, runId);
+        result.scanned += 1;
+        if (after.status === "failed") result.recovered += 1;
+        else result.active += 1;
+      } catch {
+        /* unreadable run directories are reported by their own reads */
+      }
+    }
+  }
+  return result;
 }
 
 export function cancelAgentRun(
@@ -838,6 +994,10 @@ export async function invokeAgentTool(
           notFoundIds: [...storedNotFounds],
         })),
       );
+      // Phase 5 integration: attach Phase 4 live source evidence for the
+      // inspected spaces as a server-written side artifact. The worker
+      // contract (tool output, inspection.json) is unchanged.
+      await collectAgentEvidence(config, sessionId, runId, inspected.map((item) => item.candidate));
       return output;
     }
 
@@ -902,6 +1062,60 @@ export async function invokeAgentTool(
     default:
       throw new AgentToolError("unknown_tool", `Unknown agent tool "${tool}".`);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4 evidence attached to agent runs (server-written `evidence.json`)
+
+export const AGENT_EVIDENCE_VERSION = "expansion-agent-evidence-v1";
+export const AGENT_EVIDENCE_MAX_CANDIDATES = 3;
+export const AGENT_EVIDENCE_TIMEOUT_MS = 20_000;
+export const agentEvidenceSchema = z.object({
+  version: z.literal(AGENT_EVIDENCE_VERSION),
+  runId: z.string().min(1),
+  collectedAt: z.iso.datetime(),
+  snapshots: z.array(sourceSnapshotSchema).max(AGENT_EVIDENCE_MAX_CANDIDATES),
+  note: z.string(),
+}).strict();
+export type AgentEvidence = z.infer<typeof agentEvidenceSchema>;
+
+/**
+ * Live Phase 4 source collection for the first inspected spaces. Synthetic
+ * fixtures are never used here (collectCandidateSources never injects them),
+ * provider failures stay explicit `unavailable` statuses, and the whole step
+ * is bounded so it can never stall the worker's tool call.
+ */
+async function collectAgentEvidence(config: AgentServiceConfig, sessionId: string, runId: string, candidates: SpaceCandidate[]) {
+  if (process.env.EXPANSION_AGENT_EVIDENCE === "0" || candidates.length === 0) return;
+  const path = artifactPath(config, sessionId, runId, "evidence.json");
+  let previous: AgentEvidence | null = null;
+  try { previous = existsSync(path) ? agentEvidenceSchema.parse(readJson(path)) : null; } catch { previous = null; }
+  const known = new Set(previous?.snapshots.map((item) => item.candidateId) ?? []);
+  const targets = candidates.filter((item) => !known.has(item.id)).slice(0, AGENT_EVIDENCE_MAX_CANDIDATES - known.size);
+  if (targets.length === 0) return;
+  const timeout = new Promise<null>((resolveTimeout) => setTimeout(() => resolveTimeout(null), AGENT_EVIDENCE_TIMEOUT_MS).unref?.());
+  const collected = await Promise.race([
+    Promise.all(targets.map((candidate) => collectCandidateSources(candidate, { currentAddress: null, priceLevel: null }).catch(() => null))),
+    timeout,
+  ]);
+  const snapshots = [...(previous?.snapshots ?? []), ...(collected ?? []).filter((item): item is SourceSnapshot => item !== null)];
+  atomicWrite(path, JSON.stringify(agentEvidenceSchema.parse({
+    version: AGENT_EVIDENCE_VERSION,
+    runId,
+    collectedAt: new Date().toISOString(),
+    snapshots,
+    note: collected === null
+      ? "Source collection exceeded its time budget; no evidence was substituted."
+      : "Live Phase 4 source statuses for the inspected spaces. Unavailable sources are explicit; synthetic fixtures are never attached here.",
+  })));
+}
+
+export function getAgentEvidence(rawConfig: Partial<AgentServiceConfig>, sessionId: string, runId: string): AgentEvidence | null {
+  const config = serviceConfig(rawConfig);
+  readRunFile(config, sessionId, runId); // ownership + existence
+  const path = artifactPath(config, sessionId, runId, "evidence.json");
+  if (!existsSync(path)) return null;
+  try { return agentEvidenceSchema.parse(readJson(path)); } catch { throw new RunError("invalid_run", "The stored evidence artifact is invalid."); }
 }
 
 export function agentCapabilities(rawConfig: Partial<AgentServiceConfig>) {

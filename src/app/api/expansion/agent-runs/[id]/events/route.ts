@@ -7,6 +7,10 @@ import {
   readAgentEvents,
 } from "../../../../../../features/expansion/backend/agent.ts";
 import { localFailure } from "../../../../../../features/expansion/backend/http.ts";
+import { failure, isNotFound } from "../../../../../../features/expansion/backend/api.ts";
+import { OwnerError, ownerFailure, resolveOwner } from "../../../../../../features/expansion/backend/owner.ts";
+import { getRepository } from "../../../../../../features/expansion/backend/store.ts";
+import { durableEvents, durableRun } from "../../../../../../features/expansion/backend/durable.ts";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import type { AgentEvent } from "../../../../../../features/expansion/domain/agent.ts";
@@ -50,10 +54,12 @@ export async function GET(
 ) {
   const { id } = await context.params;
   const url = new URL(request.url);
-  const headerSession = request.headers.get("x-expansion-session");
-  const sessionId = headerSession ?? url.searchParams.get("session") ?? "local";
-  if (!/^[a-zA-Z0-9_-]{1,64}$/.test(sessionId)) {
-    return localFailure(Object.assign(new Error("invalid session"), { code: "invalid_run" }));
+  // Owner = signed cookie only; `?session=` / x-expansion-session are no longer honored.
+  let sessionId: string;
+  try {
+    sessionId = resolveOwner(request, { issue: false }).ownerId;
+  } catch (error) {
+    return error instanceof OwnerError ? ownerFailure(error) : localFailure(error);
   }
   let afterSeq = 0;
   const lastEventId = request.headers.get("last-event-id");
@@ -65,7 +71,17 @@ export async function GET(
   try {
     record = agentRunRecordSchema.parse(getAgentRun({}, sessionId, id));
   } catch (error) {
-    return localFailure(error);
+    // Durable replay when the run directory is gone: terminal runs only.
+    const repo = isNotFound(error) ? await getRepository() : null;
+    const durable = repo ? await durableRun(repo, sessionId, id).catch(() => null) : null;
+    if (!repo || !durable) return failure(error);
+    const events = await durableEvents(repo, sessionId, id, afterSeq).catch(() => []);
+    const body = events.map((event) => sseFrame(event.seq, event.type, event)).join("") +
+      `event: done
+data: ${JSON.stringify({ status: durable.status, runId: id })}
+
+`;
+    return new Response(body, { headers: { "Content-Type": "text/event-stream; charset=utf-8", "Cache-Control": "no-store, no-transform" } });
   }
 
   const path = eventsFileFor(sessionId, id);
@@ -75,6 +91,7 @@ export async function GET(
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
       let offset = 0;
+      let lastSent = afterSeq;
       let closed = false;
       let lastHeartbeat = Date.now();
       let timer: ReturnType<typeof setTimeout> | null = null;
@@ -102,7 +119,11 @@ export async function GET(
         try {
           const tail = readTail(path, offset);
           offset = tail.offset;
-          for (const event of tail.events) send(sseFrame(event.seq, event.type, event));
+          for (const event of tail.events) {
+            if (event.seq <= lastSent) continue; // never re-emit replayed/sent sequences
+            lastSent = event.seq;
+            send(sseFrame(event.seq, event.type, event));
+          }
           const size = existsSync(path) ? statSync(path).size : 0;
           if (tail.events.length === 0 && existsSync(path) && offset < size) {
             // File shrank or was rewritten; rescan from the start but keep
@@ -111,7 +132,9 @@ export async function GET(
           }
           let current: unknown = null;
           try {
-            current = agentRunRecordSchema.parse(JSON.parse(readFileSync(path.replace("events.jsonl", "run.json"), "utf8")));
+            // getAgentRun applies heartbeat-aware stale recovery, so a dead
+            // worker ends the stream with an honest failed terminal.
+            current = getAgentRun({}, sessionId, id);
           } catch {
             current = null;
           }
@@ -136,6 +159,7 @@ export async function GET(
       // Replay everything after the client's last seen sequence.
       const replayed = readAgentEvents({}, sessionId, id, afterSeq);
       for (const event of replayed.events) send(sseFrame(event.seq, event.type, event));
+      lastSent = Math.max(lastSent, replayed.lastSeq);
       if (terminalStatuses.has(record.status)) {
         send(`event: done\ndata: ${JSON.stringify({ status: record.status, runId: id })}\n\n`);
         close();

@@ -1,0 +1,18 @@
+# BuildKit picks this up for deploy/expansion/Dockerfile only (no repo-wide .dockerignore).
+node_modules
+.next
+.git
+.env*
+**/.venv
+**/.venv-helper
+**/__pycache__
+src/features/expansion/data/data
+src/features/expansion/data/costar-hackathon-kit (1)
+src/features/expansion/data/quickstart
+src/features/expansion/data/output
+src/features/expansion/agent/.tmp
+test-results
+playwright-report
+smoke-run-*
+phase4-provider-*
+bridge-*
