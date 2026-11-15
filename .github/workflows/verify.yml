@@ -1,0 +1,37 @@
+name: Verify application and deployment
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm test
+      - run: node --test deploy/vultr/preflight.test.mjs
+      - name: Validate Compose without secrets
+        run: docker compose -f deploy/vultr/compose.yaml config --quiet
+        env:
+          RUNTIME_ENV_FILE: ${{ github.workspace }}/deploy/vultr/runtime.env.example
+          APP_DOMAIN: restaurant.example.com
+          ACME_EMAIL: ops@example.com
+      - name: Build complete Linux image (includes Next build and typecheck)
+        run: docker build -f deploy/vultr/Dockerfile -t restaurantos:check .
+      - name: Smoke test without external providers or database
+        run: node deploy/vultr/smoke.mjs
+        env:
+          SMOKE_IMAGE: restaurantos:check
