@@ -26,6 +26,7 @@ from .bridge import BridgeError, RunCancelled, ToolBridge
 from .models import (
     AgentRunRequest,
     FinanceArtifact,
+    InspectionArtifact,
     OccupancyResult,
     ProfileArtifact,
     RequiredSalesResult,
@@ -68,12 +69,14 @@ then call finalize_market. Only repeat sourced context the tool returned (datase
 source capabilities). Everything the tool marks unavailable must stay unavailable in your report."""
 
 SCOUT_SYSTEM_PROMPT = """You are the site scout. Call search_city once and wait for it to finish, then call
-finalize_scout. Candidate IDs, counts and reasons must be copied from the tool output only —
-the finalize validation rejects any other ID. A cancelled or capped scan is reported, never hidden."""
+finalize_scout with candidate_ids left empty: the tool records every candidate the search
+returned, so never copy IDs by hand. Counts and reasons must come from the tool output only.
+A cancelled or capped scan is reported, never hidden. Always finish by calling finalize_scout."""
 
 INSPECTOR_SYSTEM_PROMPT = """You are the space inspector. First call list_candidates to read the
 candidate IDs from this run's persisted search results, then call inspect_candidates with those
-exact IDs, then call finalize_inspection. Report suite-scoped facts, gaps and verification tasks
+exact IDs, then call finalize_inspection with inspected_candidate_ids left empty (it records
+every inspected candidate). Report suite-scoped facts, gaps and verification tasks
 exactly as the tool returned them. Unknown IDs are reported as not found, never filled in from
 memory, and IDs you invent are rejected by validation."""
 
@@ -185,6 +188,9 @@ class AgentContext:
 
     def candidates(self) -> SearchArtifact:
         return self.directory.read_artifact("candidates.json", SearchArtifact)
+
+    def inspection(self) -> InspectionArtifact:
+        return self.directory.read_artifact("inspection.json", InspectionArtifact)
 
     def tool_guard(self) -> None:
         self.directory.heartbeat()
@@ -339,14 +345,19 @@ def _finalize_scout_tool(context: AgentContext) -> StructuredTool:
     tracker = context.tracker
 
     @langchain_tool
-    def finalize_scout(candidate_ids: list[str], counts_note: str, notes: str) -> str:
-        """Record the site scout result. candidate_ids must be IDs returned by search_city; anything else is rejected."""
+    def finalize_scout(counts_note: str, notes: str, candidate_ids: list[str] | None = None) -> str:
+        """Record the site scout result. Leave candidate_ids empty to record every candidate
+        search_city returned (recommended; do not copy IDs by hand). Any ID you do pass must be
+        one search_city returned; anything else is rejected."""
         context.tool_guard()
         try:
             artifact = context.candidates()
         except FileNotFoundError:
             return "search_city has not produced candidates yet; call it first."
         known = {item.candidate.id for item in artifact.candidates}
+        if not candidate_ids:
+            # Grounded by construction: the persisted search artifact is the source.
+            candidate_ids = [item.candidate.id for item in artifact.candidates]
         valid = [item for item in candidate_ids if item in known]
         invalid = [item for item in candidate_ids if item not in known]
         if invalid:
@@ -366,18 +377,25 @@ def _finalize_inspection_tool(context: AgentContext) -> StructuredTool:
 
     @langchain_tool
     def finalize_inspection(
-        inspected_candidate_ids: list[str],
         findings: list[str],
         verification_tasks: list[str],
         gaps_summary: str,
+        inspected_candidate_ids: list[str] | None = None,
     ) -> str:
-        """Record the inspection result. IDs must exist in this run's search results."""
+        """Record the inspection result. Leave inspected_candidate_ids empty to record every
+        candidate inspect_candidates returned (recommended). Any ID you pass must exist in this
+        run's search results."""
         context.tool_guard()
         try:
             artifact = context.candidates()
         except FileNotFoundError:
             return "No candidates exist in this run yet; the site scout must run first."
         known = {item.candidate.id for item in artifact.candidates}
+        if not inspected_candidate_ids:
+            try:
+                inspected_candidate_ids = [item.candidateId for item in context.inspection().candidates]
+            except FileNotFoundError:
+                return "inspect_candidates has not produced results yet; call it first."
         invalid = [item for item in inspected_candidate_ids if item not in known]
         if invalid:
             return f"These candidate IDs do not exist in this run's search results and were rejected: {', '.join(invalid[:5])}."

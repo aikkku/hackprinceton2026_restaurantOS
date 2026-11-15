@@ -84,6 +84,13 @@ import {
 export const AGENT_RUN_STALE_MS = 5 * 60 * 1000;
 export const INSPECT_MAX_CANDIDATES = 20;
 export const SCOUT_TOP_CANDIDATES = 100;
+/**
+ * Excluded rows the model sees from scout.search_city. The full list stays in
+ * candidates.json; the model already gets exact exclusion counts by reason.
+ * On the real Houston snapshot the full list is ~2,200 rows (~135k tokens),
+ * which made live Gemini calls time out (504 DEADLINE_EXCEEDED).
+ */
+export const SCOUT_EXCLUDED_SAMPLE = 20;
 
 export type AgentServiceConfig = {
   db?: LocalConfig;
@@ -924,8 +931,8 @@ export async function invokeAgentTool(
               },
             };
           }),
-          excluded: search.excluded,
-          excludedTruncated: artifact.excludedTruncated,
+          excluded: search.excluded.slice(0, SCOUT_EXCLUDED_SAMPLE),
+          excludedTruncated: artifact.excludedTruncated || search.excluded.length > SCOUT_EXCLUDED_SAMPLE,
         });
       } finally {
         try {
