@@ -18,8 +18,9 @@ export async function loadInvestigationRun(runId: string, signal?: AbortSignal):
   }))]);
   return investigationRunSchema.parse({ run, profile: artifacts[0], search: artifacts[1], summary: artifacts[2], market: artifacts[3], inspection: artifacts[4], finance: artifacts[5] });
 }
-export async function refreshCandidateSources(runId: string, candidateId: string, options: { currentAddress: string | null; priceLevel: number | null }, signal?: AbortSignal) {
+export async function refreshCandidateSources(runId: string, candidateId: string, options: { currentAddress: string | null; priceLevel: number | null; sourceMode?: "live" | "synthetic" }, signal?: AbortSignal) {
   const params = new URLSearchParams({ candidateId });
+  if (options.sourceMode === "synthetic") params.set("sourceMode", "synthetic");
   if (options.currentAddress) params.set("currentAddress", options.currentAddress);
   if (options.priceLevel !== null) params.set("priceLevel", String(options.priceLevel));
   return sourceSnapshotSchema.parse(await read(`/api/expansion/investigations/${encodeURIComponent(runId)}?${params}`, signal));

@@ -11,6 +11,14 @@ export const HEIGHTS_DEFINITION = {
   limitation: "Greater Heights is a documented possible interpretation of the owner's Heights preference. Membership requires a sourced boundary lookup; address text alone is not membership. Owner confirmation of this definition remains needed.",
 };
 const text = z.string().min(1);
+export type AdapterMode = { synthetic?: boolean };
+export const SYNTHETIC_LIMITATION = "SYNTHETIC FIXTURE — generated test payload mapped by the real adapter. Not a provider record and not live integration proof.";
+/** Synthetic payloads are mapped by the same adapters, then relabeled `simulated` and stripped of facts. */
+function relabel(observation: Omit<SourceObservation, "imageUrl"> & { imageUrl?: string | null }, mode: AdapterMode): SourceObservation {
+  if (!mode.synthetic) return sourceObservationSchema.parse(observation);
+  return sourceObservationSchema.parse({ ...observation, id: `synthetic:${observation.id}`, origin: "simulated", isSynthetic: true,
+    label: `Synthetic fixture · ${observation.label}`, limitations: [SYNTHETIC_LIMITATION, ...observation.limitations], facts: [], viewerUrl: null, referenceUrl: observation.referenceUrl, exportAllowed: false });
+}
 const number = z.number().finite().nonnegative();
 const sourceDate = z.iso.date().nullable();
 export const matterportLinkSchema = z.object({
@@ -22,7 +30,7 @@ export const matterportMetadataSchema = z.object({
   id: text, name: z.string().nullable(), capturedAt: sourceDate,
   measurements: z.object({ usableDiningSqFt: number.positive(), sourceRecordId: text }).nullable(),
 });
-export function mapMatterport(candidate: SpaceCandidate, rawLink: unknown, rawModel: unknown, now: string, densitySqFtPerSeat: number | null = null): SourceObservation {
+export function mapMatterport(candidate: SpaceCandidate, rawLink: unknown, rawModel: unknown, now: string, densitySqFtPerSeat: number | null = null, mode: AdapterMode = {}): SourceObservation {
   const link = matterportLinkSchema.parse(rawLink);
   const model = matterportMetadataSchema.parse(rawModel);
   if (candidate.propertyId !== link.propertyId || model.id !== link.modelId || (link.candidateId !== null && candidate.id !== link.candidateId)) throw new Error("Property/model/offered-suite association mismatch.");
@@ -37,13 +45,13 @@ export function mapMatterport(candidate: SpaceCandidate, rawLink: unknown, rawMo
       details.push(`Planning estimate: ${Math.floor(model.measurements.usableDiningSqFt / densitySqFtPerSeat)} seats at an assumed ${densitySqFtPerSeat} SF/seat; not legal occupancy.`);
     }
   } else limitations.push("Supported suite-scoped dining measurements unavailable; no seat estimate calculated.");
-  return sourceObservationSchema.parse({
+  return relabel({
     id: `matterport:${candidate.id}:${model.id}`, provider: "matterport", candidateId: candidate.id,
     scope: suiteAssociated ? "suite" : "property", sourceRecordId: model.id, sourceDate: model.capturedAt,
     retrievedAt: now, origin: "observed", isSynthetic: false, label: "Matterport metadata", details, limitations,
     referenceUrl: "https://developers.matterport.com/api/model/overview/",
     viewerUrl: link.viewerPermitted ? `https://my.matterport.com/show/?m=${model.id}` : null, facts: [], exportAllowed: false,
-  });
+  }, mode);
 }
 
 export const aerialObservationInputSchema = z.object({
@@ -51,18 +59,18 @@ export const aerialObservationInputSchema = z.object({
   capturedAt: sourceDate, occluded: z.boolean().nullable(),
   reviewedVisibleStalls: number.int().nullable(), reviewReference: text.nullable(),
 });
-export function mapVexcel(candidate: SpaceCandidate, raw: unknown, now: string): SourceObservation {
+export function mapVexcel(candidate: SpaceCandidate, raw: unknown, now: string, mode: AdapterMode = {}): SourceObservation {
   const image = aerialObservationInputSchema.parse(raw);
   if (candidate.latitude !== image.latitude || candidate.longitude !== image.longitude) throw new Error("Imagery does not identify this site's coordinates.");
   const reviewed = image.occluded === false && image.reviewReference !== null;
-  return sourceObservationSchema.parse({
+  return relabel({
     id: `vexcel:${candidate.id}:${image.recordId}`, provider: "vexcel", candidateId: candidate.id,
     scope: "site", sourceRecordId: image.recordId, sourceDate: image.capturedAt, retrievedAt: now,
     origin: "observed", isSynthetic: false, label: "Vexcel site context",
     details: [`Site center: ${image.latitude}, ${image.longitude}`, reviewed && image.reviewedVisibleStalls !== null ? `Reviewed visible stalls: ${image.reviewedVisibleStalls}; review ${image.reviewReference}` : "Visible stalls, patio and frontage have not been reliably reviewed."],
     limitations: ["Visible parking never establishes customer access, allocation or lease rights.", image.capturedAt === null ? "Image capture date unavailable; image freshness unknown." : `Dated image captured ${image.capturedAt}.`, image.occluded !== false ? "Occlusion unassessed or present; no count inferred." : "Visibility reviewed."],
     referenceUrl: null, viewerUrl: null, facts: [], exportAllowed: false,
-  });
+  }, mode);
 }
 
 export const acsContextSchema = z.object({
@@ -84,15 +92,15 @@ export function parseAcsResponse(raw: unknown, geography: { state: string; count
   };
   return acsContextSchema.parse({ ...geography, release: ACS_RELEASE, name: row.NAME, population: value(ACS_VARIABLES[0]), populationMoe: value(ACS_VARIABLES[1]), income: value(ACS_VARIABLES[2]), incomeMoe: value(ACS_VARIABLES[3]), allocationMethod: ACS_ALLOCATION });
 }
-export function acsObservation(candidate: SpaceCandidate, context: AcsContext, now: string): SourceObservation {
-  return sourceObservationSchema.parse({
+export function acsObservation(candidate: SpaceCandidate, context: AcsContext, now: string, mode: AdapterMode = {}): SourceObservation {
+  return relabel({
     id: `acs:${candidate.id}:${context.state}${context.county}${context.tract}:${context.release}`, provider: "acs", candidateId: candidate.id,
     scope: "tract", sourceRecordId: `${context.state}${context.county}${context.tract}`, sourceDate: null, retrievedAt: now,
     origin: "observed", isSynthetic: false, label: `Census ACS ${context.release} · ${context.name}`,
     details: [`Population: ${context.population ?? "unavailable"} persons; MOE ±${context.populationMoe ?? "unavailable"} persons (90% confidence).`, `Median household income: ${context.income ?? "unavailable"} USD (2023 inflation-adjusted); MOE ±${context.incomeMoe ?? "unavailable"} USD (90% confidence).`, `Variables: ${ACS_VARIABLES.join(", ")}`],
     limitations: [`${ACS_ALLOCATION}: the containing tract is context for the site/H3 cell; values are NOT allocated or summed across H3 cells. Median income is not area-weighted.`, "2019–2023 five-year estimates; not current demand or restaurant revenue. Composite score remains unscored."],
     referenceUrl: "https://api.census.gov/data/2023/acs/acs5.html", viewerUrl: null, facts: [], exportAllowed: true,
-  });
+  }, mode);
 }
 
 /** No home similarity or price-fit is possible from a city/cuisine alone. */
