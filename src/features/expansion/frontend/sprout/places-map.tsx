@@ -5,7 +5,20 @@ import type { Map as LibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { FIT_ICON, FIT_LABEL, type Fit } from "./model.ts";
 
-export type MapPlace = { id: string; name: string; subtitle: string; lat: number | null; lng: number | null; fit: Fit; price: string; saved: boolean };
+export type MapPlace = {
+  id: string; name: string; location: string; address: string;
+  lat: number | null; lng: number | null; fit: Fit;
+  /** Short label inside the pin. */
+  price: string;
+  /** Full price line for the card, e.g. "$4,875/mo" or "≈ $2.3k–3.4k/mo + building charges". */
+  priceLabel: string;
+  /** "1,500 sq ft" or "1,200–2,000 sq ft"; empty when unknown. */
+  size: string;
+  /** First still-open check question, shown as a soft banner. */
+  question: string | null;
+  image: string | null;
+  saved: boolean;
+};
 type Spot = { key: string; lat: number; lng: number; places: MapPlace[] };
 
 const FIT_ORDER: Fit[] = ["meets", "verify", "other", "fails"];
@@ -56,62 +69,97 @@ function pinElement(spot: Spot, selectedId: string | null, onPick: (id: string, 
   return button;
 }
 
-/** Simple address info card shown next to the clicked pin (DOM for the popup). */
-function cardElement(spot: Spot, selectedId: string | null, onDetails: (id: string) => void, onClose: () => void): HTMLElement {
-  const selected = spot.places.find((p) => p.id === selectedId) ?? spot.places[0];
+/** Simple address card shown next to the clicked pin (DOM for the popup). */
+function cardElement(place: MapPlace, onDetails: (id: string) => void, onToggleSave: (id: string) => void, onClose: () => void): HTMLElement {
   const card = document.createElement("div");
   card.className = "sx-map-card";
   // Clicks inside the card never close it via a background/plane handler.
   card.addEventListener("click", (event) => event.stopPropagation());
+
+  // Photo header: the aerial photo we have (if any), else a labeled neutral block.
+  const photo = document.createElement("div");
+  photo.className = "sx-map-card-photo";
+  if (place.image) {
+    const img = document.createElement("img");
+    img.src = place.image;
+    img.alt = `Aerial view around ${place.name}`;
+    photo.append(img);
+  } else {
+    const none = document.createElement("span");
+    none.className = "sx-map-card-photo-empty";
+    none.textContent = "No aerial photo yet";
+    photo.append(none);
+  }
   const close = document.createElement("button");
   close.type = "button";
   close.className = "sx-map-card-close";
   close.setAttribute("aria-label", "Close");
   close.textContent = "×";
   close.addEventListener("click", () => onClose());
-  card.append(close);
+  photo.append(close);
+  card.append(photo);
+
+  const body = document.createElement("div");
+  body.className = "sx-map-card-body";
+  const eyebrow = document.createElement("span");
+  eyebrow.className = "sx-map-card-eyebrow";
+  eyebrow.textContent = place.location;
   const name = document.createElement("span");
   name.className = "sx-map-card-name";
-  name.textContent = selected.name;
-  const sub = document.createElement("span");
-  sub.className = "sx-map-card-sub";
-  sub.textContent = selected.subtitle;
-  const row = document.createElement("span");
-  row.className = "sx-map-card-row";
-  const dot = document.createElement("span");
-  dot.className = `sx-dot sx-s-${selected.fit}`;
-  dot.setAttribute("aria-hidden", "true");
-  dot.textContent = FIT_ICON[selected.fit];
-  const fit = document.createElement("span");
-  fit.textContent = FIT_LABEL[selected.fit];
+  name.textContent = place.name;
+  const address = document.createElement("span");
+  address.className = "sx-map-card-address";
+  address.textContent = place.address;
+  const pill = document.createElement("span");
+  pill.className = `sx-pill sx-s-${place.fit}`;
+  const pillIcon = document.createElement("span");
+  pillIcon.className = "sx-pill-icon";
+  pillIcon.setAttribute("aria-hidden", "true");
+  pillIcon.textContent = FIT_ICON[place.fit];
+  pill.append(pillIcon, document.createTextNode(FIT_LABEL[place.fit]));
   const price = document.createElement("span");
-  price.textContent = selected.price;
-  row.append(dot, fit, price);
-  card.append(name, sub, row);
-  if (spot.places.length > 1) {
-    const more = document.createElement("span");
-    more.className = "sx-map-card-more";
-    more.textContent = `${spot.places.length - 1} more ${spot.places.length - 1 === 1 ? "place" : "places"} at one address — tap the pin to switch.`;
-    card.append(more);
+  price.className = "sx-map-card-price";
+  price.textContent = place.size ? `${place.priceLabel} · ${place.size}` : place.priceLabel;
+  body.append(eyebrow, name, address, pill, price);
+  if (place.question) {
+    const question = document.createElement("span");
+    question.className = "sx-map-card-question";
+    question.textContent = place.question;
+    body.append(question);
   }
-  const details = document.createElement("button");
-  details.type = "button";
-  details.className = "sx-map-card-btn";
-  details.setAttribute("aria-label", `Open details for ${selected.name}`);
-  details.textContent = "See details ›";
-  details.addEventListener("click", () => onDetails(selected.id));
-  card.append(details);
+
+  const actions = document.createElement("span");
+  actions.className = "sx-map-card-actions";
+  const inspect = document.createElement("button");
+  inspect.type = "button";
+  inspect.className = "sx-btn sx-btn-primary sx-map-card-inspect";
+  inspect.textContent = "Inspect space";
+  inspect.addEventListener("click", () => onDetails(place.id));
+  const save = document.createElement("button");
+  save.type = "button";
+  save.className = `sx-btn sx-map-card-save${place.saved ? " sx-map-card-save-on" : ""}`;
+  save.setAttribute("aria-pressed", String(place.saved));
+  save.setAttribute("aria-label", place.saved ? `Remove ${place.name} from saved` : `Save ${place.name}`);
+  const bookmark = document.createElement("span");
+  bookmark.className = "sx-map-card-bookmark";
+  bookmark.setAttribute("aria-hidden", "true");
+  save.append(bookmark, document.createTextNode(place.saved ? "Saved" : "Save"));
+  save.addEventListener("click", () => onToggleSave(place.id));
+  actions.append(inspect, save);
+  body.append(actions);
+  card.append(body);
   return card;
 }
 
-export function PlacesMap({ places, selectedId, onSelect, onOpen, center, note }: {
-  places: MapPlace[]; selectedId: string | null; onSelect: (id: string) => void; onOpen: (id: string) => void; center: [number, number] | null; note: string;
+export function PlacesMap({ places, selectedId, onSelect, onOpen, onToggleSave, center, note }: {
+  places: MapPlace[]; selectedId: string | null; onSelect: (id: string) => void; onOpen: (id: string) => void; onToggleSave: (id: string) => void; center: [number, number] | null; note: string;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LibreMap | null>(null);
   const markers = useRef<Marker[]>([]);
   const selectRef = useRef(onSelect);
   const openRef = useRef(onOpen);
+  const saveRef = useRef(onToggleSave);
   const [state, setState] = useState<"loading" | "ready" | "fallback">("loading");
   // The address card's spot: set by a pin click, cleared by background/close.
   const [openSpotKey, setOpenSpotKey] = useState<string | null>(null);
@@ -124,6 +172,7 @@ export function PlacesMap({ places, selectedId, onSelect, onOpen, center, note }
   const missing = places.filter((p) => p.lat === null || p.lng === null).length;
   useEffect(() => { selectRef.current = onSelect; }, [onSelect]);
   useEffect(() => { openRef.current = onOpen; }, [onOpen]);
+  useEffect(() => { saveRef.current = onToggleSave; }, [onToggleSave]);
   const closeCard = () => setOpenSpotKey(null);
   const pick = (id: string, spotKey: string) => { selectRef.current(id); setOpenSpotKey(spotKey); };
 
@@ -170,11 +219,12 @@ export function PlacesMap({ places, selectedId, onSelect, onOpen, center, note }
     let popup: { remove: () => void } | null = null;
     const spot = openSpotKey === null ? null : spots.find((s) => s.key === openSpotKey) ?? null;
     if (spot) {
+      const selected = spot.places.find((p) => p.id === selectedId) ?? spot.places[0];
       void import("maplibre-gl").then(({ Popup }) => {
         if (cancelled) return;
-        popup = new Popup({ closeButton: false, closeOnClick: false, offset: 44, maxWidth: "300px" })
+        popup = new Popup({ closeButton: false, closeOnClick: false, offset: 46, maxWidth: "320px" })
           .setLngLat([spot.lng, spot.lat])
-          .setDOMContent(cardElement(spot, selectedId, (id) => openRef.current(id), closeCard))
+          .setDOMContent(cardElement(selected, (id) => openRef.current(id), (id) => saveRef.current(id), closeCard))
           .addTo(map);
       });
     }
@@ -204,7 +254,7 @@ export function PlacesMap({ places, selectedId, onSelect, onOpen, center, note }
   return (
     <div className="sx-map" aria-label="Map of places">
       {state !== "fallback" && <div ref={container} className="sx-map-canvas" />}
-      {state === "fallback" && <FallbackPlane spots={spots} selectedId={selectedId} openSpotKey={openSpotKey} onPick={pick} onOpen={(id) => openRef.current(id)} onCloseCard={closeCard} />}
+      {state === "fallback" && <FallbackPlane spots={spots} selectedId={selectedId} openSpotKey={openSpotKey} onPick={pick} onOpen={(id) => openRef.current(id)} onToggleSave={(id) => saveRef.current(id)} onCloseCard={closeCard} />}
       {state === "ready" && (
         <div className="sx-map-ctrl">
           <button type="button" aria-label="Zoom in" onClick={() => mapRef.current?.zoomIn()}>+</button>
@@ -220,8 +270,8 @@ export function PlacesMap({ places, selectedId, onSelect, onOpen, center, note }
   );
 }
 
-function FallbackPlane({ spots, selectedId, openSpotKey, onPick, onOpen, onCloseCard }: {
-  spots: Spot[]; selectedId: string | null; openSpotKey: string | null; onPick: (id: string, spotKey: string) => void; onOpen: (id: string) => void; onCloseCard: () => void;
+function FallbackPlane({ spots, selectedId, openSpotKey, onPick, onOpen, onToggleSave, onCloseCard }: {
+  spots: Spot[]; selectedId: string | null; openSpotKey: string | null; onPick: (id: string, spotKey: string) => void; onOpen: (id: string) => void; onToggleSave: (id: string) => void; onCloseCard: () => void;
 }) {
   const host = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -242,13 +292,14 @@ function FallbackPlane({ spots, selectedId, openSpotKey, onPick, onOpen, onClose
     // The address card sits above its pin in the same relative layout.
     const cardSpot = openSpotKey === null ? null : spots.find((s) => s.key === openSpotKey) ?? null;
     if (cardSpot) {
+      const selected = cardSpot.places.find((p) => p.id === selectedId) ?? cardSpot.places[0];
       const card = document.createElement("div");
       card.className = "sx-plane-card";
       card.style.left = `${maxLng === minLng ? 50 : 12 + ((cardSpot.lng - minLng) / (maxLng - minLng)) * 76}%`;
       card.style.top = `${maxLat === minLat ? 50 : 16 + ((maxLat - cardSpot.lat) / (maxLat - minLat)) * 68}%`;
-      card.append(cardElement(cardSpot, selectedId, onOpen, onCloseCard));
+      card.append(cardElement(selected, onOpen, onToggleSave, onCloseCard));
       node.append(card);
     }
-  }, [spots, selectedId, openSpotKey, onPick, onOpen, onCloseCard]);
+  }, [spots, selectedId, openSpotKey, onPick, onOpen, onToggleSave, onCloseCard]);
   return <><div className="sx-map-grid" aria-hidden="true" /><div ref={host} style={{ position: "absolute", inset: 0 }} onClick={() => onCloseCard()} /></>;
 }
