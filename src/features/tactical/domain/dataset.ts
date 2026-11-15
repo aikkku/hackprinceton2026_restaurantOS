@@ -1,4 +1,6 @@
+import { cashCalendarSchema } from "./cash-calendar.ts";
 import { z } from "zod";
+import { financeReportSchema } from "./finance-report.ts";
 import { workforceSchema, shiftHours } from "./workforce.ts";
 import { layoutLibrarySchema } from "./layout-library.ts";
 import { isScenarioReproducible } from "./scenario.ts";
@@ -20,7 +22,7 @@ export const datasetSchema = fixtureSchema.safeExtend({
   layoutConfigurations: layoutLibrarySchema,
   scenarioSnapshots: z.array(scenarioSchema).max(100),
   provenance: z.object({ origin: z.literal("synthetic"), sourceId: id, asOf: z.iso.date(), description: text }),
-  operations: z.object({ workforce: workforceSchema.optional(), currency: z.literal("USD"), employees: z.array(employee).max(100), suppliers: z.array(supplier).max(100), inventory: z.array(inventory).max(500), menu: z.array(menuItemSchema).max(500), transactions: z.array(transactionSchema).max(5000), competitors: z.array(competitor).max(500) }),
+  operations: z.object({ cashCalendar: cashCalendarSchema.optional(), financeReport: financeReportSchema.optional(), workforce: workforceSchema.optional(), currency: z.literal("USD"), employees: z.array(employee).max(100), suppliers: z.array(supplier).max(100), inventory: z.array(inventory).max(500), menu: z.array(menuItemSchema).max(500), transactions: z.array(transactionSchema).max(5000), competitors: z.array(competitor).max(500) }),
   photoPlans: z.object({ sample: floorPlanDraftSchema, blank: floorPlanDraftSchema, fallback: floorPlanDraftSchema }),
 }).superRefine((dataset, ctx) => {
   if (!restaurantIdSchema.safeParse(dataset.profile.id).success) ctx.addIssue({ code: "custom", path: ["profile", "id"], message: "Use a lowercase slug for restaurant ID." });
@@ -31,6 +33,10 @@ export const datasetSchema = fixtureSchema.safeExtend({
   if (new Set(dataset.scenarioSnapshots.map(s => s.id)).size !== dataset.scenarioSnapshots.length || dataset.scenarioSnapshots.some(s => s.layout.restaurantId !== dataset.profile.id || !isScenarioReproducible(s))) ctx.addIssue({ code: "custom", path: ["scenarioSnapshots"], message: "Snapshots must be unique, reproducible and belong to this restaurant." });
   const suppliers = new Set(dataset.operations.suppliers.map(s => s.id));
   const menu = new Set(dataset.operations.menu.map(m => m.id));
+  const financeReport = dataset.operations.financeReport;
+  if (financeReport && (financeReport.sourceId !== dataset.provenance.sourceId || financeReport.sales.some(row => !menu.has(row.menuItemId)))) ctx.addIssue({ code: "custom", path: ["operations", "financeReport"], message: "Financial item sales must reference this dataset source and menu." });
+  const cash = dataset.operations.cashCalendar;
+  if (cash && cash.config.obligations.some(row => row.inventoryLines.some(line => !dataset.operations.inventory.some(item => item.id === line.inventoryId)))) ctx.addIssue({code:"custom",path:["operations","cashCalendar"],message:"Cash plans must reference existing inventory."});
   const workforce = dataset.operations.workforce;
   if (workforce) {
     const employees = new Set(dataset.operations.employees.map(row => row.id));

@@ -141,3 +141,15 @@ The Arlequin Track 2 workflow lives in Tactical: `domain/social.ts` owns message
 ## Inventory presentation
 
 `frontend/components/supply-page.tsx` and `supply.css` render searchable inventory cards with expiration dates and expandable stock details. `domain/dataset.ts` accepts an optional nullable ISO `operations.inventory[].expirationDate`; the editable fixture supplies mock dates (null for packaging). Supplier records remain a legacy data relationship, with no supplier UI. Floor collision severity uses `domain/floor-editor.ts` → `floor-plan.tsx` and `floor-editor.css`: overlap red, proximity yellow.
+
+## Proposed connected Tactical architecture
+
+[Connected data and AI plan](docs/tactical/CONNECTED_DATA_AND_AI_PLAN.md) describes the current fragmentation, proposed shared context service, durable AI run/artifact/decision storage, frontend invalidation and staged migration. Proposed paths are not yet implemented. Supply Management is now inventory-only with no AI controls or dedicated AI task.
+
+## Financial Intelligence report
+
+`domain/finance-report.ts` owns the optional dated item-sales schema and pure report/playground calculations. `frontend/components/finance-page.tsx` composes `finance-insights.tsx`, `price-playground.tsx`, `finance-ledger.tsx` and existing Nessie tools; `finance-report.css` scopes presentation. `operations.financeReport` in the central demo JSON supplies editable mock sales. `backend/ai-context.ts` exposes the same calculated report to Finance and the advisor. See [finance workflow](docs/tactical/FINANCE_WORKFLOW.md). No Expansion or shared contracts changed.
+
+## Cash calendar
+
+`domain/cash-calendar.ts` owns cash schemas, recurrence and deterministic projections. `backend/cash-calendar-service.ts` owns bank snapshots/forecast persistence and the protected `/api/tactical/cash-calendar` route; `backend/cash-calendar-cli.ts` seeds missing mock data without replacing existing restaurant fields. `frontend/components/cash-calendar.tsx` and `.css` provide the Finance tab. Data lives in `operations.cashCalendar` plus Tactical-only MongoDB collections. See [cash calendar guide](docs/tactical/CASH_CALENDAR.md).

@@ -118,3 +118,7 @@ All feature files above are inside `src/features/tactical/` unless an absolute r
 - Browser screenshots were visually checked on desktop and mobile. Repository secret scan passed; `.env.local` stays ignored.
 
 Implementation note: React's SVG `<title>` must receive a single string (not several JSX text children) to avoid hydration mismatch in this setup. Graph coordinates are rounded for stable SSR/browser rendering. Existing finance tests now scope table queries to the Finance page, since Reviews has its own evidence tables. ChatOverflow was unavailable in this environment (no CLI or local instructions), so no external field note was published.
+
+## Cash calendar increment — November 15
+
+Financial Intelligence now includes a connected ninety-day calendar using Nessie balances and scheduled bills, HR payroll assumptions and Supply purchase plans. Bank snapshots and immutable forecasts persist in Tactical-owned MongoDB collections. The original investment tool remains available. See [Cash calendar](CASH_CALENDAR.md) for routes, formulas, mocks and limits. The live read returned zero bills; bill schedules are tested against explicit fixtures, not claimed as live observed obligations.

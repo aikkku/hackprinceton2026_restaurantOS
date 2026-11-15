@@ -4735,6 +4735,506 @@
         "observedOn": "2026-11-12",
         "sourceId": "fixture-operations",
         "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-1",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-2",
+        "item": "Salmon Fillet",
+        "priceCents": 2950,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-2",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-3",
+        "item": "Pasta Primavera",
+        "priceCents": 1700,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-3",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-4",
+        "item": "Ribeye Steak 12 oz",
+        "priceCents": 4600,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-4",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-5",
+        "item": "Caesar Salad",
+        "priceCents": 1700,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-5",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-6",
+        "item": "Mushroom Soup",
+        "priceCents": 900,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-6",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-7",
+        "item": "Tiramisu",
+        "priceCents": 1050,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-9",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-10",
+        "item": "Crispy Brussels Sprouts",
+        "priceCents": 1100,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-10",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-11",
+        "item": "Bistro Beet Salad",
+        "priceCents": 1700,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-12",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-13",
+        "item": "Crispy Chicken Sandwich",
+        "priceCents": 1950,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-13",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-14",
+        "item": "Roasted Squash Bowl",
+        "priceCents": 2000,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-15",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-16",
+        "item": "Lemon Ricotta Pancakes",
+        "priceCents": 1650,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-16",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-17",
+        "item": "Breakfast Hash",
+        "priceCents": 2150,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-17",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-18",
+        "item": "Sweet Potato Fries",
+        "priceCents": 600,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-19",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-20",
+        "item": "Dark Chocolate Pot de Crème",
+        "priceCents": 1150,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-20",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-21",
+        "item": "Maple Oat Latte",
+        "priceCents": 450,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-22",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-23",
+        "item": "Citrus Spritz",
+        "priceCents": 1000,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-0-23",
+        "restaurant": "Sample Bistro A",
+        "menuItemId": "dish-24",
+        "item": "Ginger Fizz",
+        "priceCents": 650,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-0",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-1",
+        "item": "House Burger",
+        "priceCents": 2100,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-2",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-3",
+        "item": "Pasta Primavera",
+        "priceCents": 1800,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-3",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-4",
+        "item": "Ribeye Steak 12 oz",
+        "priceCents": 4750,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-4",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-5",
+        "item": "Caesar Salad",
+        "priceCents": 1750,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-5",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-6",
+        "item": "Mushroom Soup",
+        "priceCents": 900,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-7",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-8",
+        "item": "Craft Cocktail",
+        "priceCents": 1550,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-8",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-9",
+        "item": "Whipped Ricotta",
+        "priceCents": 950,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-10",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-11",
+        "item": "Bistro Beet Salad",
+        "priceCents": 1750,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-11",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-12",
+        "item": "Wild Mushroom Risotto",
+        "priceCents": 2200,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-14",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-15",
+        "item": "Braised Short Rib",
+        "priceCents": 2750,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-16",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-17",
+        "item": "Breakfast Hash",
+        "priceCents": 2250,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-17",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-18",
+        "item": "Sweet Potato Fries",
+        "priceCents": 650,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-18",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-19",
+        "item": "Apple Crumble",
+        "priceCents": 1200,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-19",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-20",
+        "item": "Dark Chocolate Pot de Crème",
+        "priceCents": 1200,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-21",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-22",
+        "item": "Cold Brew",
+        "priceCents": 550,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-22",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-23",
+        "item": "Citrus Spritz",
+        "priceCents": 1050,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-1-23",
+        "restaurant": "Sample Cafe B",
+        "menuItemId": "dish-24",
+        "item": "Ginger Fizz",
+        "priceCents": 700,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-1",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-2",
+        "item": "Salmon Fillet",
+        "priceCents": 3200,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-3",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-4",
+        "item": "Ribeye Steak 12 oz",
+        "priceCents": 4950,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-4",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-5",
+        "item": "Caesar Salad",
+        "priceCents": 1800,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-6",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-7",
+        "item": "Tiramisu",
+        "priceCents": 1100,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-7",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-8",
+        "item": "Craft Cocktail",
+        "priceCents": 1600,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-8",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-9",
+        "item": "Whipped Ricotta",
+        "priceCents": 1000,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-9",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-10",
+        "item": "Crispy Brussels Sprouts",
+        "priceCents": 1200,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-10",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-11",
+        "item": "Bistro Beet Salad",
+        "priceCents": 1800,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-11",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-12",
+        "item": "Wild Mushroom Risotto",
+        "priceCents": 2300,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-14",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-15",
+        "item": "Braised Short Rib",
+        "priceCents": 2900,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-15",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-16",
+        "item": "Lemon Ricotta Pancakes",
+        "priceCents": 1750,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-17",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-18",
+        "item": "Sweet Potato Fries",
+        "priceCents": 650,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-18",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-19",
+        "item": "Apple Crumble",
+        "priceCents": 1200,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-20",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-21",
+        "item": "Maple Oat Latte",
+        "priceCents": 500,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-21",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-22",
+        "item": "Cold Brew",
+        "priceCents": 550,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
+      },
+      {
+        "id": "finance-comparison-2-23",
+        "restaurant": "Sample Kitchen C",
+        "menuItemId": "dish-24",
+        "item": "Ginger Fizz",
+        "priceCents": 700,
+        "observedOn": "2026-11-12",
+        "sourceId": "fixture-operations",
+        "approximate": true
       }
     ],
     "workforce": {
@@ -5922,6 +6422,383 @@
         "targetOrdersPerFloorHour": 6,
         "targetLaborFraction": 0.3,
         "weeklyHoursGuide": 40
+      }
+    },
+    "financeReport": {
+      "sourceId": "fixture-operations",
+      "provenance": "synthetic",
+      "description": "Fictional item sales for Aug 1–Oct 31, 2026, using supplied menu prices and cost assumptions. This independent planning sample is not reconciled to the historical summary ledger or the HR demo week. App units are explicitly identified; delivery is not inferred from payment labels.",
+      "startDate": "2026-08-01",
+      "endDate": "2026-10-31",
+      "sales": [
+        {
+          "menuItemId": "dish-1",
+          "dineInUnits": 1653,
+          "pickupUnits": 456,
+          "appUnits": 741,
+          "dineInPriceCents": 1800,
+          "appPriceCents": 2300
+        },
+        {
+          "menuItemId": "dish-2",
+          "dineInUnits": 1175,
+          "pickupUnits": 285,
+          "appUnits": 320,
+          "dineInPriceCents": 2800,
+          "appPriceCents": 3400
+        },
+        {
+          "menuItemId": "dish-3",
+          "dineInUnits": 1406,
+          "pickupUnits": 341,
+          "appUnits": 383,
+          "dineInPriceCents": 2200,
+          "appPriceCents": 2700
+        },
+        {
+          "menuItemId": "dish-4",
+          "dineInUnits": 1426,
+          "pickupUnits": 394,
+          "appUnits": 640,
+          "dineInPriceCents": 4500,
+          "appPriceCents": 5400
+        },
+        {
+          "menuItemId": "dish-5",
+          "dineInUnits": 2574,
+          "pickupUnits": 624,
+          "appUnits": 702,
+          "dineInPriceCents": 1400,
+          "appPriceCents": 1800
+        },
+        {
+          "menuItemId": "dish-6",
+          "dineInUnits": 1056,
+          "pickupUnits": 256,
+          "appUnits": 288,
+          "dineInPriceCents": 1000,
+          "appPriceCents": 1300
+        },
+        {
+          "menuItemId": "dish-7",
+          "dineInUnits": 713,
+          "pickupUnits": 197,
+          "appUnits": 320,
+          "dineInPriceCents": 900,
+          "appPriceCents": 1200
+        },
+        {
+          "menuItemId": "dish-8",
+          "dineInUnits": 957,
+          "pickupUnits": 232,
+          "appUnits": 261,
+          "dineInPriceCents": 1400,
+          "appPriceCents": 1600
+        },
+        {
+          "menuItemId": "dish-9",
+          "dineInUnits": 640,
+          "pickupUnits": 155,
+          "appUnits": 175,
+          "dineInPriceCents": 1200,
+          "appPriceCents": 1500
+        },
+        {
+          "menuItemId": "dish-10",
+          "dineInUnits": 488,
+          "pickupUnits": 134,
+          "appUnits": 218,
+          "dineInPriceCents": 1100,
+          "appPriceCents": 1400
+        },
+        {
+          "menuItemId": "dish-11",
+          "dineInUnits": 759,
+          "pickupUnits": 184,
+          "appUnits": 207,
+          "dineInPriceCents": 1400,
+          "appPriceCents": 1700
+        },
+        {
+          "menuItemId": "dish-12",
+          "dineInUnits": 482,
+          "pickupUnits": 117,
+          "appUnits": 131,
+          "dineInPriceCents": 2400,
+          "appPriceCents": 2900
+        },
+        {
+          "menuItemId": "dish-13",
+          "dineInUnits": 546,
+          "pickupUnits": 150,
+          "appUnits": 244,
+          "dineInPriceCents": 1700,
+          "appPriceCents": 2100
+        },
+        {
+          "menuItemId": "dish-14",
+          "dineInUnits": 449,
+          "pickupUnits": 109,
+          "appUnits": 122,
+          "dineInPriceCents": 1900,
+          "appPriceCents": 2300
+        },
+        {
+          "menuItemId": "dish-15",
+          "dineInUnits": 20,
+          "pickupUnits": 5,
+          "appUnits": 5,
+          "dineInPriceCents": 3400,
+          "appPriceCents": 4100
+        },
+        {
+          "menuItemId": "dish-16",
+          "dineInUnits": 15,
+          "pickupUnits": 4,
+          "appUnits": 6,
+          "dineInPriceCents": 1600,
+          "appPriceCents": 1900
+        },
+        {
+          "menuItemId": "dish-17",
+          "dineInUnits": 231,
+          "pickupUnits": 56,
+          "appUnits": 63,
+          "dineInPriceCents": 1800,
+          "appPriceCents": 2200
+        },
+        {
+          "menuItemId": "dish-18",
+          "dineInUnits": 423,
+          "pickupUnits": 102,
+          "appUnits": 115,
+          "dineInPriceCents": 700,
+          "appPriceCents": 900
+        },
+        {
+          "menuItemId": "dish-19",
+          "dineInUnits": 1218,
+          "pickupUnits": 336,
+          "appUnits": 546,
+          "dineInPriceCents": 1000,
+          "appPriceCents": 1300
+        },
+        {
+          "menuItemId": "dish-20",
+          "dineInUnits": 1947,
+          "pickupUnits": 472,
+          "appUnits": 531,
+          "dineInPriceCents": 1100,
+          "appPriceCents": 1400
+        },
+        {
+          "menuItemId": "dish-21",
+          "dineInUnits": 297,
+          "pickupUnits": 72,
+          "appUnits": 81,
+          "dineInPriceCents": 600,
+          "appPriceCents": 750
+        },
+        {
+          "menuItemId": "dish-22",
+          "dineInUnits": 17,
+          "pickupUnits": 4,
+          "appUnits": 7,
+          "dineInPriceCents": 500,
+          "appPriceCents": 650
+        },
+        {
+          "menuItemId": "dish-23",
+          "dineInUnits": 14,
+          "pickupUnits": 3,
+          "appUnits": 4,
+          "dineInPriceCents": 850,
+          "appPriceCents": 1050
+        },
+        {
+          "menuItemId": "dish-24",
+          "dineInUnits": 383,
+          "pickupUnits": 93,
+          "appUnits": 104,
+          "dineInPriceCents": 750,
+          "appPriceCents": 950
+        }
+      ],
+      "assumptions": {
+        "suggestedRaiseCap": 0.25,
+        "suggestedVolumeLoss": 0.05,
+        "slowUnitShare": 0.005,
+        "slowSpoilageFraction": 0.15,
+        "cutSwitchFraction": 0.35,
+        "lossPerTenPercentRaise": 0.04
+      }
+    },
+    "cashCalendar": {
+      "version": 1,
+      "description": "Synthetic ninety-day cash plan. Repeats the HR sample week and uses half of report-average daily sales receipts net of app commission. Bills, payroll load, timing and purchase plans are fictional assumptions; not reconciled accounting.",
+      "bank": {
+        "source": "demo",
+        "fetchedAt": "2026-11-15T12:00:00.000Z",
+        "account": {
+          "_id": "000000000000000000000001",
+          "nickname": "RestaurantOS fictional cash account",
+          "type": "Checking",
+          "balance": 25000
+        },
+        "deposits": [
+          {
+            "_id": "000000000000000000000002",
+            "amount": 4500,
+            "transaction_date": "2026-11-12",
+            "status": "completed",
+            "description": "Fictional cash deposit — not verified sales"
+          },
+          {
+            "_id": "000000000000000000000003",
+            "amount": 1200,
+            "transaction_date": "2026-11-14",
+            "status": "pending",
+            "description": "Fictional pending deposit"
+          }
+        ],
+        "withdrawals": [
+          {
+            "_id": "000000000000000000000004",
+            "amount": 900,
+            "transaction_date": "2026-11-13",
+            "status": "completed",
+            "description": "Fictional equipment withdrawal"
+          }
+        ],
+        "bills": [
+          {
+            "_id": "000000000000000000000010",
+            "account_id": "000000000000000000000001",
+            "status": "recurring",
+            "payee": "Fictional Internet Provider",
+            "nickname": "Internet service",
+            "payment_amount": 275,
+            "upcoming_payment_date": "2026-11-19",
+            "recurring_date": 19
+          }
+        ]
+      },
+      "config": {
+        "reserveCents": 1000000,
+        "payoutScale": 0.5,
+        "payoutLagDays": 2,
+        "payrollLoadFraction": 0.18,
+        "obligations": [
+          {
+            "id": "rent",
+            "label": "Monthly rent",
+            "nextDate": "2026-12-01",
+            "cadence": "monthly",
+            "basis": "fixed",
+            "amountCents": 850000,
+            "inventoryLines": [],
+            "bankBillId": null,
+            "enabled": true
+          },
+          {
+            "id": "utilities",
+            "label": "Utilities",
+            "nextDate": "2026-11-23",
+            "cadence": "monthly",
+            "basis": "fixed",
+            "amountCents": 145000,
+            "inventoryLines": [],
+            "bankBillId": null,
+            "enabled": true
+          },
+          {
+            "id": "insurance",
+            "label": "Business insurance",
+            "nextDate": "2026-11-26",
+            "cadence": "monthly",
+            "basis": "fixed",
+            "amountCents": 95000,
+            "inventoryLines": [],
+            "bankBillId": null,
+            "enabled": true
+          },
+          {
+            "id": "subscriptions",
+            "label": "POS & software",
+            "nextDate": "2026-11-28",
+            "cadence": "monthly",
+            "basis": "fixed",
+            "amountCents": 39000,
+            "inventoryLines": [],
+            "bankBillId": null,
+            "enabled": true
+          },
+          {
+            "id": "payroll",
+            "label": "Weekly payroll",
+            "nextDate": "2026-11-20",
+            "cadence": "weekly",
+            "basis": "payroll",
+            "amountCents": 0,
+            "inventoryLines": [],
+            "bankBillId": null,
+            "enabled": true
+          },
+          {
+            "id": "restock",
+            "label": "Planned restocking",
+            "nextDate": "2026-11-18",
+            "cadence": "weekly",
+            "basis": "inventory",
+            "amountCents": 0,
+            "inventoryLines": [
+              {
+                "inventoryId": "i1",
+                "quantity": 40
+              },
+              {
+                "inventoryId": "i2",
+                "quantity": 20
+              },
+              {
+                "inventoryId": "i3",
+                "quantity": 30
+              },
+              {
+                "inventoryId": "i4",
+                "quantity": 24
+              },
+              {
+                "inventoryId": "i5",
+                "quantity": 16
+              }
+            ],
+            "bankBillId": null,
+            "enabled": true
+          },
+          {
+            "id": "equipment",
+            "label": "Refrigerator replacement",
+            "nextDate": "2026-11-21",
+            "cadence": "once",
+            "basis": "fixed",
+            "amountCents": 1800000,
+            "inventoryLines": [],
+            "bankBillId": null,
+            "enabled": true
+          },
+          {
+            "id": "repairs",
+            "label": "Plumbing repair",
+            "nextDate": "2026-11-17",
+            "cadence": "once",
+            "basis": "fixed",
+            "amountCents": 220000,
+            "inventoryLines": [],
+            "bankBillId": null,
+            "enabled": true
+          }
+        ]
       }
     }
   },

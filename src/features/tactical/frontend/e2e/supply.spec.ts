@@ -1,7 +1,11 @@
 import { expect, test } from "@playwright/test";
 import demo from "../data/demo-restaurant.json" with { type: "json" };
 test("inventory has dated cards, searchable filters and no suppliers section", async ({ page }) => {
+  const aiRequests: string[] = [];
+  page.on("request", request => { if (request.url().includes("/api/tactical/ai")) aiRequests.push(request.url()); });
   await page.goto("/tactical/supply");
+  await expect(page.getByRole("region", { name: "AI supply advisor" })).toHaveCount(0);
+  await expect(page.locator(".ai-access:visible")).toHaveCount(0);
   const inventory = page.getByRole("region", { name: "Inventory", exact: true });
   await expect(inventory.getByRole("table")).toHaveCount(0);
   await expect(inventory.getByText("Suppliers", { exact: true })).toHaveCount(0);
@@ -19,4 +23,5 @@ test("inventory has dated cards, searchable filters and no suppliers section", a
   await expect(inventory.getByText("No expiry listed", { exact: true })).toHaveCount(3);
   await page.setViewportSize({ width: 390, height: 844 });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(aiRequests).toEqual([]);
 });

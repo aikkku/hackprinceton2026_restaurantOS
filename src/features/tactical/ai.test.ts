@@ -120,3 +120,16 @@ test("photo AI failures never produce a sample fallback", async () => {
   const result = await (await good(request(input))).json();
   assert.equal(result.source, "ai");
 });
+
+
+test("finance narration cannot invent numerical results; canonical figures stay in evidence", async () => {
+  const financeInput = { ...input, task: "finance" as const };
+  const context = buildAiContext(dataset, financeInput);
+  const qualitative = { ...valid, summary: "App sales contribute positively in this sample.", findings: [{ ...valid.findings[0], evidenceIds: ["metric:finance-report"] }] };
+  assert.equal(validateAiResult(qualitative, financeInput, context.evidence, context.layout).summary, qualitative.summary);
+  for (const text of ["Gain $327.33 per order.", "Raise to 30%.", "Use a 2026 forecast.", "Increase to fifteen percent."]) {
+    const invalid = { ...qualitative, findings: [{ ...qualitative.findings[0], explanation: text }] };
+    const handle = createAiHandler({ load: async () => dataset, generate: generated(invalid), authorize: () => true, budget: () => true });
+    assert.deepEqual(await (await handle(request(financeInput))).json(), { ok: false, error: aiError });
+  }
+});

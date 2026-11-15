@@ -1,0 +1,52 @@
+import {expect,test} from "@playwright/test";
+const ai={ok:true,result:{summary:"App fees reduce contribution in this synthetic period.",findings:[{title:"Review delivery pricing",explanation:"The current markup is above the 15% comparison.",action:"Test a small change before updating app prices.",priority:"medium",confidence:"low",evidenceIds:["metric:finance-report"],cost:"Unknown"}],limitations:["Fictional demand and comparator prices."],classifications:[],moves:[],draft:null,customObject:null},evidence:[],model:"test-model",generatedAt:"2026-11-15T12:00:00Z"};
+test.beforeEach(async({page})=>{
+ await page.route("**/api/tactical/ai/session",route=>route.fulfill({json:{unlocked:true}}));
+ await page.route("**/api/tactical/ai",route=>route.fulfill({json:ai}));
+});
+test("report is populated, assumptions dismiss/reopen, evidence and pricing details work",async({page})=>{
+ await page.goto("/tactical/finance");
+ await expect(page.getByRole("heading",{name:"A clearer picture of your menu."})).toBeVisible();
+ await expect(page.getByRole("region",{name:"Financial intelligence",exact:true}).locator('input[type=file]')).toHaveCount(0);
+ await page.getByRole("button",{name:"Got it",exact:true}).click();
+ await expect(page.getByRole("complementary",{name:"Report assumptions"})).toHaveCount(0);
+ await page.getByRole("button",{name:"View assumptions",exact:true}).click();
+ await expect(page.getByRole("complementary",{name:"Report assumptions"})).toBeVisible();
+ const insights=page.getByRole("region",{name:"AI report observations"});
+ await expect(insights.getByText(ai.result.summary)).toBeVisible();
+ await insights.getByRole("button",{name:"View evidence"}).click();
+ await expect(page.getByRole("complementary",{name:"Financial evidence"})).toBeVisible();
+ await page.getByText("Compare prices side by side",{exact:true}).click();
+ await expect(page.getByRole("table").filter({has:page.getByText("Your dine-in price",{exact:true})})).toBeVisible();
+ await expect(page.getByText(/A 15% markup would reduce retained revenue/)).toBeVisible();
+ await page.getByText("Full menu, sales & contribution",{exact:true}).click();
+ await expect(page.locator(".pricing-table tbody tr")).toHaveCount(24);
+});
+test("playground models customer loss, preserves changes across tabs and resets",async({page})=>{
+ await page.goto("/tactical/finance");
+ await page.getByRole("button",{name:"Price playground",exact:true}).click();
+ const controls=page.getByRole("region",{name:"Price playground",exact:true});
+ const first=controls.locator('.playground-table input').first();
+ await first.fill("1"); await expect(first).toHaveValue("1");
+ await controls.getByLabel("Customers lost per 10% price rise (%)",{exact:true}).fill("100");
+ await expect(controls.locator(".fin-experiment-outcome strong")).toHaveClass(/fin-negative/);
+ await page.getByRole("button",{name:"Report",exact:true}).click();
+ await page.getByRole("button",{name:"Price playground",exact:true}).click();await expect(first).toHaveValue("1");
+ await first.fill("9999"); await expect(controls.getByRole("alert")).toContainText("Enter a customer-loss");
+ await controls.getByRole("button",{name:"Reset",exact:true}).click();await expect(first).toHaveValue("0");
+ await expect(controls.locator(".fin-experiment-outcome strong")).toHaveText("$0");
+ await controls.getByRole("button",{name:"Use suggested raises",exact:true}).click();
+ expect(await controls.locator('.playground-table input').evaluateAll(inputs=>inputs.some(input=>Number((input as HTMLInputElement).value)>0))).toBe(true);
+});
+test("mobile report survives AI failure without fabricating observations",async({page})=>{
+ await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion:"reduce"});
+ await page.unroute("**/api/tactical/ai");await page.route("**/api/tactical/ai",route=>route.fulfill({status:503,json:{error:"private provider failure"}}));
+ await page.goto("/tactical/finance");
+ const insights=page.getByRole("region",{name:"AI report observations"});
+ await expect(insights.getByRole("alert")).toHaveText("Something is wrong");
+ await expect(insights.getByRole("heading",{name:"What stood out"})).toHaveCount(0);
+ await expect(page.getByRole("heading",{name:"What the apps leave behind."})).toBeVisible();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+ await page.getByRole("button",{name:"Price playground",exact:true}).click();
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
+});

@@ -13,7 +13,7 @@ import { SupplyPage } from "./supply-page";
 import { FinancePage } from "./finance-page";
 import { AiAssistant } from "./ai-assistant";
 import { AnalyzePlan } from "./analyze-plan";
-import { AiAccessProvider, AiWorkbench } from "./ai-workbench";
+import { AiAccessProvider } from "./ai-workbench";
 import "./tactical.css";
 
 const pages = [
@@ -62,7 +62,7 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
         <nav className="workspace-links" aria-label="Tactical sections">
           {pages.map(([href, label]) => <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined}>{label}</Link>)}
         </nav>
-        <AiAccessProvider renderControls={section !== "floor"}>
+        <AiAccessProvider enabled={section !== "supply"} renderControls={section !== "floor" && section !== "supply"}>
         <div hidden={section !== "floor"}>
           <FloorEditor template={fixture.layout} saved={fixture.layoutConfigurations} cloud={revision !== null}
             analysisRequested={section === "floor" ? analysisRequested : 0} onContext={setContext} />
@@ -75,12 +75,10 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
           <HrPage dataset={fixture} active={section === "hr"} />
         </div>
         <div hidden={section !== "supply"}>
-          <AiWorkbench title="AI supply advisor" description="Explain stock issues and code-calculated costs to reach reorder thresholds. These are planning suggestions, not purchase orders." request={{ task: "supply", restaurantId: fixture.profile.id, question: "" }} />
           <SupplyPage operations={fixture.operations} restaurantName={fixture.profile.name} />
         </div>
         <div hidden={section !== "finance"}>
-          <AiWorkbench title="AI financial analysis" description="Explain the full supplied ledger and menu contribution calculations. This uses the dataset totals, not the filters or unsaved price experiment below." request={{ task: "finance", restaurantId: fixture.profile.id, question: "" }} />
-          <FinancePage assumptions={fixture.assumptions} operations={fixture.operations} restaurantName={fixture.profile.name} />
+          <FinancePage dataset={fixture} active={section === "finance"} cloudEnabled={revision !== null} />
         </div>
         <div hidden={section !== "ai"}>
           <AiAssistant restaurantId={fixture.profile.id} layout={context.layout} layoutVersions={context.library} />

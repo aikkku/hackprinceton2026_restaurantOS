@@ -64,11 +64,11 @@ test("AI object estimates require explicit use and placement and retain purple p
   await expect(page.locator(".svg-hit.is-ai-highlighted")).toHaveCount(1);
 });
 
-test("finance, supply and advisor workflows are reachable on narrow screens", async ({ page }) => {
+test("advisor workflows are reachable on narrow screens", async ({ page }) => {
   await page.route("**/api/tactical/ai", async route => route.fulfill({ json: response(route.request().postDataJSON().task) }));
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "reduce" });
-  for (const [route, title, task] of [["finance", "AI financial analysis", "finance"], ["supply", "AI supply advisor", "supply"], ["ai", "AI restaurant advisor", "advisor"]]) {
+  for (const [route, title, task] of [["ai", "AI restaurant advisor", "advisor"]]) {
     await page.goto(`/tactical/${route}`);
     const panel = page.getByRole("region", { name: title, exact: true });
     await panel.locator("textarea").first().fill("Explain this context");

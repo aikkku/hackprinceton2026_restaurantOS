@@ -1,71 +1,62 @@
 "use client";
 import { useState } from "react";
-import type { Assumptions } from "../../domain/schemas";
-import type { Operations } from "../../domain/dataset";
-import { channelContribution, summarizeLedger } from "../../domain/finance";
+import { ArrowUpRight, ArrowDownRight, ChevronRight } from "lucide-react";
+import type { AiEvidence } from "../../domain/ai";
+import type { Dataset } from "../../domain/dataset";
+import { buildFinanceReport } from "../../domain/finance-report";
+import { CashCalendar } from "./cash-calendar";
 import { NessiePanel } from "./nessie-panel";
-import { simulateSeating } from "../../domain/scenario";
+import { FinanceInsights } from "./finance-insights";
+import { PricePlayground } from "./price-playground";
+import { FinanceLedger } from "./finance-ledger";
+import "./finance-report.css";
+const money=(cents:number,precise=false)=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:precise?2:0}).format(cents/100);
+const pct=(value:number|null)=>value===null?"Unavailable":`${(value*100).toFixed(1)}%`;
+const date=(value:string)=>new Intl.DateTimeFormat("en-US",{month:"short",day:"numeric",year:"numeric",timeZone:"UTC"}).format(new Date(`${value}T12:00:00Z`));
 
-const money = (cents: number) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(cents / 100);
-export function FinancePage({ assumptions, operations, restaurantName }: { assumptions: Assumptions; operations: Operations; restaurantName: string }) {
-  const [tab, setTab] = useState("overview");
-  const [month, setMonth] = useState("");
-  const [channel, setChannel] = useState("");
-  const [kind, setKind] = useState("");
-  const [ascending, setAscending] = useState(false);
-  const [seats, setSeats] = useState(6);
-  const [priceChange, setPriceChange] = useState(5);
-  const [volumeChange, setVolumeChange] = useState(-5);
-  const [itemId, setItemId] = useState(operations.menu[0]?.id ?? "");
-  const [pricingChannel, setPricingChannel] = useState<"dine-in" | "delivery">("dine-in");
-  const months = [...new Set(operations.transactions.map(t => t.date.slice(0, 7)))].sort();
-  const rows = operations.transactions.filter(t => (!month || t.date.startsWith(month)) && (!channel || t.channel === channel) && (!kind || t.kind === kind)).sort((a, b) => (ascending ? 1 : -1) * (a.date.localeCompare(b.date) || a.id.localeCompare(b.id)));
-  const totals = summarizeLedger(rows);
-  const capacity = simulateSeating(0, seats, assumptions);
-  const item = operations.menu.find(m => m.id === itemId) ?? operations.menu[0];
-  const baseline = item ? channelContribution(item, pricingChannel) : null;
-  const candidate = item && baseline ? channelContribution(item, pricingChannel, Math.round(baseline.priceCents * (1 + priceChange / 100))) : null;
-  const candidateQuantity = item ? Math.round(item.quantity * (1 + volumeChange / 100)) : 0;
-  return <section className="finance-page">
-    <div className="section-header"><div><h2>Financial Intelligence</h2><p>{restaurantName} · synthetic USD ledger</p></div><span className="pill">Demo data</span></div>
-    <div className="tab-bar">{["overview", "transactions", "pricing", "simulator", "sandbox"].map(t => <button className={`tab-btn ${tab === t ? "tab-active" : ""}`} key={t} onClick={() => setTab(t)}>{t === "sandbox" ? "Nessie Sandbox" : t === "pricing" ? "Menu Pricing" : t[0].toUpperCase() + t.slice(1)}</button>)}</div>
-    {tab === "sandbox" && <NessiePanel />}
-    <div hidden={tab === "sandbox"}>
-    <div className="assumption-grid">
-      <label>Month<select value={month} onChange={e => setMonth(e.target.value)}><option value="">All months</option>{months.map(m => <option key={m}>{m}</option>)}</select></label>
-      <label>Channel<select value={channel} onChange={e => setChannel(e.target.value)}><option value="">All channels</option>{["dine-in", "delivery", "takeaway", "shared"].map(c => <option key={c}>{c}</option>)}</select></label>
-      <label>Record type<select value={kind} onChange={e => setKind(e.target.value)}><option value="">Income and expenses</option><option value="income">Income</option><option value="expense">Expenses</option></select></label>
-    </div>
-    <div className="kpi-row">{[["Recorded income", totals.revenueCents], ["Recorded expenses", totals.expenseCents], ["Income less expenses", totals.netRecordedCents], ["Delivery income", totals.deliveryCents]].map(([label, value]) => <div className="kpi-card" key={label}><div><span className="kpi-value">{money(Number(value))}</span><span className="kpi-label">{label}</span></div></div>)}</div>
-    <p className="chart-note">Totals reflect {rows.length} selected synthetic ledger rows. Income less recorded expenses is not verified net profit or cash balance. Service summaries are not individual orders, so average order value is unavailable. No taxes, tips, refunds or opening cash balance are modeled.</p>
-    {tab === "overview" && <>
-      <div className="chart-panel"><h3>Recorded income by month</h3>{months.map(m => {
-        const value = summarizeLedger(rows.filter(r => r.date.startsWith(m))).revenueCents;
-        const max = Math.max(1, ...months.map(key => summarizeLedger(rows.filter(r => r.date.startsWith(key))).revenueCents));
-        return <div key={m}><span>{m} · {money(value)}</span><progress aria-label={`${m} income`} max={max} value={value} style={{ width: "100%" }} /></div>;
-      })}</div>
-      <details><summary>Sources and calculations</summary><p>Source: fixture-operations. Revenue is the sum of selected income amounts; expenses are the sum of selected expense amounts. Amounts are stored in integer USD cents. Channel filtering excludes shared expenses unless shared/all is selected; no allocation is assumed. No gross profit is calculated because expense recognition/COGS coverage is not established.</p></details>
-      <p className="section-footnote">These records are fictional, including when stored in MongoDB. Open Nessie Sandbox for separate API-sourced cash planning.</p>
-    </>}
-    {tab === "transactions" && <div className="transaction-table-wrap"><button className="button secondary compact" onClick={() => setAscending(v => !v)}>Sort date {ascending ? "descending" : "ascending"}</button>
-      <table className="transaction-table"><caption>Selected ledger · {rows.length} records</caption><thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Type</th><th>Channel</th><th>Amount</th></tr></thead><tbody>{rows.map(t => <tr key={t.id}><td>{t.date}</td><td>{t.description}</td><td>{t.category}</td><td>{t.kind}</td><td>{t.channel}</td><td>{money(t.amountCents)}</td></tr>)}</tbody></table>{!rows.length && <p>No records match these filters.</p>}</div>}
-    {tab === "pricing" && <>
-      <div className="pricing-table-wrap"><table className="pricing-table"><caption>Assumed unit economics · excludes labor, tax and fixed costs</caption><thead><tr><th>Item</th><th>Dine-in</th><th>Delivery</th><th>Ingredients</th><th>Packaging</th><th>Delivery commission</th><th>Dine-in contribution</th><th>Delivery contribution</th></tr></thead><tbody>{operations.menu.map(m => <tr key={m.id}><td>{m.name}</td><td>{money(m.dineInPriceCents)}</td><td>{money(m.deliveryPriceCents)}</td><td>{money(m.ingredientCostCents)}</td><td>{money(m.packagingCostCents)}</td><td>{m.deliveryCommissionFraction * 100}%</td><td>{money(channelContribution(m, "dine-in").contributionCents)}</td><td>{money(channelContribution(m, "delivery").contributionCents)}</td></tr>)}</tbody></table></div>
-      <h3>Fictional comparable prices</h3><div className="comparison-scroll"><table className="comp-table"><thead><tr><th>Source</th><th>Comparable item</th><th>Price</th><th>Observation date (demo)</th><th>Method</th></tr></thead><tbody>{operations.competitors.map(c => <tr key={c.id}><td>{c.restaurant}</td><td>{c.item}</td><td>{money(c.priceCents)}</td><td>{c.observedOn}</td><td>{c.sourceId} · {c.approximate ? "Approximate" : "Exact"} sample comparison</td></tr>)}</tbody></table></div>
-    </>}
-    {tab === "simulator" && <>
-      <div className="simulator-panel"><h3>Capacity what-if</h3><label>Additional seats: {seats}<input type="range" min={0} max={30} value={seats} onChange={e => setSeats(Number(e.target.value))} /></label>
-        <p>Monthly revenue change: {money(capacity.incrementalRevenuePerMonth * 100)} · Contribution: {money(capacity.incrementalContributionPerMonth * 100)} · Payback: {capacity.simplePaybackMonths === null ? "Unavailable" : `${capacity.simplePaybackMonths.toFixed(1)} months`}</p>
-        <details><summary>Capacity assumptions</summary><p>{assumptions.turnsPerDay} turns/day × {assumptions.occupancyFraction * 100}% occupancy × ${assumptions.averageCheck} spend × {assumptions.operatingDaysPerMonth} days. Contribution margin {assumptions.incrementalContributionMargin * 100}%; investment ${assumptions.investmentCost}. Uses dataset defaults, not an unsaved Floor Plan experiment. Requires enough extra demand; fixed costs and displacement are excluded.</p></details>
+export function FinancePage({ dataset, active, cloudEnabled = false }: { dataset: Dataset; active: boolean; cloudEnabled?: boolean }) {
+  const [tab,setTab]=useState("report");
+  const [assumptionsOpen,setAssumptionsOpen]=useState(true);
+  const [selectedEvidence,setSelectedEvidence]=useState<AiEvidence[]>([]);
+  const report=buildFinanceReport(dataset);
+  const reportKey=JSON.stringify([dataset.operations.financeReport,dataset.operations.menu,dataset.operations.competitors]);
+  const comparisonNames=[...new Set(report?.items.flatMap(item=>item.comparisons.map(row=>row.restaurant))??[])].slice(0,3);
+  return <section className="finance-page finance-report" aria-label="Financial intelligence">
+    <header className="fin-header"><div><span className="fin-eyebrow">FINANCIAL INTELLIGENCE</span><h2>{tab==="cash"?"A clearer picture of your cash.":"A clearer picture of your menu."}</h2><p>{dataset.profile.name} · {tab==="cash"?"Ninety-day cash planning":report ? `${date(report.source.startDate)} — ${date(report.source.endDate)}`:"No item-sales period supplied"}</p></div><span className="fin-demo">Demo report</span></header>
+    <nav className="fin-tabs" aria-label="Finance views"><button aria-pressed={tab==="report"} onClick={()=>setTab("report")}>Report</button><button aria-pressed={tab==="playground"} onClick={()=>setTab("playground")}>Price playground</button><button aria-pressed={tab==="cash"} onClick={()=>setTab("cash")}>Cash calendar</button><button className="fin-bank-link" aria-pressed={tab==="bank"} onClick={()=>setTab("bank")}>Nessie Sandbox <ArrowUpRight size={13}/></button></nav>
+    {tab==="bank" && <NessiePanel/>}
+    <div hidden={tab!=="cash"}><CashCalendar dataset={dataset} active={active&&tab==="cash"} cloudEnabled={cloudEnabled}/></div>
+    {!report && tab!=="bank" && tab!=="cash" && <div className="fin-empty"><h3>No dated item-sales report yet.</h3><p>The menu and ledger are available, but item demand cannot be inferred from a summary ledger. Add a validated mock report to the restaurant dataset.</p><FinanceLedger operations={dataset.operations}/></div>}
+    {report && tab!=="bank" && tab!=="cash" && <>
+      <div className="fin-assumptions-toggle"><button className="fin-text-button" onClick={()=>setAssumptionsOpen(value=>!value)} aria-expanded={assumptionsOpen}>{assumptionsOpen?"What this report assumes":"View assumptions"}</button></div>
+      {assumptionsOpen && <aside className="fin-assumptions" aria-label="Report assumptions"><div className="fin-line"><strong>Know what’s behind the numbers.</strong><button className="button quiet compact" onClick={()=>setAssumptionsOpen(false)}>Got it</button></div><div className="fin-assumption-grid"><p><b>Sales · mock records</b>{report.days} dated days, {report.totalUnits.toLocaleString()} items sold. App share is calculated from explicitly tagged app sales, not inferred from all delivery orders.</p><p><b>Costs · supplied assumptions</b>Item-specific ingredient costs, packaging and app commissions. Labor, rent, utilities, tax and payment fees are excluded. Contribution is not net profit.</p><p><b>Comparisons · fictional examples</b>{comparisonNames.length} sample restaurants, with dated prices for {report.comparisonCoverage} of {report.items.length} items. No live nearby menu research.</p><p><b>Price tests · editable estimates</b>Suggested raises cap at {pct(report.source.assumptions.suggestedRaiseCap)} with {pct(report.source.assumptions.suggestedVolumeLoss)} fewer dine-in sales. The playground lets you change customer loss.</p><p><b>Slow sellers · assumed behavior</b>Under {pct(report.source.assumptions.slowUnitShare)} of units; {pct(report.source.assumptions.slowSpoilageFraction)} extra ingredient spoilage avoided and {pct(report.source.assumptions.cutSwitchFraction)} switching to a dish with equivalent contribution.</p><p><b>Period · supplied dates</b>Results use this {report.days}-day sample. Annualized illustrations multiply by {report.annualFactor.toFixed(2)}, assuming unchanged pace. HR demand and the historical ledger are separate samples.</p></div></aside>}
+      <div hidden={tab!=="playground"}><PricePlayground key={reportKey} report={report}/></div>
+      <div hidden={tab!=="report"}>
+        <section className="fin-takeaway"><span className="fin-eyebrow">THE NUMBERS, FIRST</span><h3>{report.raises.some(item=>item.suggestedGainCents>0)?`${report.raises.filter(item=>item.suggestedGainCents>0).length} prices worth testing. ${money(report.delivery.feesCents)} going to app fees.`:"Start with the margins, before changing the menu."}</h3><p>{money(report.revenueCents)} in sample item sales leaves {money(report.contributionCents)} after ingredients, packaging and app commissions—before labor and fixed costs.</p><div className="fin-inline-metrics"><span><b>{report.totalUnits.toLocaleString()}</b> items sold</span><span><b>{pct(report.delivery.share)}</b> app share of sales</span><span><b>{report.slow.length}</b> slow sellers to review</span></div></section>
+        <FinanceInsights key={reportKey} restaurantId={dataset.profile.id} reportKey={reportKey} active={active && tab==="report"} onEvidence={setSelectedEvidence}/>
+        {selectedEvidence.length>0 && <aside className="fin-evidence" aria-label="Financial evidence"><div className="fin-line"><h3>Evidence used by AI</h3><button className="button quiet compact" onClick={()=>setSelectedEvidence([])}>Close evidence</button></div>{selectedEvidence.map(evidence=>{
+          const id=evidence.id;
+          const item=report.items.find(row=>id===`finance-item:${row.menuItemId}` || id===`menu:${row.menuItemId}`);
+          return <div key={id}><b>{item?.name ?? id}</b>{item ? <p>{item.quantity} units · {money(item.revenueCents)} sales · {money(item.contributionCents)} contribution. {item.comparableCents!==null?`Fictional comparable median ${money(item.comparableCents,true)}.`:"No comparable price."}</p>:id==="metric:finance-report"?<p>{report.source.description} Sales {money(report.revenueCents)}; contribution {money(report.contributionCents)}; app fees {money(report.delivery.feesCents)}.</p>:<details><summary>{evidence.label}</summary><pre>{evidence.detail}</pre></details>}</div>})}</aside>}
+        <section className="fin-section"><div className="fin-section-title"><span className="fin-section-number">01 / YOUR PRICES</span><h3>Where your menu sits.</h3><p>Against fictional comparable menus. A starting point for a test, not a reason to change a price on its own.</p></div>
+          <div className="fin-gap-chart" aria-label="Menu price gaps">{report.items.filter(item=>item.gap!==null).slice(0,10).map(item=><div className="fin-gap-row" key={item.menuItemId}><span>{item.name}</span><div className="fin-gap-track"><i/><b className={item.gap!>0?"above":"below"} style={{left:item.gap!>0?"50%":`${50-Math.min(48,Math.abs(item.gap!)*100)}%`,width:`${Math.min(48,Math.abs(item.gap!)*100)}%`}}/></div><strong>{item.gap!>0?"+":""}{pct(item.gap)}</strong></div>)}</div><div className="fin-chart-key"><span>← You charge less</span><span>Comparable median</span><span>You charge more →</span></div>
+          {!report.comparisonCoverage && <p>No supplied comparable prices are available.</p>}
+          <details className="fin-details"><summary>Compare prices side by side</summary><div className="fin-table-scroll"><table className="fin-table"><caption>Fictional sample prices · not verified nearby competitors</caption><thead><tr><th>Shared item</th><th>Your dine-in price</th>{comparisonNames.map(name=><th key={name}>{name}</th>)}</tr></thead><tbody>{report.items.filter(item=>item.comparableCents!==null).slice(0,15).map(item=><tr key={item.menuItemId}><th scope="row">{item.name}</th><td>{money(item.dineInPriceCents,true)}</td>{comparisonNames.map(name=>{const match=item.comparisons.find(row=>row.restaurant===name);return <td key={name}>{match?<span title={`Fictional observation · ${match.observedOn} · ${match.sourceId}`}>{money(match.priceCents,true)}</span>:"—"}</td>;})}</tr>)}</tbody></table></div></details>
+          <div className="fin-opportunity-grid"><div><h4><ArrowUpRight size={17}/> Prices worth testing</h4><p>Halfway toward the sample median, rounded to $0.50; fixed ingredient cost and {pct(report.source.assumptions.suggestedVolumeLoss)} fewer dine-in units.</p>{report.raises.slice(0,6).map(item=><div className="fin-price-suggestion" key={item.menuItemId}><div><strong>{item.name}</strong><small>{money(item.dineInPriceCents,true)} → {money(item.suggestedPriceCents,true)}</small></div><span className={item.suggestedGainCents<0?"fin-negative":""}>{item.suggestedGainCents>0?"+":""}{money(item.suggestedGainCents)}<small>period contribution</small></span></div>)}{!report.raises.length&&<p>No price is below the sample median enough to propose a raise.</p>}<button className="fin-text-button" onClick={()=>setTab("playground")}>Try these in the playground <ChevronRight size={13}/></button></div><div><h4><ArrowDownRight size={17}/> Prices to look at twice</h4><p>More than 15% above a sample median. Portion size, quality and service can justify the difference.</p>{report.expensive.map(item=><div className="fin-price-suggestion" key={item.menuItemId}><div><strong>{item.name}</strong><small>{money(item.dineInPriceCents,true)} vs {money(item.comparableCents!,true)}</small></div><span>+{pct(item.gap)}<small>{item.quantity.toLocaleString()} units sold</small></span></div>)}{!report.expensive.length&&<p>No item clears the 15% comparison threshold.</p>}</div></div>
+        </section>
+        <section className="fin-section"><div className="fin-section-title"><span className="fin-section-number">02 / DELIVERY</span><h3>What the apps leave behind.</h3><p>Your supplied prices and commission assumptions, with packaging kept in the calculation.</p></div>
+          <div className="fin-delivery-equation"><div><span>App sales</span><strong>{money(report.delivery.revenueCents)}</strong></div><em>−</em><div><span>App commission</span><strong>{money(report.delivery.feesCents)}</strong></div><em>−</em><div><span>Food + packaging</span><strong>{money(report.delivery.foodCents+report.delivery.packagingCents)}</strong></div><em>=</em><div><span>Contribution</span><strong>{money(report.delivery.contributionCents)}</strong></div></div>
+          <p className="fin-note">Current weighted markup {pct(report.delivery.markup)} · commission {pct(report.delivery.commission)}. Markup needed to offset commission alone: {pct(report.delivery.commissionOffsetMarkup)}. Packaging and customer loss would require more.</p>
+          <div className="fin-table-scroll"><table className="fin-table"><caption>Same app item mix and units, hypothetical markup over dine-in prices</caption><thead><tr><th>Markup</th><th>After app fees</th><th>Change from current</th></tr></thead><tbody>{report.delivery.options.map(option=><tr key={option.markup}><th scope="row">{pct(option.markup)}</th><td>{money(option.afterFeesCents)}</td><td className={option.changeCents<0?"fin-negative":""}>{option.changeCents>0?"+":""}{money(option.changeCents)}</td></tr>)}</tbody></table></div>
+          <p className="fin-callout">{report.delivery.revenueCents===0?"No app sales in this sample. A delivery pricing recommendation is unavailable.":`A 15% markup would ${report.delivery.options[3].changeCents<0?"reduce":"increase"} retained revenue by ${money(Math.abs(report.delivery.options[3].changeCents))} versus your current prices at unchanged volume. It is not automatically a better choice.`}</p>
+        </section>
+        <section className="fin-section"><div className="fin-section-title"><span className="fin-section-number">03 / MENU FOCUS</span><h3>Slow doesn’t always mean unprofitable.</h3><p>{report.slow.length} items are under {pct(report.source.assumptions.slowUnitShare)} of units and account for {pct(report.slowRevenueShare)} of sales. Removing an item can lose more contribution than it saves.</p></div>
+          <div className="fin-table-scroll"><table className="fin-table"><thead><tr><th>Item</th><th>Units / share</th><th>Assumed waste saved</th><th>Contribution lost</th><th>Net if cut</th></tr></thead><tbody>{report.slow.slice(0,12).map(item=><tr key={item.menuItemId}><th scope="row">{item.name}</th><td>{item.quantity} · {pct(item.unitShare)}</td><td>{money(item.spoilageSavedCents)}</td><td>{money(item.contributionLostCents)}</td><td className={item.netIfCutCents<0?"fin-negative":""}>{item.netIfCutCents>0?"+":""}{money(item.netIfCutCents)}</td></tr>)}</tbody></table>{!report.slow.length&&<p>No sold item falls below this threshold.</p>}</div>
+          <details className="fin-details"><summary>What this cut estimate includes</summary><p>Extra avoidable spoilage = sold units × ingredient cost × {pct(report.source.assumptions.slowSpoilageFraction)}. Lost contribution = current contribution × (1 − {pct(report.source.assumptions.cutSwitchFraction)} switching). Switching assumes an alternative item preserves equivalent contribution. These are assumptions, not measured waste or customer behavior. Ingredient sharing, preparation time, extra purchasing costs and effects on other sales are unknown. A positive result is only a candidate to investigate.</p></details>
+        </section>
+        <details className="fin-details fin-menu-details"><summary>Full menu, sales & contribution</summary><p>Contribution deducts supplied ingredients, app commission and pickup/app packaging. {report.source.description}</p><div className="fin-table-scroll"><table className="fin-table pricing-table"><thead><tr><th>Item</th><th>Units</th><th>Sales</th><th>Food / unit</th><th>Contribution</th><th>Contribution %</th></tr></thead><tbody>{report.items.map(item=><tr key={item.menuItemId}><th scope="row">{item.name}</th><td>{item.quantity.toLocaleString()}</td><td>{money(item.revenueCents)}</td><td>{money(item.ingredientCostCents,true)}</td><td>{money(item.contributionCents)}</td><td>{pct(item.revenueCents?item.contributionCents/item.revenueCents:null)}</td></tr>)}</tbody></table></div></details>
+        <FinanceLedger operations={dataset.operations}/>
       </div>
-      <div className="simulator-panel"><h3>Price and demand experiment</h3>{item && baseline && candidate ? <>
-        <div className="assumption-grid"><label>Menu item<select value={item.id} onChange={e => setItemId(e.target.value)}>{operations.menu.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></label><label>Pricing channel<select value={pricingChannel} onChange={e => setPricingChannel(e.target.value as "dine-in" | "delivery")}><option value="dine-in">Dine-in</option><option value="delivery">Delivery</option></select></label></div>
-        <label>Price change: {priceChange}%<input type="range" min={-50} max={50} value={priceChange} onChange={e => setPriceChange(Number(e.target.value))} /></label>
-        <label>Assumed volume change: {volumeChange}%<input type="range" min={-100} max={100} value={volumeChange} onChange={e => setVolumeChange(Number(e.target.value))} /></label>
-        <p>Candidate price {money(candidate.priceCents)}; assumed units {item.quantity} → {candidateQuantity}; contribution change {money(candidate.contributionCents * candidateQuantity - baseline.contributionCents * item.quantity)}.</p>
-        <details><summary>Pricing calculation</summary><p>Unit contribution = price − ingredients − (delivery percentage commission + packaging for delivery). Period contribution = unit contribution × assumed units. This is a user-defined candidate, not an AI recommendation or guaranteed profit increase. Menu quantities are separate synthetic scenario assumptions, not reconciled item sales from the summary ledger.</p></details>
-      </> : <p>Add menu records to the dataset to compare prices.</p>}</div>
     </>}
-    </div>
   </section>;
 }

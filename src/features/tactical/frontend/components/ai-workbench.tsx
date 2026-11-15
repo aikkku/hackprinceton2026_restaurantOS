@@ -9,16 +9,17 @@ import "./ai.css";
 const Access = createContext(false);
 const AccessControls = createContext<ReactNode>(null);
 export function AiAccessControls() { return useContext(AccessControls); }
-export function AiAccessProvider({ children, renderControls = true }: { children: ReactNode; renderControls?: boolean }) {
+export function AiAccessProvider({ children, renderControls = true, enabled = true }: { children: ReactNode; renderControls?: boolean; enabled?: boolean }) {
   const [unlocked, setUnlocked] = useState(false);
   const [password, setPassword] = useState("");
   const [error, setError] = useState(false);
   const [pending, setPending] = useState(false);
   useEffect(() => {
+    if (!enabled) return;
     const controller = new AbortController();
     fetch("/api/tactical/ai/session", { signal: controller.signal }).then(response => response.json()).then(data => setUnlocked(data.unlocked === true)).catch(() => {});
     return () => controller.abort();
-  }, []);
+  }, [enabled]);
   async function access(lock = false) {
     setPending(true); setError(false);
     try {
@@ -39,7 +40,7 @@ export function AiAccessProvider({ children, renderControls = true }: { children
       {error && <p role="alert">{aiError}</p>}
     </details>
   );
-  return <Access.Provider value={unlocked}>
+  return <Access.Provider value={enabled && unlocked}>
     <AccessControls.Provider value={controls}>
       {renderControls && controls}
       {children}

@@ -21,7 +21,8 @@
     "tactical:api": "node --env-file-if-exists=.env.local src/features/tactical/backend/api-cli.ts",
     "expansion:db:migrate": "node --env-file-if-exists=.env --env-file-if-exists=.env.local src/features/expansion/backend/db-migrate.ts",
     "expansion:recover": "node --env-file-if-exists=.env --env-file-if-exists=.env.local src/features/expansion/backend/recover-runs.ts",
-    "db:check": "node --env-file-if-exists=.env --env-file-if-exists=.env.local src/lib/mongodb-check.ts"
+    "db:check": "node --env-file-if-exists=.env --env-file-if-exists=.env.local src/lib/mongodb-check.ts",
+    "tactical:cash:seed": "node --env-file-if-exists=.env.local src/features/tactical/backend/cash-calendar-cli.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",

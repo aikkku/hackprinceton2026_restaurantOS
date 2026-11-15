@@ -4,7 +4,7 @@ import { hasOverlap } from "./layout.ts";
 import { layoutLibrarySchema } from "./layout-library.ts";
 
 export const aiError = "Something is wrong";
-export const aiTaskSchema = z.enum(["floor", "custom-object", "reviews", "reply", "finance", "supply", "job", "advisor"]);
+export const aiTaskSchema = z.enum(["floor", "custom-object", "reviews", "reply", "finance", "job", "advisor"]);
 export type AiTask = z.infer<typeof aiTaskSchema>;
 export const aiRequestSchema = z.object({
   task: aiTaskSchema,
@@ -53,6 +53,12 @@ export function proposedAiLayout(layout: Layout, moves: AiResult["moves"]): Layo
 
 export function validateAiResult(value: unknown, request: AiRequest, evidence: AiEvidence[], layout: Layout) {
   const result = aiResultSchema.parse(value);
+  // Finance figures are rendered from canonical code, never model-authored prose.
+  // Reject numeric narration instead of displaying plausible but invented calculations.
+  if (request.task === "finance") {
+    const prose = [result.summary, ...result.limitations, ...result.findings.flatMap(finding => [finding.title, finding.explanation, finding.action, finding.cost])].join(" ");
+    if (/[\d$€£%]|\b(?:percent|percentage|dollars?|cents?|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion)\b/i.test(prose)) throw new Error(aiError);
+  }
   const ids = new Set(evidence.map(item => item.id));
   if (result.findings.some(finding => finding.evidenceIds.some(id => !ids.has(id)))) throw new Error(aiError);
   if (new Set(result.classifications.map(item => item.reviewId)).size !== result.classifications.length) throw new Error(aiError);

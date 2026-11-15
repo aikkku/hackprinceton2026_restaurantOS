@@ -10,8 +10,8 @@ The user’s latest request enables Tactical AI features, replacing the earlier 
 | Floor Plan | Custom-object designer | Describe equipment/furniture; receive editable name, category and estimated meter dimensions. Use object suggestion fills the manual placement form. Nothing is placed automatically. |
 | Customer Reviews | Saved AI filtering | Incremental Gemini topics, sentiment, high-priority decisions and explanations. Persisted per source review in MongoDB; only missing or edited reviews are sent again. See [review workflow](REVIEW_WORKFLOW.md). |
 | Customer Reviews | Review reply | Use Draft with AI beneath any review, edit and copy it. Reply remains disabled. No platform posting, invented refunds or compensation commitments. |
-| Financial Intelligence | Financial analysis | Explain canonical ledger totals and per-channel contribution calculations. Uses the full supplied dataset, not page filters or unsaved pricing slider values. Prices and financial records are never automatically changed. |
-| Supply Management | Supply advisor | Explain stock status and code-calculated units/cost to reach thresholds. No orders or delivery promises. |
+| Financial Intelligence | Financial analysis | Three report observations/actions with evidence from canonical dated item sales, comparable prices, delivery and slow-seller calculations. Shares report facts with the advisor. Independent ledger context stays labeled; playground edits are not sent to AI. Existing 10-minute cache, no durable finance artifact. Prices and records never change automatically. |
+| Supply Management | None | Inventory-only page. No AI controls, session lookup on entry or dedicated supply task. Inventory facts remain available to explicit questions in the central assistant. |
 | HR | Staffing assessment and hiring drafts | Four persisted green/yellow/red assessments grounded in code-calculated coverage, order/menu demand and reviews; hover/focus explanations. Choose a role and edit/copy its AI job description. Purple marks AI. Indeed posting stays disabled. See [HR workflow](HR_WORKFLOW.md). |
 | AI Assistant | Restaurant advisor | Single-turn questions grounded in current Tactical data and the working layout. No Expansion data, web research, external tools or conversation memory. |
 | Photo editor | Gemini photo estimation | Existing photo interpretation now uses the same Gemini adapter and access boundary. Model output is parsed strictly; failure never loads the sample plan. Explicit manual Sample/Blank controls remain. Photos and estimates still require manual measurement/verification. |
@@ -97,3 +97,9 @@ Reviews now includes a purple AI network interpretation panel under Relationship
 ## Arlequin message semantics
 
 Reviews → Content & connectivity now classifies each loaded message into AI topics and tone. The model selects a source-excerpt index; code materializes exact source text and joins the labels to deterministic actor communities and explicit reply/repost paths. Full coverage, valid IDs and source indices are required. Failures remain **Something is wrong**. See [Arlequin Track 2](ARLEQUIN_TRACK2.md) for observed-data verification and limitations.
+
+## Connected data and AI proposal
+
+See [Connected data and AI plan](CONNECTED_DATA_AND_AI_PLAN.md) for current persistence gaps, the proposed context/artifact/decision model, MongoDB responsibilities and phased migration. This is a plan, not shipped architecture.
+
+See [Financial Intelligence workflow](FINANCE_WORKFLOW.md) for report sources, formulas and persistence limits.

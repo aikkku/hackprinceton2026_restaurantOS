@@ -1,5 +1,15 @@
 # Tactical — current implementation and remaining work
 
+**Latest Capital One increment (2026-11-15):** Cash calendar now connects the Nessie sandbox balance/bills to editable payroll, restock and payment assumptions. Month/Agenda, daily evidence, reserve warnings, saved bank/input snapshots and explicit refresh failures are implemented. MongoDB revision 8 contains the new mocks. See [Cash calendar](CASH_CALENDAR.md).
+
+
+**Latest finance refinement (2026-11-15):** Report and Price playground replace the previous finance tabs. Dated mock sales, fictional comparisons, deterministic pricing/delivery/cut analysis and purple qualitative AI with full numeric evidence are implemented. The report is saved in MongoDB revision 7; later Atlas reads failed, so current connectivity is unverified. See [Finance workflow](FINANCE_WORKFLOW.md) for verification and limits.
+
+
+## Supply AI removal and centralization proposal — November 15, 2026
+
+Supply Management is inventory-only: its AI workbench and unlock controls are removed, entering the page does not fetch the AI session, and the dedicated supply task is no longer accepted by the AI API. The central assistant can still use inventory facts for an explicit question. [Connected data and AI plan](CONNECTED_DATA_AND_AI_PLAN.md) defines proposed phases CEN-01 through CEN-07; the context/artifact/decision architecture is not yet implemented.
+
 ## Inventory and collisions — November 15, 2026
 
 Supply now uses roomier inventory cards, search/category/stock filters, visible mock expiration dates and expandable costs/reorder/delivery details. Supplier directory and supplier columns are removed. Existing supplier data relationships remain compatible. The fixture and MongoDB dataset (revision 6) have 34 mock expiration dates and three packaging records with no expiry listed. Dates are display data, not shelf-life or safety predictions. Overlapping floor objects turn red live; proximity-only warnings remain yellow, and assigned chairs are exempt from their own table collision. Rain’s latest Expansion commits were pulled and merged without conflicts. Validation on the merged checkout: 242 unit tests passed (one skipped), 54 Tactical Chrome/Firefox checks passed, typecheck and production build passed. Lint has no errors and one existing Expansion unused-variable warning; the build reports nine Expansion filesystem-tracing warnings.
@@ -93,7 +103,7 @@ RestaurantOS currently provides a **working browser-local restaurant layout and 
 | `/tactical/reviews` | Customer Reviews & Social Media section; current contents are review analytics only. |
 | `/tactical/hr` | Fictional team directory and schedule. |
 | `/tactical/supply` | Fictional inventory with expiration dates. |
-| `/tactical/finance` | Overview, transactions, menu pricing and simulator tabs. |
+| `/tactical/finance` | Report and Price playground; independent ledger and Nessie Sandbox. |
 | `/tactical/ai` | Single-turn evidence-linked Gemini advisor. |
 | `/tactical/scenarios`, `/tactical/decisions`, `/tactical/analyze` | Compatibility redirects to `/tactical`; no additional top-level experience. |
 | `POST /api/tactical/analyze` | Server entry point for photo analysis. |
@@ -138,7 +148,7 @@ All synthetic business records now live in [demo-restaurant.json](../../src/feat
 | --- | --- |
 | Core restaurant | Profile, main layout, 30 fictional reviews, one cited mission and default assumptions |
 | Configurations/history | Versioned layout configuration and a reproducible example turnover snapshot; ready for API upload, not auto-synced with browser saves |
-| Finance | 312 synthetic ledger entries from June through November 2026 across dine-in, delivery, takeaway and shared costs, 24 menu items and 15 sample price comparisons |
+| Finance | 312 synthetic ledger entries from June through November 2026 across dine-in, delivery, takeaway and shared costs, 24 menu items, a separate 92-day item-sales report and 65 fictional price comparisons |
 | HR | Seven fictional employees with reserved-domain contacts, assumed pay, validated dated shifts and weekly item demand |
 | Supply | 37 inventory items with costs and thresholds, and 12 fictional suppliers |
 | Social analysis | 24 fictional messages from nine actors in the editable conversation fixture |
@@ -354,33 +364,15 @@ Sources: [review UI](../../src/features/tactical/frontend/components/review-insi
 
 ## 8. Financial Intelligence
 
-**Priority: P0. Status: reconciled synthetic ledger and deterministic unit-economics experiments.**
+**Priority: P0. Status: dated mock menu report and editable price playground implemented.**
 
-### Implemented
+The Report includes assumptions, canonical totals, purple Gemini observations/actions with evidence, comparable prices, raise ideas, expensive-item flags, app economics, slow-seller estimates and a full item table. The Price playground models raises and customer loss for 15 leading dine-in items, with break-even loss, period contribution change, annualized illustration, suggested raises and reset. Experiments survive tab changes, not reloads.
 
-- Overview/Transactions/Menu Pricing/Simulator tabs using the selected restaurant dataset.
-- Ninety dated synthetic ledger records across six months. Income, recorded expenses, net recorded difference and delivery income are calculated from the same filtered rows as the transaction table and chart.
-- Month, channel and income/expense filters; date sorting and empty results.
-- Explicit statement that ledger service summaries are not individual orders; average order value and cash balance are not invented.
-- Eight menu records with integer-cent dine-in/delivery prices, ingredient cost, packaging cost and commission assumptions.
-- Calculated per-channel unit contribution; three dated, source-labeled, approximate fictional competitor dish comparisons.
-- Capacity slider uses the canonical seating function, including zero added seats and unavailable payback.
-- Price/volume experiment with item/channel selection and editable percentage assumptions. Candidate contribution compares altered price and quantity with baseline, not a guaranteed improvement.
+The independent 312-row ledger remains in a collapsible filtered section. Nessie Sandbox retains its own utility entry. The former four finance tabs and capacity slider have been replaced. There is no upload/address onboarding.
 
-Sources: [finance UI](../../src/features/tactical/frontend/components/finance-page.tsx), [financial domain](../../src/features/tactical/domain/finance.ts), [dataset schema](../../src/features/tactical/domain/dataset.ts).
+The fixture and MongoDB revision 7 contain 24 item-sales rows for a 92-day sample and 65 fictional comparator observations. Subsequent Atlas availability checks failed; the successful save is not evidence of current availability. See [Finance workflow](FINANCE_WORKFLOW.md) for precise formulas, source boundaries, file map, persistence and current verification details.
 
-### Calculations and limits
-
-```text
-recorded income = sum(selected income amounts)
-recorded expenses = sum(selected expense amounts)
-net recorded difference = income − expenses
-unit contribution = price − ingredient cost − delivery commission − packaging
-scenario contribution change = candidate units × candidate unit contribution
-                               − baseline units × baseline unit contribution
-```
-
-Commission and packaging apply only to delivery. Menu quantities are independent synthetic scenario assumptions, not itemized sales reconciled to the service-summary ledger. Income less recorded expenses is not verified profit or cash flow. No opening balance, tax, tips, refunds, verified COGS or full accounting model is present. Channel filters exclude shared costs unless shared/all is selected; no arbitrary allocation is performed.
+Contribution excludes labor and fixed costs; supplied per-item costs override generic reference percentages. App scenarios compare against current app prices; slow-seller cuts can have negative outcomes. AI explains canonical metrics and never changes prices. Finance and the advisor share the same report evidence, but unsaved playground edits are local.
 
 ### Financial backlog
 
@@ -390,7 +382,7 @@ Commission and packaging apply only to delivery. Menu quantities are independent
 - [x] **FIN-04 · Partial:** Recorded income/expenses/net difference are labeled distinctly. Cash balance, gross profit and operating profit remain unavailable until their records/definitions exist.
 - [x] **FIN-05 · P0 mock scope:** Menu cost, channel fee, packaging, assumed quantity and dated comparison records.
 - [x] **FIN-06 · P0 mock scope:** Dine-in/delivery contribution and candidate price/volume experiment.
-- [x] **FIN-07 · Partial:** Canonical capacity math reused. Finance still uses dataset assumptions, not an unsaved Floor Plan scenario or selected layout delta.
+- [x] **FIN-07 · Deferred:** The finance capacity slider was replaced by the menu report/playground. A deliberate shared Floor Plan/Finance scenario interface remains pending.
 - [ ] **FIN-08 · P1:** Persist named pricing/cost/renovation scenarios with model versions and compare them.
 - [x] **FIN-09 · Mock scope:** Comparable dish table with source/date/approximation labels. Licensed/current observations are still future work.
 - [x] **FIN-10 implementation:** Nessie adapter, protected read endpoint, sandbox cash planner and source export. Approved sandbox records are configured; live authenticated account/transaction retrieval and browser scenario export are verified. Exact sponsor criteria still need verification.

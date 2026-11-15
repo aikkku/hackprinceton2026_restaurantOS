@@ -6,6 +6,7 @@ Start with **[Current implementation and remaining work](IMPLEMENTATION_STATUS.m
 
 | Document | Purpose | Update when |
 | --- | --- | --- |
+| [CONNECTED_DATA_AND_AI_PLAN.md](CONNECTED_DATA_AND_AI_PLAN.md) | Proposed shared context, durable AI artifacts, decisions and database migration | Centralization scope is agreed or a phase ships |
 | [MONGODB_SETUP.md](MONGODB_SETUP.md) | Shared database, environment setup, seed/export, protected APIs and live verification | Database/API behavior changes |
 | [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) | Detailed current-versus-target status, source map, task IDs, priorities, dependencies, limitations and acceptance criteria | A feature ships, scope changes or verification finds a gap |
 | [PRODUCT_REFINEMENT_BRIEF.md](PRODUCT_REFINEMENT_BRIEF.md) | Preserved user-supplied target product brief | Keep as the supplied reference; record later scope changes explicitly |
@@ -44,3 +45,7 @@ The later user refinement brief extends the earlier MVP (including demo HR and S
 - [Sponsor integrations](SPONSOR_INTEGRATIONS.md): Nessie sandbox cash planning, relationship graph imports/analysis, source contracts, setup, demo and remaining eligibility gates.
 
 - [Arlequin Track 2 implementation](ARLEQUIN_TRACK2.md): Reviews → Content & connectivity, public conversation imports, AI themes joined to actor communities, source-linked paths/timeline, export and submission guide.
+
+- [Financial Intelligence workflow](FINANCE_WORKFLOW.md): report, price playground, mock sales schema, AI evidence, formulas and remaining work.
+
+- [Cash calendar](CASH_CALENDAR.md): Nessie-connected cash planning, HR/Supply inputs, immutable forecasts, API and data limits.

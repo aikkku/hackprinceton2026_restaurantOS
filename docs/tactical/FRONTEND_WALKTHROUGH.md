@@ -71,7 +71,7 @@ For an authorized photo, unlock AI and generate with Gemini. A missing key or fa
 
 ## 12. Review the supporting sections
 
-HR shows a fictional roster and schedule. Supply shows fictional inventory/suppliers. Finance shows sample charts, transactions, menu comparisons and a simplified capacity slider. These pages consume the central validated mock dataset, from the local fixture or MongoDB. Finance filters reconcile to the displayed ledger; menu/channel costs and price/volume experiments are explicit assumptions. HR/Supply derive labor/stock summaries. These remain synthetic examples, not real payroll or accounting. AI Assistant now supports a grounded single-turn Gemini question. Purple AI workflows also appear on the other pages; see [AI setup](AI_FEATURES.md).
+HR shows seven fictional employees, a calendar and editable AI hiring drafts. Supply shows dated fictional inventory cards with no supplier directory or AI controls. Finance opens a dated item-sales report with purple AI observations, sample comparisons, delivery and slow-seller analysis. Switch to **Price playground**, apply suggested raises, increase the customer-loss estimate and reset; inspect evidence and reopen dismissed assumptions. The independent ledger remains collapsed below the report; Nessie has its own utility entry. These pages use the central validated fixture/MongoDB dataset and retain explicit synthetic labels. See [Finance workflow](FINANCE_WORKFLOW.md) and [AI setup](AI_FEATURES.md).
 
 For exact remaining capabilities, use the [page guide](PAGES.md) and [implementation inventory](IMPLEMENTATION_STATUS.md).
 
@@ -79,3 +79,7 @@ For exact remaining capabilities, use the [page guide](PAGES.md) and [implementa
 ## 13. Seed or upload the mock dataset to MongoDB
 
 Follow [MongoDB setup](MONGODB_SETUP.md) for the shared database, server credentials, create-only seed, authenticated upload and optimistic revision updates. MongoDB mode shows its source/revision in the header. Working layout/scenario saves are still browser-local; dataset upload does not automatically synchronize them.
+
+## Cash calendar
+
+Open Finance → Cash calendar. Click the lowest balance to inspect that day; edit reserve/payout assumptions, save a named forecast, reload and reopen it. Unlock workspace access for Refresh bank data; the source changes to Nessie API and all funds remain simulated. A failed refresh preserves the prior snapshot with a stale warning. Check Month/Agenda on a narrow screen. See [cash calendar guide](CASH_CALENDAR.md).

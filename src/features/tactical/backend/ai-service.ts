@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import type { Dataset } from "../domain/dataset.ts";
 import { aiRequestSchema, aiResultSchema, validateAiResult, type AiSuccess } from "../domain/ai.ts";
-import { buildAiContext, aiPromptVersion, aiSystemPrompt } from "./ai-context.ts";
+import { buildAiContext, financeNarrativeEvidence, aiPromptVersion, aiSystemPrompt } from "./ai-context.ts";
 import { generateStructured, aiModel } from "./gemini.ts";
 import { authorizedAi, sameOrigin, boundedJson, aiFailure, takeAiBudget } from "./ai-access.ts";
 
@@ -17,9 +17,10 @@ export function createAiHandler({ load, generate = generateStructured, authorize
       const dataset = await load();
       const { layout, evidence } = buildAiContext(dataset, input);
       const model = aiModel();
-      const prompt = JSON.stringify({ task: input.task, question: input.question, selectedReviewId: input.reviewId, evidence });
+      const modelEvidence = input.task === "finance" ? financeNarrativeEvidence(dataset) ?? evidence : evidence;
+      const prompt = JSON.stringify({ task: input.task, question: input.question, selectedReviewId: input.reviewId, evidence: modelEvidence });
       if (prompt.length > 120_000) return aiFailure(413);
-      const key = createHash("sha256").update(JSON.stringify({ model, aiPromptVersion, prompt })).digest("hex");
+      const key = createHash("sha256").update(JSON.stringify({ model, aiPromptVersion, prompt, evidence })).digest("hex");
       const existing = cache.get(key);
       if (existing && existing.expires > Date.now()) return Response.json({ ...existing.value, cached: true }, { headers: { "Cache-Control": "no-store" } });
       if (running >= 2 || !budget("generate")) return aiFailure(429);
