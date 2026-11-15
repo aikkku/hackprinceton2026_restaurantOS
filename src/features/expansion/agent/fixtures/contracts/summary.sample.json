@@ -1,0 +1,70 @@
+{
+  "artifactVersion": "expansion-agent-artifact-v1",
+  "modelVersion": "expansion-agent-run-v1",
+  "runId": "fixture-run",
+  "executionMode": "scripted",
+  "terminalStatus": "completed_with_gaps",
+  "stageReports": [
+    {
+      "stage": "readiness",
+      "status": "completed",
+      "digest": "Profile gaps and follow-ups recorded.",
+      "candidateIds": [],
+      "missing": [
+        "budget.cashReserveToKeep"
+      ]
+    },
+    {
+      "stage": "market",
+      "status": "completed",
+      "digest": "Sourced snapshot context recorded.",
+      "candidateIds": [],
+      "missing": []
+    },
+    {
+      "stage": "site_scout",
+      "status": "completed",
+      "digest": "Full-city search completed with deterministic assessments.",
+      "candidateIds": [
+        "space-synth-1",
+        "space-synth-2",
+        "space-synth-3"
+      ],
+      "missing": []
+    },
+    {
+      "stage": "space_inspector",
+      "status": "completed",
+      "digest": "Inspection recorded with suite-scoped gaps and verification tasks.",
+      "candidateIds": [
+        "space-synth-1"
+      ],
+      "missing": [
+        "Verify suite kitchen equipment with the landlord or a walkthrough."
+      ]
+    },
+    {
+      "stage": "finance",
+      "status": "unavailable",
+      "digest": "Required-sales unavailable; baseline inputs missing.",
+      "candidateIds": [],
+      "missing": [
+        "The financial baseline is unavailable, so no fixed costs or margin can be derived."
+      ]
+    }
+  ],
+  "summaryText": "Synthetic fixture summary; every grounded detail lives in the validated artifacts.",
+  "missingEvidence": [
+    "Financial baseline for required-sales scenarios (financialBaseline)"
+  ],
+  "followUps": [
+    "Ask the owner for a recent sales and expense report."
+  ],
+  "assumptions": [
+    "The fictional profile is labeled simulated."
+  ],
+  "groundedCandidateIds": [
+    "space-synth-1"
+  ],
+  "completedAt": "2026-11-14T12:04:00.000Z"
+}

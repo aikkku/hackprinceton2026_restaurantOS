@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { FinancialBaseline } from "./intake.ts";
 import {
   rentSchema,
   scenarioInputsSchema,
@@ -137,4 +138,72 @@ export function requiredSalesMonthly(
     status: "available",
     requiredSalesMonthly: result,
   });
+}
+
+/**
+ * Phase 3: deterministic finance inputs derived from the intake baseline.
+ * The Python finance specialist calls finance.required_sales with exactly
+ * these values (or none); the worker never derives margin itself.
+ *
+ * - Fixed costs = fixed labor + other fixed costs excluding occupancy
+ *   (occupancy is analyzed per candidate separately).
+ * - Contribution margin = (net sales − variable costs) / net sales when all
+ *   inputs are observed and net sales is positive; zero/negative net sales
+ *   yields no usable margin.
+ */
+export function financeInputsFromBaseline(
+  baseline: FinancialBaseline,
+): {
+  fixedCostsMonthly: number | null;
+  contributionMargin: number | null;
+  origin: "derived" | "unavailable";
+  reasons: string[];
+} {
+  const reasons: string[] = [];
+  if (baseline.origin !== "observed") {
+    return {
+      fixedCostsMonthly: null,
+      contributionMargin: null,
+      origin: "unavailable",
+      reasons: ["The financial baseline is unavailable, so no fixed costs or margin can be derived."],
+    };
+  }
+  let fixedCostsMonthly: number | null = null;
+  if (
+    baseline.fixedLaborCosts !== null &&
+    baseline.otherFixedCostsExcludingOccupancy !== null
+  ) {
+    const total = baseline.fixedLaborCosts + baseline.otherFixedCostsExcludingOccupancy;
+    if (Number.isFinite(total) && total >= 0) fixedCostsMonthly = total;
+  } else {
+    reasons.push(
+      "Fixed labor costs or other fixed costs are missing, so required sales cannot be derived.",
+    );
+  }
+  let contributionMargin: number | null = null;
+  if (
+    baseline.netSales !== null &&
+    baseline.variableCosts !== null &&
+    baseline.netSales > 0
+  ) {
+    const margin = (baseline.netSales - baseline.variableCosts) / baseline.netSales;
+    if (Number.isFinite(margin) && margin > 0 && margin <= 1) {
+      contributionMargin = margin;
+    } else if (Number.isFinite(margin) && margin <= 0) {
+      reasons.push("Variable costs meet or exceed net sales, so no positive contribution margin exists.");
+    }
+  } else {
+    reasons.push(
+      "Net sales or variable costs are missing (or net sales is zero), so the contribution margin cannot be derived.",
+    );
+  }
+  if (fixedCostsMonthly === null || contributionMargin === null) {
+    return {
+      fixedCostsMonthly,
+      contributionMargin,
+      origin: "unavailable",
+      reasons: reasons.length ? reasons : ["The financial baseline cannot support required-sales calculation."],
+    };
+  }
+  return { fixedCostsMonthly, contributionMargin, origin: "derived", reasons: [] };
 }

@@ -1,0 +1,5 @@
+{"eventVersion":"expansion-agent-event-v1","seq":1,"runId":"fixture-run","ts":"2026-11-14T12:00:00.000Z","type":"run.started","stage":null,"payload":{"mode":"scripted"}}
+{"eventVersion":"expansion-agent-event-v1","seq":2,"runId":"fixture-run","ts":"2026-11-14T12:00:01.000Z","type":"stage.started","stage":"readiness","payload":null}
+{"eventVersion":"expansion-agent-event-v1","seq":3,"runId":"fixture-run","ts":"2026-11-14T12:00:02.000Z","type":"tool.completed","stage":"readiness","payload":{"tool":"profile.readiness_report","outcome":"ok"}}
+{"eventVersion":"expansion-agent-event-v1","seq":4,"runId":"fixture-run","ts":"2026-11-14T12:00:03.000Z","type":"stage.completed","stage":"readiness","payload":{"status":"completed","digest":"Profile readiness assessed."}}
+{"eventVersion":"expansion-agent-event-v1","seq":5,"runId":"fixture-run","ts":"2026-11-14T12:04:00.000Z","type":"run.completed","stage":null,"payload":{"status":"completed_with_gaps","mode":"scripted"}}

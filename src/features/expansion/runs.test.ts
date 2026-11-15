@@ -22,6 +22,12 @@ import { GET as getRunRoute } from "../../app/api/expansion/runs/[id]/route.ts";
 import { GET as getCandidatesRoute } from "../../app/api/expansion/runs/[id]/candidates/route.ts";
 import { POST as cancelRoute } from "../../app/api/expansion/runs/[id]/cancel/route.ts";
 import { POST as assessmentsRoute } from "../../app/api/expansion/assessments/route.ts";
+import { OWNER_COOKIE, ownerCookieValue } from "./backend/owner.ts";
+
+// Phase 5: route ownership comes from a signed owner cookie, never a session header.
+process.env.EXPANSION_SESSION_SECRET ??= "phase5-route-test-secret-0123456789abcdef";
+process.env.EXPANSION_PERSISTENCE = "off";
+const ownerCookie = (owner: string) => `${OWNER_COOKIE}=${encodeURIComponent(ownerCookieValue(owner))}`;
 
 const property = (id: number) => ({
   id,
@@ -261,7 +267,7 @@ test("route handlers validate intake, create runs, paginate, cancel and assess",
         const created = await createRunRoute(
           new Request("http://localhost/api/expansion/runs", {
             method: "POST",
-            headers: { "Content-Type": "application/json", "x-expansion-session": "route-session" },
+            headers: { "Content-Type": "application/json", cookie: ownerCookie("route-session") },
             body: JSON.stringify({
               runId: "route-run-1",
               cityId: "houston",
@@ -278,20 +284,20 @@ test("route handlers validate intake, create runs, paginate, cancel and assess",
 
         // Status via GET.
         const status = await getRunRoute(
-          new Request("http://localhost/api/expansion/runs/route-run-1", { headers: { "x-expansion-session": "route-session" } }),
+          new Request("http://localhost/api/expansion/runs/route-run-1", { headers: { cookie: ownerCookie("route-session") } }),
           { params: Promise.resolve({ id: "route-run-1" }) },
         );
         assert.equal(status.status, 200);
         // Wrong session sees 404.
         const foreign = await getRunRoute(
-          new Request("http://localhost/api/expansion/runs/route-run-1", { headers: { "x-expansion-session": "other" } }),
+          new Request("http://localhost/api/expansion/runs/route-run-1", { headers: { cookie: ownerCookie("other") } }),
           { params: Promise.resolve({ id: "route-run-1" }) },
         );
         assert.equal(foreign.status, 404);
 
         // Candidates pagination through the route.
         const candidates = await getCandidatesRoute(
-          new Request("http://localhost/api/expansion/runs/route-run-1/candidates?limit=5&offset=0", { headers: { "x-expansion-session": "route-session" } }),
+          new Request("http://localhost/api/expansion/runs/route-run-1/candidates?limit=5&offset=0", { headers: { cookie: ownerCookie("route-session") } }),
           { params: Promise.resolve({ id: "route-run-1" }) },
         );
         assert.equal(candidates.status, 200);
@@ -301,7 +307,7 @@ test("route handlers validate intake, create runs, paginate, cancel and assess",
 
         // Cancel a terminal run → 409.
         const cancel = await cancelRoute(
-          new Request("http://localhost/api/expansion/runs/route-run-1/cancel", { method: "POST", headers: { "x-expansion-session": "route-session" } }),
+          new Request("http://localhost/api/expansion/runs/route-run-1/cancel", { method: "POST", headers: { cookie: ownerCookie("route-session") } }),
           { params: Promise.resolve({ id: "route-run-1" }) },
         );
         assert.equal(cancel.status, 409);

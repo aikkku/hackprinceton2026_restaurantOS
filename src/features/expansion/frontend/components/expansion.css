@@ -2343,3 +2343,147 @@
     align-items: flex-start;
   }
 }
+
+/* ---- Phase 3: Deep Agents run panel (scoped under .expansion-app) ---- */
+.expansion-app .agent-section {
+  margin: 4px 0 32px;
+}
+.expansion-app .agent-cta-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+.expansion-app .agent-mode-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: var(--ros-muted);
+}
+.expansion-app .agent-mode-label select {
+  background: var(--ros-surface);
+  border: 1px solid var(--ros-border);
+  border-radius: 10px;
+  color: var(--ros-ink);
+  padding: 7px 10px;
+  font: inherit;
+}
+.expansion-app .agent-progress,
+.expansion-app .agent-summary {
+  background: var(--ros-surface);
+  border: 1px solid var(--ros-border);
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.expansion-app .agent-progress-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.expansion-app .agent-progress-head strong {
+  flex: 1;
+}
+.expansion-app .agent-stages {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.expansion-app .stage-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+}
+.expansion-app .stage-row.stage-running {
+  border-color: var(--ros-border);
+  background: color-mix(in srgb, var(--ros-forest) 6%, transparent);
+}
+.expansion-app .stage-row .stage-dot {
+  display: inline-flex;
+  align-items: center;
+  color: var(--ros-muted);
+}
+.expansion-app .stage-row.stage-completed .stage-dot {
+  color: var(--ros-forest);
+}
+.expansion-app .stage-row.stage-failed .stage-dot {
+  color: var(--ros-danger);
+}
+.expansion-app .stage-row.stage-unavailable .stage-dot {
+  color: var(--ros-amber);
+}
+.expansion-app .stage-name {
+  font-weight: 600;
+  font-size: 0.85rem;
+  min-width: 130px;
+}
+.expansion-app .stage-digest {
+  flex-basis: 100%;
+  margin: 2px 0 0 22px;
+  font-size: 0.78rem;
+  color: var(--ros-muted);
+}
+.expansion-app .mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--ros-border);
+  color: var(--ros-muted);
+  white-space: nowrap;
+}
+.expansion-app .mode-badge.mode-live {
+  color: var(--ros-forest);
+  border-color: color-mix(in srgb, var(--ros-forest) 40%, transparent);
+}
+.expansion-app .mode-badge.mode-scripted {
+  color: var(--ros-amber);
+  border-color: color-mix(in srgb, var(--ros-amber) 40%, transparent);
+}
+.expansion-app .agent-summary-text {
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 0;
+}
+.expansion-app .agent-missing {
+  border-left: 3px solid var(--ros-amber);
+  padding: 4px 10px;
+  font-size: 0.82rem;
+}
+.expansion-app .agent-missing ul {
+  margin: 4px 0 0 18px;
+  padding: 0;
+}
+.expansion-app .agent-finance {
+  border: 1px solid var(--ros-border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 12px;
+}
+.expansion-app .agent-candidate-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 10px;
+}
+.expansion-app .agent-inspector {
+  margin-top: 14px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .expansion-app .spin {
+    animation: none;
+  }
+}

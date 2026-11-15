@@ -21,6 +21,8 @@ import {
 import { ExpansionHeader } from "./components/expansion-header";
 import { ExpansionWorkspace } from "./components/expansion-workspace";
 import { ProfileWorkspace } from "./components/profile-workspace";
+import { AccountError, ensureSession, loadAccountProfile, saveAccountProfile, unlockSession, type SessionStatus } from "./data/account-client.ts";
+import { profileDraftEnvelopeSchema } from "./storage.ts";
 import "./components/expansion.css";
 
 export default function ExpansionPage({ provider = fixtureProvider }: { provider?: ExpansionProvider }) {
@@ -34,16 +36,39 @@ export default function ExpansionPage({ provider = fixtureProvider }: { provider
   const [sessionEnvelope, setSessionEnvelope] = useState<ProfileDraftEnvelope | null>(null);
   const [activeProfile, setActiveProfile] = useState<{ revision: ProfileRevision; saved: boolean } | null>(null);
   const [profileNotice, setProfileNotice] = useState("");
+  const [session, setSession] = useState<SessionStatus | null>(null);
+  const [accessCode, setAccessCode] = useState("");
+  const [accessError, setAccessError] = useState("");
 
   useEffect(() => {
-    void Promise.resolve().then(() => {
+    void Promise.resolve().then(async () => {
+      let local: ProfileDraftStatus = { status: "empty" };
       try {
         if (localStorage.getItem(MODE_STORAGE_KEY) === "local") setMode("local");
-        setProfileDraft(decodeProfileDraft(localStorage.getItem(PROFILE_DRAFT_STORAGE_KEY)));
+        local = decodeProfileDraft(localStorage.getItem(PROFILE_DRAFT_STORAGE_KEY));
+        setProfileDraft(local);
       } catch { /* Storage is optional. */ }
+      const status = await ensureSession().catch(() => null);
+      setSession(status);
+      // Restore from the private workspace only when this browser has no draft;
+      // a local draft (or preserved corrupt content) is never overwritten.
+      if (status?.authenticated && local.status === "empty") {
+        const remote = await loadAccountProfile().catch(() => null);
+        const parsed = remote?.envelope ? profileDraftEnvelopeSchema.safeParse(remote.envelope) : null;
+        if (parsed?.success) {
+          setProfileDraft({ status: "ok", envelope: parsed.data });
+          setProfileNotice(`Profile restored from your private workspace (${remote?.storage}).`);
+        }
+      }
       setInitialized(true);
     });
   }, []);
+
+  async function unlock(event: React.FormEvent) {
+    event.preventDefault();
+    try { setSession(await unlockSession(accessCode)); setAccessError(""); setAccessCode(""); }
+    catch (failure) { setAccessError(failure instanceof Error ? failure.message : "The access code was not accepted."); }
+  }
 
   function changeMode(next: "demo" | "local") {
     try { localStorage.setItem(MODE_STORAGE_KEY, next); } catch { /* Mode remains usable without storage. */ }
@@ -85,7 +110,11 @@ export default function ExpansionPage({ provider = fixtureProvider }: { provider
         revision: [...envelope.revisions].sort((a, b) => b.revisionNumber - a.revisionNumber)[0],
         saved: true,
       });
-      setProfileNotice(`Profile draft saved on this browser (revision ${[...envelope.revisions].sort((a, b) => b.revisionNumber - a.revisionNumber)[0].revisionNumber}). No business records changed.`);
+      const revisionNumber = [...envelope.revisions].sort((a, b) => b.revisionNumber - a.revisionNumber)[0].revisionNumber;
+      setProfileNotice(`Profile draft saved on this browser (revision ${revisionNumber}). Saving to your private workspace… No business records changed.`);
+      void saveAccountProfile(envelope)
+        .then((report) => setProfileNotice(`Profile revision ${revisionNumber} saved on this browser and in your private workspace (${report.storage}). No business records changed.`))
+        .catch((failure) => setProfileNotice(`Profile revision ${revisionNumber} saved on this browser only. Workspace save failed: ${failure instanceof AccountError || failure instanceof Error ? failure.message : "storage unavailable"}`));
       return true;
     } catch {
       setProfileNotice("Saving failed. Browser storage may be unavailable or full; your draft is intact.");
@@ -126,6 +155,14 @@ export default function ExpansionPage({ provider = fixtureProvider }: { provider
     return (
       <div className="expansion-app">
         <ExpansionHeader mode={mode} onModeChange={changeMode} />
+        {session && !session.authenticated && session.accessCodeRequired && (
+          <form className="notice-toast" style={{ position: "static", margin: "12px auto", maxWidth: 640 }} onSubmit={unlock} aria-label="Unlock private workspace">
+            <label>Workspace access code <input type="password" autoComplete="current-password" value={accessCode} onChange={(event) => setAccessCode(event.target.value)} required maxLength={256} /></label>
+            <button className="primary">Unlock private workspace</button>
+            {accessError && <p role="alert" className="warning">{accessError}</p>}
+            <p className="small-note">Runs, profiles and briefs are private to your workspace. Without unlocking, saving stays on this browser only.</p>
+          </form>
+        )}
         <ProfileWorkspace
           key={
             profileDraft.status === "ok"

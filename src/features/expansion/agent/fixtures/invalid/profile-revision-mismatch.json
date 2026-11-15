@@ -1,0 +1,491 @@
+{
+  "artifactVersion": "expansion-agent-artifact-v1",
+  "modelVersion": "expansion-requirements-v1",
+  "intakeSchemaVersion": "1.0",
+  "revisionId": "fixture-revision-OTHER",
+  "revisionNumber": 3,
+  "cityId": "Houston",
+  "intake": {
+    "schemaVersion": "1.0",
+    "recordType": "expansion_intake",
+    "isDemo": true,
+    "origin": "simulated",
+    "description": "Fictional example of structured output after a short owner interview. No real restaurant, financial records, or property sources were used. This is an Expansion-local example, not a finalized shared API contract.",
+    "restaurant": {
+      "name": "Cedar Kitchen",
+      "cuisine": "Mediterranean",
+      "serviceType": "dine_in_and_takeout",
+      "currentCity": "Houston",
+      "currentState": "TX",
+      "currentCountry": "US",
+      "sourceAnswerIds": [
+        "answer_0"
+      ]
+    },
+    "expansion": {
+      "goal": "second_location",
+      "targetCity": "Houston",
+      "targetState": "TX",
+      "targetCountry": "US",
+      "preferredNeighborhoods": [
+        "Heights"
+      ],
+      "otherNeighborhoodsAcceptable": true,
+      "targetOpeningDate": null,
+      "sourceAnswerIds": [
+        "answer_0",
+        "answer_1"
+      ]
+    },
+    "budget": {
+      "currency": "USD",
+      "totalAvailableFunds": 100000,
+      "cashReserveToKeep": null,
+      "maximumUpfrontSpending": null,
+      "maximumMonthlyOccupancyCost": 5000,
+      "monthlyOccupancyCostIncludes": "base_rent_and_additional_occupancy_charges",
+      "monthlyOccupancyLimitIsHard": true,
+      "sourceAnswerIds": [
+        "answer_2",
+        "answer_3",
+        "answer_6"
+      ]
+    },
+    "space": {
+      "preferredSeats": {
+        "minimum": 40,
+        "maximum": 50,
+        "isHardRequirement": false
+      },
+      "areaSqFt": {
+        "minimum": null,
+        "maximum": null
+      },
+      "mustHave": {
+        "existingKitchen": true,
+        "customerParking": true
+      },
+      "minimumCustomerParkingSpaces": null,
+      "ventilationRequirements": null,
+      "sourceAnswerIds": [
+        "answer_4",
+        "answer_5"
+      ]
+    },
+    "financialBaseline": {
+      "origin": "unavailable",
+      "currency": "USD",
+      "periodStart": null,
+      "periodEnd": null,
+      "netSales": null,
+      "guestsServed": null,
+      "averageSpendPerGuest": null,
+      "operatingDays": null,
+      "variableCosts": null,
+      "fixedLaborCosts": null,
+      "otherFixedCostsExcludingOccupancy": null,
+      "sourceAnswerIds": []
+    },
+    "sourceAnswers": [
+      {
+        "id": "answer_0",
+        "question": "Tell us a little about your restaurant and what you want to do next.",
+        "answer": "I run Cedar Kitchen, a Mediterranean dine-in and takeout restaurant in Houston, Texas. I want to open a second location."
+      },
+      {
+        "id": "answer_1",
+        "question": "Where would you like your next restaurant?",
+        "answer": "Houston, preferably Heights, but I am open to other neighborhoods in Houston."
+      },
+      {
+        "id": "answer_2",
+        "question": "How much money do you have available for the new location?",
+        "answer": "Around $100,000 total, but I want to keep some of that for emergencies. I do not know how much yet."
+      },
+      {
+        "id": "answer_3",
+        "question": "What monthly rent would feel comfortable?",
+        "answer": "About $5,000."
+      },
+      {
+        "id": "answer_4",
+        "question": "How big should it be?",
+        "answer": "Ideally around 40 to 50 seats. I can consider something a little smaller or bigger."
+      },
+      {
+        "id": "answer_5",
+        "question": "What does the space absolutely need?",
+        "answer": "A kitchen already installed and parking that my customers can use."
+      },
+      {
+        "id": "answer_6",
+        "question": "Is $5,000 a firm monthly limit, and should it cover extra building charges too?",
+        "answer": "Yes, $5,000 is my maximum per month including rent and extra building charges."
+      }
+    ],
+    "followUpQuestions": [
+      {
+        "field": "budget.cashReserveToKeep",
+        "question": "How much of the $100,000 would you like to keep for emergencies?",
+        "blocksInitialSearch": false,
+        "neededFor": "upfront_affordability_comparison"
+      },
+      {
+        "field": "space.ventilationRequirements",
+        "question": "What kind of cooking equipment will the new kitchen need?",
+        "blocksInitialSearch": false,
+        "neededFor": "kitchen_suitability_verification"
+      },
+      {
+        "field": "financialBaseline",
+        "question": "Would you like to share a recent sales and expense report so we can check what each location would need to sell?",
+        "blocksInitialSearch": false,
+        "neededFor": "financial_scenarios"
+      }
+    ],
+    "matchingNotes": [
+      "Use Houston as the search market and Heights as a preference, not an exclusion of other Houston neighborhoods.",
+      "The $5,000 limit applies to total monthly occupancy cost, not just quoted base rent. If additional charges are unknown, mark affordability as unverified.",
+      "The $100,000 includes an unspecified emergency reserve. Do not treat the entire amount as available for construction, equipment, and deposits.",
+      "The owner supplied a seating preference, not a square-footage requirement. Do not silently convert seats into a hard area filter.",
+      "An existing kitchen and customer parking are mandatory. Missing evidence means verification is needed; it does not establish that a feature is present or absent.",
+      "Do not estimate profitability or payback from this intake alone; financial baseline and candidate-specific costs are missing."
+    ]
+  },
+  "requirements": {
+    "modelVersion": "expansion-requirements-v1",
+    "revisionId": "fixture-revision-1",
+    "revisionNumber": 3,
+    "createdAt": "2026-11-14T12:00:00.000Z",
+    "requirements": [
+      {
+        "id": "market.target",
+        "kind": "hard",
+        "label": "Target market",
+        "value": {
+          "kind": "market",
+          "market": {
+            "city": "Houston",
+            "state": "TX",
+            "country": "US"
+          }
+        },
+        "unit": null,
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_0",
+          "answer_1"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_0",
+          "answer_1"
+        ],
+        "editedAt": null,
+        "note": "Search market. Unsupported markets are rejected explicitly, never re-interpreted."
+      },
+      {
+        "id": "market.neighborhoodPreference",
+        "kind": "soft",
+        "label": "Neighborhood preference",
+        "value": {
+          "kind": "neighborhood",
+          "preferred": [
+            "Heights"
+          ],
+          "othersAcceptable": true
+        },
+        "unit": null,
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_0",
+          "answer_1"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_0",
+          "answer_1"
+        ],
+        "editedAt": null,
+        "note": "Heights is preferred; other Houston neighborhoods remain eligible."
+      },
+      {
+        "id": "occupancy.monthlyLimit",
+        "kind": "hard",
+        "label": "Total monthly occupancy limit",
+        "value": {
+          "kind": "number",
+          "value": 5000
+        },
+        "unit": "USD/month",
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "editedAt": null,
+        "note": "Hard TOTAL monthly occupancy cap. Base rent alone does not establish affordability."
+      },
+      {
+        "id": "occupancy.scope",
+        "kind": "hard",
+        "label": "What the occupancy limit covers",
+        "value": {
+          "kind": "text",
+          "value": "base_rent_and_additional_occupancy_charges"
+        },
+        "unit": null,
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "editedAt": null,
+        "note": "The $5,000 limit covers base rent and additional building charges."
+      },
+      {
+        "id": "funds.totalAvailable",
+        "kind": "hard",
+        "label": "Total available funds",
+        "value": {
+          "kind": "number",
+          "value": 100000
+        },
+        "unit": "USD",
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "editedAt": null,
+        "note": "$100,000 total funds is not the available opening spend; the emergency reserve is unspecified."
+      },
+      {
+        "id": "funds.emergencyReserve",
+        "kind": "soft",
+        "label": "Emergency reserve to keep",
+        "value": {
+          "kind": "unknown"
+        },
+        "unit": "USD",
+        "origin": "simulated",
+        "state": "unknown",
+        "sourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_2",
+          "answer_3",
+          "answer_6"
+        ],
+        "editedAt": null,
+        "note": "The unspecified reserve stays unknown; it is not zero."
+      },
+      {
+        "id": "space.seats",
+        "kind": "soft",
+        "label": "Preferred seats",
+        "value": {
+          "kind": "range",
+          "minimum": 40,
+          "maximum": 50
+        },
+        "unit": "seats",
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "editedAt": null,
+        "note": "Preference, not a hard square-footage filter. Seats are never converted into an area bound."
+      },
+      {
+        "id": "space.areaSqFt",
+        "kind": "soft",
+        "label": "Space area",
+        "value": {
+          "kind": "unknown"
+        },
+        "unit": "sq ft",
+        "origin": "unavailable",
+        "state": "unknown",
+        "sourceAnswerIds": [],
+        "originalSourceAnswerIds": [],
+        "editedAt": null,
+        "note": "No square-footage requirement was supplied and none is derived from the seat preference."
+      },
+      {
+        "id": "space.existingKitchen",
+        "kind": "hard",
+        "label": "Existing kitchen",
+        "value": {
+          "kind": "boolean",
+          "value": true
+        },
+        "unit": null,
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "editedAt": null,
+        "note": "Mandatory. Missing evidence means verification is needed; it does not establish presence or absence."
+      },
+      {
+        "id": "space.customerParking",
+        "kind": "hard",
+        "label": "Customer parking",
+        "value": {
+          "kind": "boolean",
+          "value": true
+        },
+        "unit": null,
+        "origin": "simulated",
+        "state": "known",
+        "sourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "editedAt": null,
+        "note": "Mandatory. Missing evidence means verification is needed."
+      },
+      {
+        "id": "space.parkingSpacesMinimum",
+        "kind": "soft",
+        "label": "Minimum customer parking spaces",
+        "value": {
+          "kind": "unknown"
+        },
+        "unit": "spaces",
+        "origin": "simulated",
+        "state": "unknown",
+        "sourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "editedAt": null,
+        "note": "No numeric parking minimum was supplied; none is inferred."
+      },
+      {
+        "id": "space.ventilation",
+        "kind": "soft",
+        "label": "Cooking / ventilation needs",
+        "value": {
+          "kind": "unknown"
+        },
+        "unit": null,
+        "origin": "simulated",
+        "state": "unknown",
+        "sourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "originalSourceAnswerIds": [
+          "answer_4",
+          "answer_5"
+        ],
+        "editedAt": null,
+        "note": "Optional follow-up question; the initial search does not require it."
+      },
+      {
+        "id": "timeline.openingDate",
+        "kind": "soft",
+        "label": "Target opening date",
+        "value": {
+          "kind": "unknown"
+        },
+        "unit": null,
+        "origin": "unavailable",
+        "state": "unknown",
+        "sourceAnswerIds": [],
+        "originalSourceAnswerIds": [],
+        "editedAt": null,
+        "note": "No opening date was supplied."
+      },
+      {
+        "id": "finance.baseline",
+        "kind": "soft",
+        "label": "Financial baseline",
+        "value": {
+          "kind": "unknown"
+        },
+        "unit": null,
+        "origin": "unavailable",
+        "state": "unknown",
+        "sourceAnswerIds": [],
+        "originalSourceAnswerIds": [],
+        "editedAt": null,
+        "note": "Financial baseline is unavailable; profit and payback cannot be estimated from this intake alone."
+      }
+    ]
+  },
+  "followUpQuestions": [
+    {
+      "field": "budget.cashReserveToKeep",
+      "question": "How much of the $100,000 would you like to keep for emergencies?",
+      "neededFor": "upfront_affordability_comparison",
+      "blocksInitialSearch": false
+    },
+    {
+      "field": "space.ventilationRequirements",
+      "question": "What kind of cooking equipment will the new kitchen need?",
+      "neededFor": "kitchen_suitability_verification",
+      "blocksInitialSearch": false
+    },
+    {
+      "field": "financialBaseline",
+      "question": "Would you like to share a recent sales and expense report so we can check what each location would need to sell?",
+      "neededFor": "financial_scenarios",
+      "blocksInitialSearch": false
+    }
+  ],
+  "financeInputs": {
+    "fixedCostsMonthly": null,
+    "contributionMargin": null,
+    "origin": "unavailable",
+    "reasons": [
+      "The financial baseline is unavailable, so no fixed costs or margin can be derived."
+    ]
+  }
+}

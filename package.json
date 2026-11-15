@@ -19,6 +19,8 @@
     "tactical:data:export": "node src/features/tactical/backend/dataset-cli.ts export",
     "tactical:data:seed": "node --env-file-if-exists=.env.local src/features/tactical/backend/dataset-cli.ts seed",
     "tactical:api": "node --env-file-if-exists=.env.local src/features/tactical/backend/api-cli.ts",
+    "expansion:db:migrate": "node --env-file-if-exists=.env --env-file-if-exists=.env.local src/features/expansion/backend/db-migrate.ts",
+    "expansion:recover": "node --env-file-if-exists=.env --env-file-if-exists=.env.local src/features/expansion/backend/recover-runs.ts",
     "db:check": "node --env-file-if-exists=.env --env-file-if-exists=.env.local src/lib/mongodb-check.ts"
   },
   "dependencies": {

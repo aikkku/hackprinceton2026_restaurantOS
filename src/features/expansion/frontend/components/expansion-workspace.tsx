@@ -67,6 +67,8 @@ import { requirementDisplayValue, type ProfileRevision } from "../../domain/requ
 import type { AssessedCandidate, CandidateGroup } from "../../domain/matching.ts";
 import type { ExcludedCandidate, RunRecord } from "../../domain/runs.ts";
 import { AssessmentList, RunSearch } from "./run-search";
+import { AgentRunSection } from "./agent-run";
+import { DecisionWorkbench } from "./decision-workbench";
 import { ScoutMap, type Selection } from "./map/scout-map";
 
 const money = (value: number | null) =>
@@ -155,6 +157,7 @@ export function ExpansionWorkspace({
   onEditProfile?: () => void;
 }) {
   const [dataset, setDataset] = useState(initialDataset);
+  const [investigationRunId, setInvestigationRunId] = useState<string | null>(null);
   const [cityId, setCityId] = useState(initialDataset.cities[0].id);
   const city = initialDataset.cities.find((value) => value.id === cityId)!;
   const [bounds, setBounds] = useState<Viewport>(initialDataset.cities[0].bounds);
@@ -1077,30 +1080,51 @@ export function ExpansionWorkspace({
 
         <section className="discovery-lists">
           {mode === "local" && (profile || runActive) ? (
-            <RunSearch
-              run={run}
-              phase={runPhase}
-              errorMessage={runError}
-              candidates={
-                runGroup
-                  ? runCandidates.filter((item) => item.group === runGroup)
-                  : runCandidates
-              }
-              excluded={runExcluded}
-              excludedTruncated={runExcludedTruncated}
-              group={runGroup}
-              onGroupChange={(next) => {
-                setRunGroup(next);
-                setRunPage(0);
-              }}
-              page={runPage}
-              onPageChange={setRunPage}
-              onStart={startRun}
-              onCancel={cancelSearch}
-              onRetry={newSearch}
-              onSelect={(candidateId) => select({ kind: "property", id: candidateId })}
-              selectedId={selection.kind === "property" ? selection.id : null}
-            />
+            <>
+              {profile && (
+                <AgentRunSection
+                  profile={{
+                    revisionId: profile.revision.revisionId,
+                    revisionNumber: profile.revision.revisionNumber,
+                    intake: profile.revision.intakeSnapshot,
+                  }}
+                  cityId={cityId}
+                  onInvestigateRun={setInvestigationRunId}
+                  onUseDeterministic={() => {
+                    document
+                      .getElementById("deterministic-search")
+                      ?.scrollIntoView({ block: "nearest" });
+                  }}
+                />
+              )}
+              <DecisionWorkbench requestedRunId={investigationRunId} currentProfileRevisionId={profile?.revision.revisionId ?? null} />
+              <div id="deterministic-search">
+                <RunSearch
+                  run={run}
+                  phase={runPhase}
+                  errorMessage={runError}
+                  candidates={
+                    runGroup
+                      ? runCandidates.filter((item) => item.group === runGroup)
+                      : runCandidates
+                  }
+                  excluded={runExcluded}
+                  excludedTruncated={runExcludedTruncated}
+                  group={runGroup}
+                  onGroupChange={(next) => {
+                    setRunGroup(next);
+                    setRunPage(0);
+                  }}
+                  page={runPage}
+                  onPageChange={setRunPage}
+                  onStart={startRun}
+                  onCancel={cancelSearch}
+                  onRetry={newSearch}
+                  onSelect={(candidateId) => select({ kind: "property", id: candidateId })}
+                  selectedId={selection.kind === "property" ? selection.id : null}
+                />
+              </div>
+            </>
           ) : (
           <>
           <div className="property-list-section" id="property-list">
