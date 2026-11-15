@@ -19,6 +19,24 @@ export type MapPlace = {
   image: string | null;
   saved: boolean;
 };
+/** Gap between the pin point and the card's top-left corner (card opens down-right). */
+export const CARD_GAP = 10;
+/** Space kept clear inside the map: top, right, bottom (legend), left. */
+const CARD_MARGIN = { top: 16, right: 16, bottom: 64, left: 16 };
+
+/**
+ * Pixels to pan the map so `card` sits fully inside `frame`, as [dx, dy] for
+ * panBy (positive moves the view right/down). [0, 0] when it already fits.
+ */
+export function panToFit(card: DOMRect, frame: DOMRect): [number, number] {
+  const axis = (lo: number, hi: number, min: number, max: number) =>
+    hi - lo > max - min ? lo - min : lo < min ? lo - min : hi > max ? hi - max : 0;
+  return [
+    axis(card.left, card.right, frame.left + CARD_MARGIN.left, frame.right - CARD_MARGIN.right),
+    axis(card.top, card.bottom, frame.top + CARD_MARGIN.top, frame.bottom - CARD_MARGIN.bottom),
+  ];
+}
+
 export type Spot = { key: string; lat: number; lng: number; places: MapPlace[] };
 
 /** Group listings that share a map position so they never hide each other. */

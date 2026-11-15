@@ -7,7 +7,7 @@
 export type LatLng = { lat: number; lng: number };
 export type Listener = { remove(): void };
 export type GMap = {
-  panTo(c: LatLng): void; setCenter(c: LatLng): void;
+  panTo(c: LatLng): void; panBy(x: number, y: number): void; setCenter(c: LatLng): void;
   getZoom(): number | undefined; setZoom(z: number): void;
   fitBounds(b: GBounds, padding?: number): void;
   getBounds(): { contains(c: LatLng): boolean } | undefined | null;

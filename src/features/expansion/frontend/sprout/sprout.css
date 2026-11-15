@@ -219,10 +219,11 @@
 /* Map */
 .sx-map { position: absolute; inset: 0; overflow: hidden; background: #ECE9E2; }
 .sx-map-canvas { position: absolute; inset: 0; }
+.sx-map-marker { display: flex; width: max-content; }
 .sx-pin { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px 5px 5px; border-radius: 999px; background: var(--sx-surface); border: 1.5px solid rgba(0, 0, 0, .08); box-shadow: 0 2px 8px #0000002E; font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap; color: var(--sx-text); position: relative; font-family: var(--sx-body); }
 .sx-pin::after { content: ""; position: absolute; left: 50%; bottom: -7px; width: 12px; height: 12px; background: inherit; border-right: 1.5px solid rgba(0, 0, 0, .08); border-bottom: 1.5px solid rgba(0, 0, 0, .08); transform: translate(-50%) rotate(45deg); }
 .sx-pin .sx-dot { width: 24px; height: 24px; }
-.sx-pin[aria-pressed="true"] { background: var(--sx-primary); color: #fff; transform: scale(1.12); }
+.sx-pin[aria-pressed="true"] { background: var(--sx-primary); color: #fff; }
 .sx-pin-dim { opacity: .6; }
 .sx-score { display: inline-flex; flex-wrap: wrap; gap: 6px; align-items: center; font-weight: 800; color: var(--sx-primary); font-size: 14px; }
 .sx-score-coverage { font-weight: 500; font-size: 11px; color: var(--sx-muted); }
@@ -246,8 +247,8 @@
 .sx-map-note { position: absolute; left: 16px; top: 16px; font-size: 11px; color: #6D6A60; background: #FFFFFFD9; padding: 2px 8px; border-radius: 6px; z-index: 2; max-width: 60%; }
 /* Address card opened by a pin click: photo header + place facts + actions.
    Theme: deep-green primary, warm cream accents, the same pill/button system. */
-.sx-map .maplibre-gl-popup-content { padding: 0; background: transparent; border-radius: 0; }
-.sx-map .maplibre-gl-popup-tip { display: none; }
+.sx-map .maplibregl-popup-content { padding: 0; background: transparent; border-radius: 0; }
+.sx-map .maplibregl-popup-tip { display: none; }
 .sx-map-card { position: relative; display: flex; flex-direction: column; width: 300px; max-width: calc(100vw - 32px); border-radius: 18px; overflow: hidden; background: var(--sx-surface); border: 1px solid var(--sx-line); box-shadow: 0 14px 36px #00000033; font-family: var(--sx-body); }
 .sx-map-card-photo { position: relative; height: 132px; background: linear-gradient(150deg, #DCE6DE 0%, #CBD8CD 55%, #B9C9BC 100%); }
 .sx-map-card-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -360,8 +361,9 @@
 .sx-nearby-main a { overflow-wrap: anywhere; }
 .sx-google-attr { font-family: Roboto, Arial, sans-serif; font-size: 12px; align-self: flex-end; margin: 0; }
 
-/* Google map: card above the picked pin, and Google Places restaurant pins. */
-.sx-gmap-card { transform: translateY(-50px); }
+/* Google map: card opens down-right of the picked pin (its top-left corner at the pin), and Google Places restaurant pins.
+   AdvancedMarker anchors content bottom-center on the point; the 10px gap matches CARD_GAP in map-dom.ts. */
+.sx-gmap-card { transform: translate(calc(50% + 10px), calc(100% + 10px)); }
 .sx-rest-pin { display: inline-block; width: 14px; height: 14px; padding: 0; border-radius: 50%; background: #B4532A; border: 2px solid #fff; box-shadow: 0 1px 4px #0000004D; cursor: pointer; }
 .sx-rest-pin:hover, .sx-rest-pin:focus-visible { transform: scale(1.3); outline: 2px solid #B4532A; outline-offset: 1px; }
 .sx-rest-pin-key { width: 10px; height: 10px; border-width: 1.5px; cursor: default; }

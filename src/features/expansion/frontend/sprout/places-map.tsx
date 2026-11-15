@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Map as LibreMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { cardElement, pinElement, toSpots, type MapPlace, type Spot } from "./map-dom.ts";
+import { CARD_GAP, cardElement, panToFit, pinElement, toSpots, type MapPlace, type Spot } from "./map-dom.ts";
 import type { MapsBrowserConfig } from "../../backend/maps-config.ts";
 import { GooglePlacesMap } from "./google-places-map.tsx";
 
@@ -89,7 +89,16 @@ function LibrePlacesMap({ places, selectedId, onSelect, onOpen, onToggleSave, ce
     void import("maplibre-gl").then(({ Marker }) => {
       if (cancelled) return;
       markers.current.forEach((m) => m.remove());
-      markers.current = spots.map((spot) => new Marker({ element: pinElement(spot, selectedId, pick), anchor: "bottom", offset: [0, -6] }).setLngLat([spot.lng, spot.lat]).addTo(map));
+      markers.current = spots.map((spot) => {
+        // MapLibre owns positioning on the wrapper; the button's relative
+        // positioning (for its pointer) must not override the marker layout.
+        const anchor = document.createElement("div");
+        anchor.className = "sx-map-marker";
+        anchor.setAttribute("role", "presentation");
+        anchor.append(pinElement(spot, selectedId, pick));
+        return new Marker({ element: anchor, anchor: "bottom", offset: [0, -6], subpixelPositioning: true })
+          .setLngLat([spot.lng, spot.lat]).addTo(map);
+      });
     });
     return () => { cancelled = true; };
   }, [spots, selectedId, state]);
@@ -106,10 +115,14 @@ function LibrePlacesMap({ places, selectedId, onSelect, onOpen, onToggleSave, ce
       const selected = spot.places.find((p) => p.id === selectedId) ?? spot.places[0];
       void import("maplibre-gl").then(({ Popup }) => {
         if (cancelled) return;
-        popup = new Popup({ closeButton: false, closeOnClick: false, offset: 46, maxWidth: "320px" })
+        // Card opens down-right of the pin; pan just enough to keep it all in view.
+        const opened = new Popup({ closeButton: false, closeOnClick: false, anchor: "top-left", offset: [CARD_GAP, CARD_GAP], maxWidth: "320px" })
           .setLngLat([spot.lng, spot.lat])
           .setDOMContent(cardElement(selected, (id) => openRef.current(id), (id) => saveRef.current(id), closeCard))
           .addTo(map);
+        popup = opened;
+        const [dx, dy] = panToFit(opened.getElement().getBoundingClientRect(), map.getContainer().getBoundingClientRect());
+        if (dx || dy) map.panBy([dx, dy]);
       });
     }
     const onBackgroundClick = () => closeCard();
@@ -146,9 +159,6 @@ function LibrePlacesMap({ places, selectedId, onSelect, onOpen, onToggleSave, ce
           <button type="button" aria-label="Show all places" onClick={fitAll}>⤢</button>
         </div>
       )}
-      <div className="sx-map-legend" aria-label="Map legend">
-        <span>Fit score 1–10 · higher is better</span><span>×N = spaces at this address · best score shown</span>
-      </div>
       <p className="sx-map-note">{state === "fallback" ? "Map tiles couldn’t load. Pins show relative positions only." : note}{missing ? ` · ${missing} without a map location` : ""}</p>
     </div>
   );

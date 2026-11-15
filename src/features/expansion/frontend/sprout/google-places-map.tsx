@@ -4,9 +4,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { NearbyRestaurant, NearbyRestaurantsResult } from "../../domain/nearby-restaurants.ts";
 import { loadNearbyRestaurants } from "../data/investigation-client.ts";
 import { loadGoogleMaps, onMapsAuthFailure, type GCircle, type GInfoWindow, type GMap, type GMarker, type MapsApi } from "./google-maps-loader.ts";
-import { cardElement, pinElement, toSpots } from "./map-dom.ts";
+import { cardElement, panToFit, pinElement, toSpots } from "./map-dom.ts";
 import type { PlacesMapProps } from "./places-map.tsx";
 
+/** Google objects can throw once the map is torn down (e.g. after a key failure); cleanup must never break React. */
+const safely = (fn: () => void) => { try { fn(); } catch { /* map already disposed */ } };
 const meters = (m: number) => m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${m} m`;
 
 function restaurantPin(r: NearbyRestaurant, onPick: () => void): HTMLButtonElement {
@@ -88,10 +90,11 @@ export function GooglePlacesMap({ places, selectedId, onSelect, onOpen, onToggle
       map, position: { lat: spot.lat, lng: spot.lng }, content: pinElement(spot, selectedId, pick),
       zIndex: spot.places.some((p) => p.id === selectedId) ? 1000 : undefined,
     }));
-    return () => markers.forEach((m) => { m.map = null; });
+    return () => markers.forEach((m) => safely(() => { m.map = null; }));
   }, [spots, selectedId, ready]);
 
-  // Address card above the picked pin (same DOM as the MapLibre popup).
+  // Address card down-right of the picked pin (same DOM as the MapLibre popup);
+  // the map pans just enough to keep the whole card in view.
   useEffect(() => {
     const api = apiRef.current, map = mapRef.current;
     const spot = openSpotKey === null ? null : spots.find((s) => s.key === openSpotKey) ?? null;
@@ -100,7 +103,16 @@ export function GooglePlacesMap({ places, selectedId, onSelect, onOpen, onToggle
     wrap.className = "sx-gmap-card";
     wrap.append(cardElement(spot.places.find((p) => p.id === selectedId) ?? spot.places[0], (id) => openRef.current(id), (id) => saveRef.current(id), closeCard));
     const marker = new api.AdvancedMarkerElement({ map, position: { lat: spot.lat, lng: spot.lng }, content: wrap, zIndex: 3000 });
-    return () => { marker.map = null; };
+    // Google attaches the content asynchronously; wait until it is laid out.
+    let frame = 0, tries = 0;
+    const fit = () => {
+      const card = wrap.firstElementChild, box = container.current;
+      if (!card || !box || !wrap.isConnected || card.getBoundingClientRect().width === 0) { if (++tries < 30) frame = requestAnimationFrame(fit); return; }
+      const [dx, dy] = panToFit(card.getBoundingClientRect(), box.getBoundingClientRect());
+      if (dx || dy) map.panBy(dx, dy);
+    };
+    frame = requestAnimationFrame(fit);
+    return () => { cancelAnimationFrame(frame); safely(() => { marker.map = null; }); };
   }, [openSpotKey, selectedId, spots, ready]);
 
   // Live nearby restaurants for the selected listing (one request per selection).
@@ -133,7 +145,7 @@ export function GooglePlacesMap({ places, selectedId, onSelect, onOpen, onToggle
         }) });
       return marker;
     });
-    return () => { circle.setMap(null); markers.forEach((m) => { m.map = null; }); info.close(); };
+    return () => { safely(() => circle.setMap(null)); markers.forEach((m) => safely(() => { m.map = null; })); safely(() => info.close()); };
   }, [current, selectedSpot, ready]);
 
   const fitAll = () => {
@@ -174,10 +186,9 @@ export function GooglePlacesMap({ places, selectedId, onSelect, onOpen, onToggle
         <span>{status}</span>
         <button type="button" className="sx-btn-text" aria-pressed={showNearby} onClick={() => setShowNearby((v) => !v)}>{showNearby ? "Hide" : "Show restaurants"}</button>
       </div>
-      <div className="sx-map-legend" aria-label="Map legend">
-        <span>Fit score 1–10 · higher is better</span><span>×N = spaces at this address</span>
-        {restaurants.length > 0 && <span><i className="sx-rest-pin sx-rest-pin-key" aria-hidden="true" /> Restaurant (Google) · up to 20</span>}
-      </div>
+      {restaurants.length > 0 && <div className="sx-map-legend" aria-label="Map legend">
+        <span><i className="sx-rest-pin sx-rest-pin-key" aria-hidden="true" /> Restaurant (Google) · up to 20</span>
+      </div>}
       <p className="sx-map-note">{note}{missing ? ` · ${missing} without a map location` : ""}</p>
     </div>
   );

@@ -28,8 +28,11 @@ Google's terms forbid storing or caching Places content (place IDs are the excep
 ## Failure handling
 `status` is one of `ok`, `not_configured`, `denied` (includes invalid key), `rate_limited`, `timeout`, `unavailable` (network, HTTP 5xx or malformed payload), `synthetic` or `no_coordinates`. Failures show the reason and never substitute a list. An empty `ok` result is shown as "Google returned no restaurants". That is not proof of no competition.
 
-## Not done yet: competitor map pins
-Google's policy requires Places results shown on a map to use a Google map. That means replacing the MapLibre map in `places-map.tsx` with the Maps JavaScript API and adding a separate, HTTP-referrer-restricted browser key. Until then, results appear only as a list, with Google Maps links.
+## Competitor map pins
+- `places-map.tsx` uses a Google map (Maps JavaScript API, `google-places-map.tsx`) when `GOOGLE_MAPS_BROWSER_KEY` is set. Restrict that key by HTTP referrer to the Maps JavaScript API. `GOOGLE_MAPS_MAP_ID` is optional and defaults to Google's `DEMO_MAP_ID`.
+- `/api/expansion/maps-config` serves the browser key at runtime. It refuses to serve a key equal to the server Places key.
+- Selecting a listing loads its nearby restaurants (one Places request per selection). They're drawn as pins with a 500 m circle and an info window linking to Google Maps. A "Hide" toggle stops the requests.
+- With no browser key, or if Google rejects the key or times out, the MapLibre map shows listings only and says why. Google results are never drawn on it.
 
 ## Live verification, November 15, 2026
 - A downtown Houston point (29.7604, −95.3698) returned 20 restaurants (cap reached). The nearest was 3 m, the median 47 m, and one matched "Mexican".
