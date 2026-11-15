@@ -166,6 +166,32 @@ test("rent and size ranges plus service codes survive import into candidates", a
   );
 });
 
+test("zero rent rates in legacy caches are treated as not listed, without a re-import", async () => {
+  await fixture([property(1)], [listing(10, [space(100)])], async (config) => {
+    await importLocalDataset(config);
+    // Simulate a cache imported before the $0-rent fix: stored 0 rates.
+    const db = new DatabaseSync(config.dbPath);
+    try {
+      const row = db.prepare("SELECT payload FROM spaces WHERE id='costar-space:100'").get() as { payload: string };
+      const stored = JSON.parse(row.payload) as { sourceRent: { low: number; high: number } };
+      stored.sourceRent.low = 0;
+      stored.sourceRent.high = 0;
+      db.prepare("UPDATE spaces SET payload=? WHERE id='costar-space:100'").run(JSON.stringify(stored));
+    } finally {
+      db.close();
+    }
+    const reopened = openDatabase(config);
+    try {
+      const result = await searchOfferedSpaces(reopened, "houston");
+      const candidate = result.candidates.find((c) => c.id === "costar-space:100")!;
+      assert.equal(candidate.rent!.low, null);
+      assert.equal(candidate.rent!.high, null);
+    } finally {
+      reopened.close();
+    }
+  });
+});
+
 test("every page beyond the first batch is evaluated; panning cannot change run results", async () => {
   const many = Array.from({ length: BATCH_SIZE + 50 }, (_, index) => space(1000 + index));
   await fixture([property(1)], [listing(10, many)], async (config) => {

@@ -115,7 +115,7 @@ export function Compare({ workspace, choices, images, pick, onPick, onWorkOut, o
               <tr><th scope="row">Must-haves</th>{choices.map((c) => <td key={c.candidateId}>{FIT_LABEL[fitForGroup(c.assessment.group)]}</td>)}</tr>
               <tr><th scope="row">Still unproven</th>{choices.map((c) => { const open = unresolvedMustHaves(c.assessment.assessments).map((k) => FACTOR_NAME[k]); return <td key={c.candidateId}>{open.length ? open.join(", ") : "Nothing"}</td>; })}</tr>
               <tr><th scope="row">Neighborhood</th>{choices.map((c) => <td key={c.candidateId}>{neighborhood(c)}</td>)}</tr>
-              <tr><th scope="row">Monthly cost</th>{choices.map((c) => <td key={c.candidateId}>{monthly(c)}</td>)}</tr>
+              <tr><th scope="row">Monthly cost</th>{choices.map((c) => <td key={c.candidateId}>{monthly(c)}{c.financeInputs.occupancyEstimate && <Tag kind="estimate">Estimate</Tag>}</td>)}</tr>
               <tr><th scope="row">Size</th>{choices.map((c) => <td key={c.candidateId}>{c.assessment.candidate.floorAreaSqFt !== null ? `${c.assessment.candidate.floorAreaSqFt.toLocaleString("en-US")} sq ft` : "Not listed"}</td>)}</tr>
               <tr><th scope="row">Seats</th>{choices.map((c) => <td key={c.candidateId}>{evidenceText(c, "space")}</td>)}</tr>
               <tr><th scope="row">Kitchen evidence</th>{choices.map((c) => <td key={c.candidateId}>{evidenceText(c, "kitchen")}</td>)}</tr>

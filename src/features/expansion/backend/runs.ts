@@ -352,7 +352,7 @@ export function cancelRun(
   return { ...record, updatedAt: now };
 }
 
-const storedCandidatesSchema = z.object({
+export const storedCandidatesSchema = z.object({
   version: z.literal(RUN_STORAGE_VERSION),
   runId: z.string().min(1),
   modelVersion: z.string().min(1),
@@ -373,13 +373,14 @@ const storedCandidatesSchema = z.object({
   excludedTruncated: z.boolean(),
   cancelled: z.boolean(),
 });
+export type StoredRunReport = z.infer<typeof storedCandidatesSchema>;
 
-export function getRunCandidates(
+/** Full stored report behind getRunCandidates (additive helper for other readers). */
+export function getStoredRunReport(
   rawConfig: Partial<RunServiceConfig>,
   sessionId: string,
   runId: string,
-  page: { offset?: number; limit?: number; group?: string | null } = {},
-): z.infer<typeof runCandidatesPageSchema> {
+): StoredRunReport {
   const config = serviceConfig(rawConfig);
   const record = readRun(config, sessionId, runId);
   const path = candidatesFile(config, sessionId, runId);
@@ -391,7 +392,18 @@ export function getRunCandidates(
         : "This run has no stored candidates.",
     );
   }
-  const stored = storedCandidatesSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+  return storedCandidatesSchema.parse(JSON.parse(readFileSync(path, "utf8")));
+}
+
+export function getRunCandidates(
+  rawConfig: Partial<RunServiceConfig>,
+  sessionId: string,
+  runId: string,
+  page: { offset?: number; limit?: number; group?: string | null } = {},
+): z.infer<typeof runCandidatesPageSchema> {
+  const config = serviceConfig(rawConfig);
+  const record = readRun(config, sessionId, runId);
+  const stored = getStoredRunReport(config, sessionId, runId);
   const candidates = stored.report.candidates;
   const offset = Math.max(0, Math.floor(page.offset ?? 0));
   const limit = Math.min(200, Math.max(1, Math.floor(page.limit ?? 100)));

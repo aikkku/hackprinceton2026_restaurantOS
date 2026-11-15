@@ -4,7 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
  * sprout. Expansion journeys against the REAL backend and the REAL Python
  * worker (scripted test model, see playwright.config.ts). Only controlled
  * failure injection is mocked; the synthetic CoStar cache comes from
- * global-setup.ts (37 offered spaces, 30 candidates, one shared address).
+ * global-setup.ts (38 offered spaces, 31 candidates, one shared address).
  */
 
 async function needsToReview(page: Page, budget?: string) {
@@ -37,13 +37,13 @@ test("full journey: needs → specialists → places → check → compare → c
   await page.getByRole("button", { name: "Find Locations" }).click();
 
   // Real SSE stage events, then grounded counts from the run's artifacts.
-  await expect(page.getByRole("heading", { name: /We found 30 places/ })).toBeVisible({ timeout: 90_000 });
-  await expect(page.getByText("30 places can fit a restaurant")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /We found 31 places/ })).toBeVisible({ timeout: 90_000 });
+  await expect(page.getByText("31 places can fit a restaurant")).toBeVisible();
   await page.getByText("View details").click();
   await expect(page.getByText("Test mode: scripted model (not a live AI run)")).toBeVisible();
   await page.getByRole("button", { name: "See locations" }).click();
 
-  await expect(page.getByRole("heading", { name: "30 places in Houston" })).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByRole("heading", { name: "31 places in Houston" })).toBeVisible({ timeout: 45_000 });
   await expect(page.getByText("Synthetic test listings, not real properties.")).toBeVisible();
   // Map tiles are blocked: the honest fallback plane still shows grouped pins.
   await expect(page.getByText(/Map tiles couldn’t load/)).toBeVisible({ timeout: 20_000 });
@@ -51,6 +51,20 @@ test("full journey: needs → specialists → places → check → compare → c
   await page.getByRole("button", { name: "Save E2E Synthetic Building · Suite S15" }).click();
   await expect(page.getByRole("button", { name: "Compare saved places (2)" })).toBeEnabled();
 
+  // The no-rent space (Suite NE) shows a derived estimate, never a quoted price.
+  await page.getByRole("button", { name: "Show all 31 places" }).click();
+  const noRentCard = page.locator(".sx-pcard").filter({ hasText: "Suite NE" });
+  await expect(noRentCard).toBeVisible();
+  await expect(noRentCard).toContainText("Estimate");
+  await expect(noRentCard.locator(".sx-pcard-cost")).toContainText("≈ $");
+  await page.getByRole("button", { name: "Show E2E Synthetic Building · Suite NE on the map" }).click();
+  await page.getByRole("button", { name: "See details ›" }).click();
+  await page.getByText("How we checked").click();
+  await expect(page.getByText("Estimated rent method")).toBeVisible();
+  await page.getByText("Listing details and sources").click();
+  await expect(page.getByText("Estimated base rent")).toBeVisible();
+
+  await page.getByRole("button", { name: "All places" }).click();
   await page.getByRole("button", { name: "Show E2E Synthetic Building · Suite S0 on the map" }).click();
   await page.getByRole("button", { name: "See details ›" }).click();
   await expect(page.getByText("This place could work, but parking and kitchen aren’t confirmed yet.")).toBeVisible();
@@ -105,7 +119,7 @@ test("full journey: needs → specialists → places → check → compare → c
   // Reload: the plan survives, and the search can be resumed.
   await page.reload();
   await expect(page.getByText("Continue your Houston search.")).toBeVisible();
-  await expect(page.getByText("30 places found · 2 saved")).toBeVisible();
+  await expect(page.getByText("31 places found · 2 saved")).toBeVisible();
   await page.getByText("Saved plans").click();
   await page.getByRole("button", { name: "Open plan Suite S0 first look" }).click();
   await expect(page.getByText(/This is a saved plan from/)).toBeVisible();
@@ -127,7 +141,7 @@ test("model outage: honest failure, then the labeled basic search", async ({ pag
   await page.getByRole("button", { name: "Find Locations" }).click();
   await expect(page.getByRole("heading", { name: "The search didn’t finish." })).toBeVisible({ timeout: 90_000 });
   await page.getByRole("button", { name: "Search without the specialists" }).click();
-  await expect(page.getByRole("heading", { name: "30 places in Houston" })).toBeVisible({ timeout: 60_000 });
+  await expect(page.getByRole("heading", { name: "31 places in Houston" })).toBeVisible({ timeout: 60_000 });
   await expect(page.getByText(/Basic search: these places weren’t inspected/)).toBeVisible();
 });
 

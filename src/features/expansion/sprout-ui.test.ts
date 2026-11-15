@@ -2,10 +2,11 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { normalizeRequirements } from "./domain/requirements.ts";
 import type { AssessedCandidate, RequirementAssessment, SpaceCandidate } from "./domain/matching.ts";
+import { rentEstimateSchema, RENT_ESTIMATE_MODEL_VERSION, type RentEstimate } from "./domain/rent-estimate.ts";
 import { formFromRevision } from "./frontend/profile-form.ts";
 import { currentProfileRevision } from "./frontend/storage.ts";
 import {
-  bestMatches, compareTake, costLabel, costPin, fitForGroup, friendlyReason, makeChoice, monthlyCost, primaryFinding, verdict,
+  bestMatches, checkQuestion, compareTake, costLabel, costPin, displayOrder, estimateCostLabel, estimatePin, fitForGroup, friendlyReason, makeChoice, monthlyCost, primaryFinding, verdict,
 } from "./frontend/sprout/model.ts";
 import { effectiveIntake, exampleEnvelope, reviseFromForm } from "./frontend/sprout/profile.ts";
 import { MAX_SAVED_PLACES, SEARCH_SESSION_KEY, readSearchSession, writeSearchSession, type SearchSession } from "./frontend/sprout/session.ts";
@@ -37,6 +38,16 @@ test("monthly cost labels never treat unknown charges as zero", () => {
   assert.equal(costLabel(open), "$3,600/mo + unknown charges");
   assert.equal(costPin(open), "$3.6k+");
   assert.equal(costLabel(monthlyCost(space({ rent: null }))), "Rent not listed");
+});
+
+test("cost questions ask about the missing rent, and about charges only when the rent exists", () => {
+  const missingRent: RequirementAssessment = { requirementId: "occupancy.monthlyLimit", status: "unknown", reasonCode: "ambiguous_basis", reason: "No supported asking rent was supplied for this space.", evidenceIds: [], sourceValue: "No asking rent" };
+  const missingCharges: RequirementAssessment = { requirementId: "occupancy.monthlyLimit", status: "unknown", reasonCode: "missing_charges", reason: "Base rent is within the cap but additional occupancy charges are unknown.", evidenceIds: [], sourceValue: "s" };
+  const crosses: RequirementAssessment = { requirementId: "occupancy.monthlyLimit", status: "unknown", reasonCode: "range_crosses_cap", reason: "r", evidenceIds: [], sourceValue: "s" };
+  assert.equal(friendlyReason("ambiguous_basis", requirements), "The asking rent isn’t listed");
+  assert.equal(checkQuestion(missingRent), "What is the asking rent? Ask the broker.");
+  assert.equal(checkQuestion(missingCharges), "What are the extra building charges (taxes, insurance, upkeep) each month?");
+  assert.equal(checkQuestion(crosses), "What are the extra building charges (taxes, insurance, upkeep) each month?");
 });
 
 test("plain-language findings and verdicts follow the assessment group", () => {
@@ -133,4 +144,42 @@ test("search session storage is validated and tolerant of bad data", () => {
   assert.equal(writeSearchSession(storage, { ...session, saved: Array.from({ length: MAX_SAVED_PLACES + 1 }, (_, i) => `p${i}`) }), false);
   store.set(SEARCH_SESSION_KEY, "{not json");
   assert.equal(readSearchSession(storage), null);
+});
+
+// ---------------------------------------------------------------------------
+// Derived rent estimates (display only; never a matching result)
+
+const estimate = (over: Partial<RentEstimate> = {}): RentEstimate =>
+  rentEstimateSchema.parse({
+    modelVersion: RENT_ESTIMATE_MODEL_VERSION, method: "nearest_neighbors", comparableCount: 8, radiusKm: 5,
+    medianAnnualPerSqFt: 30, p25AnnualPerSqFt: 24, p75AnnualPerSqFt: 36,
+    monthly: { low: 2000, high: 3000 }, sizeBasis: "exact", sourceIds: ["costar-space:1"],
+    datasetId: "synthetic-test", datasetDate: null, origin: "derived",
+    generatedAt: "2026-11-15T00:00:00.000Z", notes: ["a", "b"], ...over,
+  });
+
+test("estimate labels are honest copy and null-safe without a size", () => {
+  assert.equal(estimateCostLabel(estimate()), "≈ $2,000–$3,000/mo + building charges");
+  assert.equal(estimateCostLabel(estimate({ monthly: { low: 2300, high: 3400 } }), true), "≈ $2.3k–$3.4k/mo + building charges");
+  assert.equal(estimatePin(estimate()), "≈ $2k–$3k");
+  const noSize = estimate({ monthly: null, sizeBasis: "unknown" });
+  assert.equal(estimateCostLabel(noSize), "≈ $30/sq ft/yr (no size to price)");
+  assert.equal(estimatePin(noSize), "≈ $30/sq ft");
+});
+
+test("displayOrder: listed rent stays ahead, estimates sort within no-rent, groups never cross", () => {
+  const listed = assessed(space({ id: "listed-a" }), "needs_verification", [kitchenUnknown], 3);
+  const noRentUnder = assessed(space({ id: "no-rent-under", rent: null }), "needs_verification", [kitchenUnknown], 1);
+  const noRentOver = assessed(space({ id: "no-rent-over", rent: null }), "needs_verification", [kitchenUnknown], 2);
+  const meets = assessed(space({ id: "meets-a" }), "meets_assessed_requirements", [costPass], 4);
+  const fails = assessed(space({ id: "fails-a", rent: null }), "does_not_meet", [costFail], 5);
+  const estimates = new Map<string, RentEstimate>([
+    ["no-rent-under", estimate({ monthly: { low: 1000, high: 2000 } })],
+    ["no-rent-over", estimate({ monthly: { low: 6000, high: 7000 } })],
+  ]);
+  const ordered = displayOrder([noRentOver, fails, listed, meets, noRentUnder], estimates, 5000);
+  assert.deepEqual(ordered.map((x) => x.candidate.id), ["meets-a", "listed-a", "no-rent-under", "no-rent-over", "fails-a"]);
+  // Friendly behavior for no-rent candidates is unchanged: still "Needs checking".
+  assert.equal(friendlyReason("ambiguous_basis", requirements), "The asking rent isn’t listed");
+  assert.equal(costLabel(monthlyCost(space({ id: "x", rent: null }))), "Rent not listed");
 });

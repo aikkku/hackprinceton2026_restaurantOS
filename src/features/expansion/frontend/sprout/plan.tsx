@@ -6,7 +6,7 @@ import type { RequirementAssessment } from "../../domain/matching.ts";
 import { FIT_LABEL, budgetCap, checkQuestion, fitForGroup, friendlyReason, money, rangeLabel } from "./model.ts";
 import { type PlanEntry } from "./home.tsx";
 import { placeSubtitle } from "./places.tsx";
-import { AskButton, Back, Disclosure, FitPill, Thumb } from "./ui.tsx";
+import { AskButton, Back, Disclosure, FitPill, Tag, Thumb } from "./ui.tsx";
 import type { Workspace } from "./workspace.ts";
 
 const HARD = ["occupancy.monthlyLimit", "space.existingKitchen", "space.customerParking"];
@@ -88,7 +88,7 @@ export function Plan({ workspace, choices, pick, image, plans, restoredFrom, sav
           <div className="sx-stack" style={{ gap: 4 }}>
             <span className="sx-reco-label">1 · Your pick</span>
             <h2 className="sx-title-sm" style={{ fontSize: 22 }}>{candidate.name}</h2>
-            <span className="sx-small sx-muted">{[placeSubtitle(candidate), total].filter(Boolean).join(" · ")}</span>
+            <span className="sx-small sx-muted">{[placeSubtitle(candidate), total, pick.financeInputs.occupancyEstimate ? "estimated base rent" : null].filter(Boolean).join(" · ")}</span>
             <span><FitPill fit={fitForGroup(pick.assessment.group)} /></span>
           </div>
         </div>
@@ -145,7 +145,7 @@ export function Plan({ workspace, choices, pick, image, plans, restoredFrom, sav
               <thead><tr><th scope="col">&nbsp;</th>{choices.map((c) => <th scope="col" key={c.candidateId}>{c.assessment.candidate.name}{c.candidateId === pick.candidateId ? " ★" : ""}</th>)}</tr></thead>
               <tbody>
                 <tr><th scope="row">Must-haves</th>{choices.map((c) => <td key={c.candidateId}>{FIT_LABEL[fitForGroup(c.assessment.group)]}</td>)}</tr>
-                <tr><th scope="row">Monthly rent cost</th>{choices.map((c) => <td key={c.candidateId}>{rangeLabel(c.financeResults.occupancy, "/mo") ?? "Not known"}</td>)}</tr>
+                <tr><th scope="row">Monthly rent cost</th>{choices.map((c) => <td key={c.candidateId}>{rangeLabel(c.financeResults.occupancy, "/mo") ?? "Not known"}{c.financeInputs.occupancyEstimate && <Tag kind="estimate">Estimate</Tag>}</td>)}</tr>
                 <tr><th scope="row">Money needed to open</th>{choices.map((c) => <td key={c.candidateId}>{c.financeResults.completeUpfront === null ? "Not worked out yet" : money(c.financeResults.completeUpfront)}</td>)}</tr>
                 <tr><th scope="row">Left over or short</th>{choices.map((c) => <td key={c.candidateId}>{c.financeResults.openingFundsRemaining === null ? "Not worked out yet" : money(c.financeResults.openingFundsRemaining)}</td>)}</tr>
                 <tr><th scope="row">Sales needed each month</th>{choices.map((c) => <td key={c.candidateId}>{rangeLabel(c.financeResults.requiredSales) ?? "Not worked out yet"}</td>)}</tr>

@@ -3,10 +3,21 @@
 import { Bookmark } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { AssessedCandidate } from "../../domain/matching.ts";
-import { bestMatches, costLabel, costPin, fitForGroup, monthlyCost, primaryFinding } from "./model.ts";
+import {
+  bestMatches,
+  budgetCap,
+  costLabel,
+  costPin,
+  displayOrder,
+  estimateCostLabel,
+  estimatePin,
+  fitForGroup,
+  monthlyCost,
+  primaryFinding,
+} from "./model.ts";
 import { PlacesMap, type MapPlace } from "./places-map.tsx";
 import { MAX_SAVED_PLACES } from "./session.ts";
-import { Dot, Thumb } from "./ui.tsx";
+import { Dot, Tag, Thumb } from "./ui.tsx";
 import type { Workspace } from "./workspace.ts";
 
 export type PlaceView = { assessed: AssessedCandidate; image: string | null };
@@ -32,23 +43,45 @@ export function Places({ workspace, views, saved, selectedId, notice, onSelect, 
   onNewSearch: () => void;
 }) {
   const [showAll, setShowAll] = useState(false);
-  const best = useMemo(() => bestMatches(views.map((v) => v.assessed)).map((a) => a.candidate.id), [views]);
-  const bestViews = views.filter((v) => best.includes(v.assessed.candidate.id));
-  const rest = views.filter((v) => !best.includes(v.assessed.candidate.id));
+  // Display order: group order preserved; listed-rent candidates ahead of
+  // no-rent ones inside a group; estimate-within-budget no-rent first. This
+  // is a display concern only and never changes the assessment.
+  const orderedViews = useMemo(() => {
+    const byId = new Map(views.map((v) => [v.assessed.candidate.id, v]));
+    return displayOrder(
+      views.map((v) => v.assessed),
+      workspace.rentEstimates,
+      budgetCap(workspace.requirements),
+    )
+      .map((a) => byId.get(a.candidate.id))
+      .filter((v): v is PlaceView => Boolean(v));
+  }, [views, workspace.rentEstimates, workspace.requirements]);
+  const best = useMemo(() => bestMatches(orderedViews.map((v) => v.assessed)).map((a) => a.candidate.id), [orderedViews]);
+  const bestViews = orderedViews.filter((v) => best.includes(v.assessed.candidate.id));
+  const rest = orderedViews.filter((v) => !best.includes(v.assessed.candidate.id));
   const restCouldWork = rest.filter((v) => v.assessed.group !== "does_not_meet");
   const restNoFit = rest.filter((v) => v.assessed.group === "does_not_meet");
   // Keep a place picked on the map visible in the list.
   const expanded = showAll || (selectedId !== null && !best.includes(selectedId));
-  const mapPlaces = useMemo<MapPlace[]>(() => views.map(({ assessed }) => ({
-    id: assessed.candidate.id, name: assessed.candidate.name, lat: assessed.candidate.latitude, lng: assessed.candidate.longitude,
-    fit: fitForGroup(assessed.group), price: costPin(monthlyCost(assessed.candidate)), saved: saved.includes(assessed.candidate.id),
-  })), [views, saved]);
+  const mapPlaces = useMemo<MapPlace[]>(() => orderedViews.map(({ assessed }) => {
+    const cost = monthlyCost(assessed.candidate);
+    const estimate = workspace.rentEstimates.get(assessed.candidate.id);
+    return {
+      id: assessed.candidate.id, name: assessed.candidate.name, lat: assessed.candidate.latitude, lng: assessed.candidate.longitude,
+      fit: fitForGroup(assessed.group),
+      price: cost.kind === "unknown" && estimate ? estimatePin(estimate) : costPin(cost),
+      saved: saved.includes(assessed.candidate.id),
+    };
+  }), [orderedViews, workspace.rentEstimates, saved]);
 
   const card = ({ assessed, image }: PlaceView) => {
     const id = assessed.candidate.id;
     const finding = primaryFinding(assessed, workspace.requirements);
     const current = id === selectedId;
     const isSaved = saved.includes(id);
+    const cost = monthlyCost(assessed.candidate);
+    const estimate = workspace.rentEstimates.get(id);
+    const costUnknown = cost.kind === "unknown";
     return (
       <li key={id} className="sx-pcard" data-current={current}>
         <button type="button" className="sx-pcard-select" aria-label={`Show ${assessed.candidate.name} on the map`} aria-pressed={current} onClick={() => onSelect(id)} />
@@ -56,7 +89,10 @@ export function Places({ workspace, views, saved, selectedId, notice, onSelect, 
         <div className="sx-pcard-main">
           <span className="sx-pcard-name">{placeTitle(assessed.candidate)}</span>
           <span className="sx-small sx-muted">{placeSubtitle(assessed.candidate)}</span>
-          <span className="sx-pcard-cost">{costLabel(monthlyCost(assessed.candidate))}</span>
+          <span className="sx-row" style={{ gap: 8 }}>
+            <span className="sx-pcard-cost">{costUnknown && estimate ? estimateCostLabel(estimate) : costLabel(cost)}</span>
+            {costUnknown && (estimate ? <Tag kind="estimate">Estimate</Tag> : <Tag kind="unknown">Rent not listed</Tag>)}
+          </span>
           <span className="sx-finding"><Dot fit={finding.fit} /><span>{finding.text}</span></span>
           {current && <button type="button" className="sx-pcard-more" onClick={() => onOpen(id)}>See details ›</button>}
         </div>

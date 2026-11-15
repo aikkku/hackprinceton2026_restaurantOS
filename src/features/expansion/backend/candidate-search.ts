@@ -50,6 +50,12 @@ function suiteFromName(name: string): string | null {
 }
 
 function toCandidate(row: Record<string, unknown>, stored: NormalizedRecord): SpaceCandidate {
+  // Caches imported before the $0-rent fix may still store 0 rates; a rate
+  // of 0 or less is never a quoted price, so it becomes "not listed" here
+  // without requiring a re-import.
+  const positiveRate = (value: number | null) => value !== null && value > 0 ? value : null;
+  const low = positiveRate(stored.sourceRent?.low ?? null);
+  const high = positiveRate(stored.sourceRent?.high ?? null);
   return candidateSchema.parse({
     id: stored.id,
     name: stored.name,
@@ -63,8 +69,8 @@ function toCandidate(row: Record<string, unknown>, stored: NormalizedRecord): Sp
     sizeRangeSqFt: stored.sizeRangeSqFt ?? { minimum: null, maximum: null },
     rent: stored.sourceRent
       ? {
-          low: stored.sourceRent.low,
-          high: stored.sourceRent.high,
+          low,
+          high,
           rateBasisCode: stored.sourceRent.rateBasisCode,
           currencyCode: stored.sourceRent.currencyCode,
           measurementCode: stored.sourceRent.measurementCode,

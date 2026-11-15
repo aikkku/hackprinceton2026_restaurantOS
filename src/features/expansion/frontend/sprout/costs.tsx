@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { BriefChoice } from "../../domain/decision-brief.ts";
 import { ILLUSTRATIVE_VALUES, applyIllustrative, decisionFinanceInputsSchema, occupancyBreakdown, type DecisionFinanceInputs, upfrontCategories } from "../../domain/decision-finance.ts";
 import { serviceInclusion } from "../../domain/matching.ts";
-import { budgetCap, money, numberRequirement, rangeLabel } from "./model.ts";
+import { budgetCap, estimateCostLabel, money, numberRequirement, rangeLabel } from "./model.ts";
 import { placeSubtitle } from "./places.tsx";
 import { AskButton, Back, Disclosure, MoneyInput, QuestionShell, Tag, formatAmount, parseAmount, type TagKind } from "./ui.tsx";
 import type { Workspace } from "./workspace.ts";
@@ -83,7 +83,10 @@ export function CostWizard({ workspace, choice, stepIndex, onStep, onApply, onRe
   const [error, setError] = useState("");
   const question = QUESTION[key];
   const candidate = choice.assessment.candidate;
-  const split = occupancyBreakdown(candidate, inputs.additionalOccupancyMonthly);
+  // Live workspaces carry estimates in workspace.rentEstimates; saved plans
+  // carry the opted-in estimate in the choice's financeInputs.
+  const estimate = choice.financeInputs.occupancyEstimate ?? workspace.rentEstimates.get(candidate.id) ?? null;
+  const split = occupancyBreakdown(candidate, inputs.additionalOccupancyMonthly, inputs.occupancyEstimate?.monthly ?? null);
   const profileFunds = numberRequirement(workspace.requirements, "funds.totalAvailable");
   const profileReserve = numberRequirement(workspace.requirements, "funds.emergencyReserve");
 
@@ -128,7 +131,20 @@ export function CostWizard({ workspace, choice, stepIndex, onStep, onApply, onRe
         {stepIndex === 0 && (
           <div className="sx-known">
             <span className="sx-strong">What we already know about {candidate.name}</span>
-            <div className="sx-known-row"><span>Base rent</span><span className="sx-row" style={{ gap: 8 }}><span className="sx-strong">{rangeLabel(split.baseRent, "/mo") ?? "Not listed"}</span>{split.baseRent && <Tag kind="listing">From the listing</Tag>}</span></div>
+            <div className="sx-known-row"><span>Base rent</span><span className="sx-row" style={{ gap: 8 }}><span className="sx-strong">{rangeLabel(split.baseRent, "/mo") ?? "Not listed"}</span>{split.baseRent && (inputs.occupancyEstimate ? <Tag kind="estimate">Estimate</Tag> : <Tag kind="listing">From the listing</Tag>)}</span></div>
+            {split.baseRent === null && estimate !== null && estimate.monthly !== null && (
+              <div className="sx-known-row">
+                <span>Estimated base rent</span>
+                <span className="sx-row" style={{ gap: 8 }}>
+                  <span className="sx-strong">{estimateCostLabel(estimate)}</span>
+                  <Tag kind="estimate">Estimate</Tag>
+                  <button type="button" className="sx-btn sx-btn-text" onClick={() => onApply({ ...inputs, occupancyEstimate: estimate })}>Use the estimate</button>
+                </span>
+              </div>
+            )}
+            {split.baseRent === null && estimate && (
+              <p className="sx-small sx-muted">This is a market estimate from comparable listings, not this space’s price. It never changes the fit check.</p>
+            )}
             <div className="sx-known-row"><span>Extra building charges</span><span className="sx-row" style={{ gap: 8 }}>
               <span className="sx-strong">{split.additional.status === "included_in_rent" ? "Included in rent" : split.additional.status === "known" ? `${money(split.additional.monthly ?? 0)}/mo` : "Unknown"}</span>
               <Tag kind={split.additional.status === "known" ? "owner" : split.additional.status === "included_in_rent" ? "listing" : "unknown"}>{split.additional.status === "known" ? "Your number" : split.additional.status === "included_in_rent" ? "From the listing" : "Not listed"}</Tag></span></div>
@@ -183,7 +199,7 @@ export function CostResults({ workspace, choice, onEdit, onApply, onRecommend, o
   const result = choice.financeResults;
   const candidate = choice.assessment.candidate;
   const cap = budgetCap(workspace.requirements);
-  const split = occupancyBreakdown(candidate, inputs.additionalOccupancyMonthly);
+  const split = occupancyBreakdown(candidate, inputs.additionalOccupancyMonthly, inputs.occupancyEstimate?.monthly ?? null);
   const included = split.additional.status === "included_in_rent";
   const missingUpfront = upfrontCategories.filter((category) => upfrontAmount(inputs, category) === null);
   const profileFunds = numberRequirement(workspace.requirements, "funds.totalAvailable");
@@ -225,8 +241,12 @@ export function CostResults({ workspace, choice, onEdit, onApply, onRecommend, o
   };
 
   const occupancyText = result.occupancy ? (result.occupancy.high === null ? `${money(result.occupancy.low)}+` : rangeLabel(result.occupancy) ?? "") : null;
-  const budgetLine = result.occupancy && result.occupancy.high !== null && cap !== null
-    ? result.occupancy.high <= cap ? `${money(cap - result.occupancy.high)} under your budget` : `${money(result.occupancy.high - cap)} over your budget` : null;
+  // An estimate-derived budget line is always labeled as an estimate; it can
+  // never read like a plain verified "under your budget".
+  const budgetDelta = result.occupancy && result.occupancy.high !== null && cap !== null
+    ? `${result.occupancy.high <= cap ? money(cap - result.occupancy.high) : money(result.occupancy.high - cap)} ${result.occupancy.high <= cap ? "under" : "over"} your budget`
+    : null;
+  const budgetLine = budgetDelta === null ? null : inputs.occupancyEstimate ? `≈ ${budgetDelta} (estimate)` : budgetDelta;
   const value = (n: number | null) => n === null ? "unknown" : money(n);
   const sensitivityLabels: Record<string, string> = { "0.8": "Monthly costs 20% lower", "1": "Monthly costs as entered", "1.2": "Monthly costs 20% higher" };
 
@@ -256,7 +276,13 @@ export function CostResults({ workspace, choice, onEdit, onApply, onRecommend, o
           {occupancyText ? <span className="sx-result-value">{occupancyText}</span> : <span className="sx-result-missing">Can’t work out from the listing</span>}
           {result.occupancy?.high === null && <><span className="sx-small">Extra building charges aren’t known yet</span><button type="button" className="sx-chip" onClick={() => onEdit("charges")}>Add extra building charges</button></>}
           {budgetLine && <span className="sx-small">{budgetLine}</span>}
-          {result.occupancy && <Tag kind={inputs.additionalOccupancyMonthly !== null && !included ? "owner" : "listing"}>{inputs.additionalOccupancyMonthly !== null && !included ? "Listing + your number" : "From the listing"}</Tag>}
+          {result.occupancy && (
+            <Tag kind={inputs.occupancyEstimate ? "estimate" : inputs.additionalOccupancyMonthly !== null && !included ? "owner" : "listing"}>
+              {inputs.occupancyEstimate
+                ? inputs.additionalOccupancyMonthly !== null && !included ? "Estimate + your number" : "Estimate"
+                : inputs.additionalOccupancyMonthly !== null && !included ? "Listing + your number" : "From the listing"}
+            </Tag>
+          )}
         </section>
         <section className="sx-result" aria-label="Sales needed each month">
           <span className="sx-muted">Sales needed each month</span>
@@ -281,7 +307,7 @@ export function CostResults({ workspace, choice, onEdit, onApply, onRecommend, o
       <div>
         <Disclosure title="Your numbers" hint="Edit, or see where each came from">
           <ul className="sx-inputs">
-            <li><span>Base rent</span><span className="sx-strong">{rangeLabel(split.baseRent, "/mo") ?? "Not listed"}</span><Tag kind="listing">From the listing</Tag></li>
+            <li><span>Base rent</span><span className="sx-strong">{rangeLabel(split.baseRent, "/mo") ?? "Not listed"}</span>{inputs.occupancyEstimate ? <Tag kind="estimate">Estimate</Tag> : <Tag kind="listing">From the listing</Tag>}</li>
             {NUMBER_ROWS.filter((row) => !(row.key === "charges" && included)).map((row) => {
               const tag = tagFor(row.key);
               return (
@@ -305,7 +331,7 @@ export function CostResults({ workspace, choice, onEdit, onApply, onRecommend, o
 
         <Disclosure title="How we calculated">
           <div className="sx-calc"><span className="sx-strong">Monthly rent cost</span>
-            <span>Base rent {rangeLabel(split.baseRent) ?? "unknown"} + extra charges {included ? "(included in rent)" : value(inputs.additionalOccupancyMonthly)}</span>
+            <span>Base rent {rangeLabel(split.baseRent) ?? "unknown"}{inputs.occupancyEstimate ? " (estimate)" : ""} + extra charges {included ? "(included in rent)" : value(inputs.additionalOccupancyMonthly)}</span>
             <span>= {occupancyText ?? "unknown"}</span></div>
           <div className="sx-calc"><span className="sx-strong">Sales needed each month</span>
             <span>(Rent cost + other monthly costs {value(inputs.fixedCostsMonthly)}) ÷ {inputs.contributionMargin === null ? "?" : `${Math.round(inputs.contributionMargin * 100)}`}¢ kept per $1</span>

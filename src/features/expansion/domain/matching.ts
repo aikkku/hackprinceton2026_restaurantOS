@@ -655,6 +655,10 @@ export function orderCandidates(
     if (aCost !== null && bCost !== null && aCost !== bCost) return aCost - bCost;
     if (aCost === null && bCost !== null) return 1;
     if (aCost !== null && bCost === null) return -1;
+    // A real quoted rent outranks "rent not listed" inside the same group.
+    const hasRent = (c: AssessedCandidate) => c.candidate.rent !== null && c.candidate.rent.low !== null;
+    const byListedRent = Number(hasRent(b)) - Number(hasRent(a));
+    if (byListedRent) return byListedRent;
     return a.candidate.id < b.candidate.id ? -1 : a.candidate.id > b.candidate.id ? 1 : 0;
   });
   return sorted.map((item, index) => {
@@ -671,6 +675,7 @@ export function orderCandidates(
       (x) => x.requirementId === "occupancy.monthlyLimit",
     );
     notes.push(cost && cost.status !== "unknown" ? cost.reason : "Monthly occupancy unverified");
+    notes.push(item.candidate.rent !== null && item.candidate.rent.low !== null ? "Listed rent kept ahead of spaces with no listed rent" : "No listed rent: sorted after spaces with a quoted rent");
     notes.push("Tie-break: stable source space ID");
     return { ...item, rank: index + 1, orderingNotes: notes };
   });
