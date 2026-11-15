@@ -34,6 +34,12 @@ export const normalizedRecordSchema = z.object({
   datasetDate: z.string().nullable(),
   sourceIds: z.array(text).min(1),
   isDemo: z.literal(false),
+  // Phase 2 additive candidate fields (optional: v1 payloads remain readable).
+  spaceUseCode: count.nullable().optional(),
+  sizeRangeSqFt: z.object({
+    minimum: z.number().nonnegative().nullable(),
+    maximum: z.number().nonnegative().nullable(),
+  }).optional(),
 }).superRefine((record, ctx) => {
   const located = record.latitude !== null && record.longitude !== null;
   if ((record.latitude === null) !== (record.longitude === null) ||

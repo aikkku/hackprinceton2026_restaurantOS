@@ -764,9 +764,11 @@ export function ProfileWorkspace({
                 <Pencil size={15} /> Edit requirements
               </button>
             )}
-            <button className="text-button" onClick={handleReset}>
-              <RotateCcw size={14} /> Start over
-            </button>
+            {view === "review" && (
+              <button className="text-button" onClick={handleReset}>
+                <RotateCcw size={14} /> Start over
+              </button>
+            )}
           </div>
           {notice && (
             <p role="status" className="profile-inline-notice">

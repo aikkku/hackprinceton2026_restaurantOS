@@ -4,7 +4,7 @@
 
 **Product target:** [Product refinement brief](PRODUCT_REFINEMENT_BRIEF.md). **Architecture map:** [repository structure](../../STRUCTURE.md). **Navigation guide:** [pages](PAGES.md). **Manual demo:** [walkthrough](FRONTEND_WALKTHROUGH.md).
 
-**Latest increment:** centralized mock data, shared `restaurantos` MongoDB database, protected dataset APIs and live Atlas round-trip verified. See [MongoDB setup/API guide](MONGODB_SETUP.md). The database remains synthetic; browser editor saves are not yet cloud-synchronized.
+**Latest increment:** centralized mock data, shared `restaurantos` MongoDB database, protected dataset APIs and live Atlas round-trip verified. Rain’s latest remote work is merged; his shared Mongo helper remains unchanged pending connection consolidation. See [MongoDB setup/API guide](MONGODB_SETUP.md). The database remains synthetic; browser editor saves are not yet cloud-synchronized.
 
 This is the canonical implementation inventory and backlog. Product specifications describe intended behavior; this file records what the code actually does. Update this inventory when a feature ships, and include the verification that justifies changing its status.
 
@@ -511,7 +511,7 @@ Use the existing frontend/domain/backend separation. Do not create empty directo
 
 The MongoDB/data increment ran and passed:
 
-- 93 repository unit tests, including 28 Tactical tests and 65 Expansion tests.
+- 134 repository unit tests after merging Rain’s latest commits; all passed, including 28 Tactical tests.
 - 8 Tactical browser runs: four journeys each in Chromium/Chrome and Firefox, against MongoDB mock data.
 - ESLint, TypeScript typecheck and production build.
 - Browser journeys cover named-layout save/rename/delete/baseline/metadata, photo selection/invalid import/redirects/mobile navigation, disabled-state reload behavior, and financial filters/pricing with HR/Supply data.
@@ -591,3 +591,7 @@ These are not blockers for continuing with labeled fixtures. They determine whet
 - [ ] Conditional external integrations have separate, verifiable proof before being claimed.
 
 **Current next implementation task:** REV-01/REV-02, saved pricing scenarios and intentional browser-editor/cloud synchronization with proper end-user authorization. DATA-01 through DATA-04 and the mock ledger/unit-economics foundation are delivered. Keep the working editor/scenario path intact while making the surrounding business data credible and replaceable.
+
+### Integration check after Rain’s latest push
+
+Merged remote `974622d` while preserving Expansion and shared Mongo helper code. Resolved only package script/dependency declarations; both sets of commands remain available. The combined app passed 134 unit tests, lint, typecheck and production build. The build reports two filesystem-tracing warnings at `src/features/expansion/backend/runs.ts` (dynamic run-storage paths); Rain should review deployment tracing scope. Tactical browser verification above preceded this merge; no Tactical runtime code changed during the merge.

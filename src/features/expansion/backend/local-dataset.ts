@@ -15,7 +15,7 @@ export class LocalDataError extends Error {
   constructor(code: LocalDataError["code"], message: string) { super(message); this.code = code; }
 }
 export type LocalConfig = { rootPath?: string; dbPath: string; datasetId?: string; datasetDate?: string | null };
-const SCHEMA_VERSION = "expansion-local-v1";
+export const SCHEMA_VERSION = "expansion-local-v2";
 const RIGHTS = "Restricted CoStar hackathon snapshot; authorized local evaluation only. No redistribution permission is asserted.";
 const CITY_IDS: Record<number, { id: string; name: string }> = {14: {id:"houston",name:"Houston, TX"},20:{id:"los-angeles",name:"Los Angeles, CA"}};
 const TYPES: Record<number,string> = {0:"Unknown",1:"Hospitality",2:"Industrial",3:"Land",5:"Office",6:"GeneralRetail",7:"Flex",8:"SportsAndEntertainment",9:"MixedUse",10:"Specialty",11:"Multifamily",13:"Healthcare",14:"Unknown",15:"Residential",16:"Homes"};
@@ -29,9 +29,11 @@ const sourceId = (value: unknown): string | null => (typeof value === "number" &
 const date = (value: unknown): string | null => {const s=text(value);return s && Number.isFinite(Date.parse(s))?new Date(s).toISOString():null;};
 function config(value?: LocalConfig): LocalConfig {
   if(value) return {...value,dbPath:resolve(value.dbPath)};
-  const dbPath=process.env.EXPANSION_DB_PATH;
+  // EXPANSION_E2E_* are test-owned overrides so Playwright can point the real
+  // backend at a synthetic cache without touching a developer's imported data.
+  const dbPath=process.env.EXPANSION_E2E_DB_PATH||process.env.EXPANSION_DB_PATH;
   if(!dbPath) throw new LocalDataError("not_configured","Local dataset is not configured. Set EXPANSION_DB_PATH and import the snapshot.");
-  return {dbPath:resolve(dbPath),rootPath:process.env.EXPANSION_COSTAR_ROOT,datasetId:process.env.EXPANSION_DATASET_ID,datasetDate:process.env.EXPANSION_DATASET_DATE || null};
+  return {dbPath:resolve(dbPath),rootPath:process.env.EXPANSION_E2E_COSTAR_ROOT||process.env.EXPANSION_COSTAR_ROOT,datasetId:process.env.EXPANSION_E2E_DATASET_ID||process.env.EXPANSION_DATASET_ID,datasetDate:(process.env.EXPANSION_E2E_DATASET_DATE||process.env.EXPANSION_DATASET_DATE)||null};
 }
 function open(value?: LocalConfig) {
   const settings=config(value);
@@ -39,12 +41,17 @@ function open(value?: LocalConfig) {
   let db:DatabaseSync|undefined;
   try {
     db=new DatabaseSync(settings.dbPath,{readOnly:true});
-    if((db.prepare("SELECT value FROM meta WHERE key='schemaVersion'").get()?.value)!==SCHEMA_VERSION)throw new Error("Unsupported cache");
+    if((db.prepare("SELECT value FROM meta WHERE key='schemaVersion'").get()?.value)!==SCHEMA_VERSION)throw new Error("Unsupported cache schema");
     return db;
-  }catch {try{db?.close();}catch{}throw new LocalDataError("source_failure","The local dataset could not be opened. Rebuild the Expansion cache.");}
+  }catch {try{db?.close();}catch{}throw new LocalDataError("source_failure","The local dataset cache schema is unsupported (v2 required). Re-run the import to rebuild it.");}
 }
 function withDB<T>(value:LocalConfig|undefined,fn:(db:DatabaseSync)=>T):T {
   const db=open(value);try{return fn(db);}catch(e){if(e instanceof LocalDataError)throw e;throw new LocalDataError("source_failure","The local snapshot query failed. Rebuild the Expansion cache.");}finally{db.close();}
+}
+
+/** Open the validated read-only snapshot; the caller owns closing the handle. */
+export function openDatabase(value?: LocalConfig): DatabaseSync {
+  return open(value);
 }
 function metadata(db:DatabaseSync): MarketsResponse["metadata"] {
   const row=db.prepare("SELECT value FROM meta WHERE key='metadata'").get();
@@ -140,27 +147,34 @@ function spaceRecord(raw:Raw,listing:Raw,parent:NormalizedRecord,settings:LocalC
   // Divisible ranges are not one exact premises area. The user can enter financial assumptions.
   const floorAreaSqFt=min!==null&&max!==null&&min===max?min:null;
   if(min===null||max===null)warning(report,"missing_floor_area");
-  const sourceRent={low:numeric(raw.rateLow),high:numeric(raw.rateHigh),rateBasisCode:basis,measurementCode:measurement,currencyCode:currency,serviceTypeCode:service,availabilityTypeCode:numeric(raw.availabilityType),availableOnDate:date(raw.availableOnDate),listingStatusCode:status,certifiedFreshDate:date(listing.certifiedFreshDate),dateOnMarket:date(raw.dateOnMarket)};
-  return normalizedRecordSchema.parse({...parent,id:`costar-space:${id}`,sourceSpaceId:id,sourceListingId:listingId,recordKind:"listing",name:`${parent.name}${text(raw.suite)?` · Suite ${text(raw.suite)}`:` · Space ${id}`}`,floorAreaSqFt,askingRent,originalRentUnit:`currency=${currency??"unknown"}; measurement=${measurement??"unknown"}; rateBasis=${basis??"unknown"}`,rentBasis:`${low??"unknown"}${high!==null&&high!==low?`–${high}`:""} ${currency===1?"USD":`currency code ${currency??"unknown"}`} / ${measurement===1?"SF":`measurement code ${measurement??"unknown"}`} / ${basis===1?"month":basis===2?"year":"unknown period"}; ${SERVICES[service??0]??"Unknown service"}; ${status===1?"marketed Active in snapshot":status===3?"OffMarket in snapshot":`listing status ${status??"unknown"}`}; ${floorAreaSqFt===null?`area range ${min??"unknown"}–${max??"unknown"} SF; exact scenario area unknown`:"exact offered area"}`,availability:"unknown",recordDate:date(listing.certifiedFreshDate),datasetDate:settings.datasetDate??null,sourceRent,sourceIds:[...parent.sourceIds,`costar:listing:${listingId}`],isDemo:false});
+  const spaceUse=numeric(raw.spaceUse),availabilityCode=numeric(raw.availabilityType);
+  const sourceRent={low:numeric(raw.rateLow),high:numeric(raw.rateHigh),rateBasisCode:basis,measurementCode:measurement,currencyCode:currency,serviceTypeCode:service,availabilityTypeCode:availabilityCode,availableOnDate:date(raw.availableOnDate),listingStatusCode:status,certifiedFreshDate:date(listing.certifiedFreshDate),dateOnMarket:date(raw.dateOnMarket)};
+  return normalizedRecordSchema.parse({...parent,id:`costar-space:${id}`,sourceSpaceId:id,sourceListingId:listingId,recordKind:"listing",name:`${parent.name}${text(raw.suite)?` · Suite ${text(raw.suite)}`:` · Space ${id}`}`,floorAreaSqFt,askingRent,originalRentUnit:`currency=${currency??"unknown"}; measurement=${measurement??"unknown"}; rateBasis=${basis??"unknown"}`,rentBasis:`${low??"unknown"}${high!==null&&high!==low?`–${high}`:""} ${currency===1?"USD":`currency code ${currency??"unknown"}`} / ${measurement===1?"SF":`measurement code ${measurement??"unknown"}`} / ${basis===1?"month":basis===2?"year":"unknown period"}; ${SERVICES[service??0]??"Unknown service"}; ${status===1?"marketed Active in snapshot":status===3?"OffMarket in snapshot":`listing status ${status??"unknown"}`}; ${floorAreaSqFt===null?`area range ${min??"unknown"}–${max??"unknown"} SF; exact scenario area unknown`:"exact offered area"}`,availability:"unknown",recordDate:date(listing.certifiedFreshDate),datasetDate:settings.datasetDate??null,sourceRent,spaceUseCode:spaceUse,sizeRangeSqFt:{minimum:min,maximum:max},sourceIds:[...parent.sourceIds,`costar:listing:${listingId}`],isDemo:false});
 }
 function initialize(db:DatabaseSync) {
   db.exec(`PRAGMA foreign_keys=ON;
     CREATE TABLE meta(key TEXT PRIMARY KEY,value TEXT NOT NULL);
     CREATE TABLE properties(id TEXT PRIMARY KEY,property_id TEXT UNIQUE NOT NULL,city_id TEXT NOT NULL,lat REAL,lon REAL,h3 TEXT,floor_area REAL,monthly_rent REAL,annual_rate REAL,service_code INTEGER,availability TEXT,property_type TEXT,payload TEXT NOT NULL);
     CREATE TABLE listings(listing_id TEXT PRIMARY KEY,property_id TEXT,status INTEGER,created_date TEXT,certified_date TEXT,status_date TEXT,measurement_code INTEGER,currency_code INTEGER);
-    CREATE TABLE spaces(id TEXT PRIMARY KEY,property_id TEXT NOT NULL REFERENCES properties(property_id),listing_id TEXT NOT NULL REFERENCES listings(listing_id),city_id TEXT NOT NULL,lat REAL,lon REAL,h3 TEXT,floor_area REAL,monthly_rent REAL,annual_rate REAL,service_code INTEGER,availability TEXT,property_type TEXT,payload TEXT NOT NULL);
+    CREATE TABLE spaces(id TEXT PRIMARY KEY,property_id TEXT NOT NULL REFERENCES properties(property_id),listing_id TEXT NOT NULL REFERENCES listings(listing_id),city_id TEXT NOT NULL,lat REAL,lon REAL,h3 TEXT,floor_area REAL,monthly_rent REAL,annual_rate REAL,service_code INTEGER,availability TEXT,property_type TEXT,rate_low REAL,rate_high REAL,rate_basis INTEGER,currency_code INTEGER,measurement_code INTEGER,size_min REAL,size_max REAL,space_use INTEGER,availability_code INTEGER,status_code INTEGER,payload TEXT NOT NULL);
     CREATE INDEX properties_viewport ON properties(city_id,lon,lat);
     CREATE INDEX spaces_viewport ON spaces(city_id,lon,lat);
+    CREATE INDEX spaces_city_status ON spaces(city_id,status_code);
     CREATE INDEX properties_h3 ON properties(h3,city_id);
     CREATE INDEX spaces_h3 ON spaces(h3,city_id);
     CREATE INDEX spaces_property ON spaces(property_id);
-    CREATE VIEW records AS SELECT 'property' kind,id,property_id,city_id,lat,lon,h3,floor_area,monthly_rent,annual_rate,service_code,availability,property_type,payload FROM properties UNION ALL SELECT 'listing',id,property_id,city_id,lat,lon,h3,floor_area,monthly_rent,annual_rate,service_code,availability,property_type,payload FROM spaces;`);
+    CREATE VIEW records AS SELECT 'property' kind,id,property_id,city_id,lat,lon,h3,floor_area,monthly_rent,annual_rate,service_code,availability,property_type,NULL rate_low,NULL rate_high,NULL rate_basis,NULL currency_code,NULL measurement_code,NULL size_min,NULL size_max,NULL space_use,NULL availability_code,NULL status_code,payload FROM properties UNION ALL SELECT 'listing',id,property_id,city_id,lat,lon,h3,floor_area,monthly_rent,annual_rate,service_code,availability,property_type,rate_low,rate_high,rate_basis,currency_code,measurement_code,size_min,size_max,space_use,availability_code,status_code,payload FROM spaces;`);
 }
+type StoredRent = {serviceTypeCode:number|null;low:number|null;high:number|null;rateBasisCode:number|null;currencyCode:number|null;measurementCode:number|null;availabilityTypeCode:number|null;listingStatusCode:number|null};
 function insertRecord(db:DatabaseSync,table:"properties"|"spaces",r:NormalizedRecord) {
-  const service=(r as NormalizedRecord & {sourceRent?:{serviceTypeCode:number|null}}).sourceRent?.serviceTypeCode??null;
+  const rent=(r as NormalizedRecord & {sourceRent?:StoredRent}).sourceRent;
+  const service=rent?.serviceTypeCode??null;
   const values:SQLInputValue[]=[r.id,r.sourcePropertyId,r.cityId,r.latitude,r.longitude,r.h3Index,r.floorAreaSqFt,baseRentMonthly(r.askingRent,r.floorAreaSqFt),r.askingRent?.unit==="USD_PER_SF_YEAR"?r.askingRent.amount:null,service,r.availability,r.propertyType,JSON.stringify(r)];
   const columns="id,property_id,city_id,lat,lon,h3,floor_area,monthly_rent,annual_rate,service_code,availability,property_type,payload";
-  if(table==="spaces"){db.prepare(`INSERT INTO spaces(${columns},listing_id) VALUES(${values.map(()=>"?").join(",")},?)`).run(...values,r.sourceListingId);}
+  if(table==="spaces"){
+    const extra:SQLInputValue[]=[rent?.low??null,rent?.high??null,rent?.rateBasisCode??null,rent?.currencyCode??null,rent?.measurementCode??null,r.sizeRangeSqFt?.minimum??null,r.sizeRangeSqFt?.maximum??null,r.spaceUseCode??null,rent?.availabilityTypeCode??null,rent?.listingStatusCode??null,r.sourceListingId];
+    db.prepare(`INSERT INTO spaces(${columns},rate_low,rate_high,rate_basis,currency_code,measurement_code,size_min,size_max,space_use,availability_code,status_code,listing_id) VALUES(${values.map(()=>"?").join(",")},${extra.map(()=>"?").join(",")})`).run(...values,...extra);
+  }
   else db.prepare(`INSERT INTO properties(${columns}) VALUES(${values.map(()=>"?").join(",")})`).run(...values);
 }
 
@@ -206,7 +220,7 @@ export async function importLocalDataset(value?:LocalConfig):Promise<ImportRepor
     }
     const importedAt=new Date().toISOString();
     const mappableCount=Number(db.prepare("SELECT COUNT(*) n FROM records WHERE h3 IS NOT NULL").get()!.n);
-    const meta={mode:"local",datasetId:settings.datasetId??"costar-matterport-snapshot",provider:"CoStar local snapshot",datasetDate:settings.datasetDate??null,importedAt,rights:RIGHTS,propertyCount:report.accepted.properties,listingCount:report.accepted.spaces,mappableCount,notes:["Dated, nonrepresentative Matterport-capture sample for Houston and Los Angeles; no marketwide coverage claim.","Dataset release date is unknown unless explicitly supplied from source documentation; import time is separate.","Properties and offered spaces are separate records. An active marketing snapshot does not verify current availability or vacancy.","Building floor area is not offered suite area. Divisible area and asking-rent ranges remain unknown for exact financial calculation.","H3 metrics count all source records in a cell. Mean asking rent is available only for exact USD/SF/year quotes with one recorded service type; mixed services remain unknown.","No demographic, competition, demand or composite suitability scores are supported."]};
+    const meta={mode:"local",datasetId:settings.datasetId??"costar-matterport-snapshot",provider:"CoStar local snapshot",datasetDate:settings.datasetDate??null,importedAt,rights:RIGHTS,propertyCount:report.accepted.properties,listingCount:report.accepted.spaces,mappableCount,notes:["Dated, nonrepresentative Matterport-capture sample for Houston and Los Angeles; no marketwide coverage claim.","Dataset release date is unknown unless explicitly supplied from source documentation; import time is separate.","Properties and offered spaces are separate records. An active marketing snapshot does not verify current availability or vacancy.","Building floor area is not offered suite area. Divisible area and asking-rent ranges remain unknown for exact financial calculation.","Offered-space candidate search retains suite use (SpaceUse), marketing status (ListingStatus), service inclusions (ServiceType), rent/size ranges and source IDs. Buildings are context, never offered suites.","H3 metrics count all source records in a cell. Mean asking rent is available only for exact USD/SF/year quotes with one recorded service type; mixed services remain unknown.","No demographic, competition, demand or composite suitability scores are supported."]};
     db.prepare("INSERT INTO meta VALUES('schemaVersion',?)").run(SCHEMA_VERSION);
     db.prepare("INSERT INTO meta VALUES('metadata',?)").run(JSON.stringify(meta));
     db.prepare("INSERT INTO meta VALUES('importReport',?)").run(JSON.stringify(report));

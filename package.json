@@ -12,13 +12,14 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/features/tactical/*.test.ts src/features/expansion/*.test.ts",
+    "test": "node --test src/features/tactical/*.test.ts src/features/expansion/*.test.ts src/lib/*.test.ts",
     "test:e2e": "playwright test",
     "expansion:import": "node --env-file-if-exists=.env --env-file-if-exists=.env.local src/features/expansion/backend/import-local.ts",
     "tactical:data:validate": "node src/features/tactical/backend/dataset-cli.ts validate",
     "tactical:data:export": "node src/features/tactical/backend/dataset-cli.ts export",
     "tactical:data:seed": "node --env-file-if-exists=.env.local src/features/tactical/backend/dataset-cli.ts seed",
-    "tactical:api": "node --env-file-if-exists=.env.local src/features/tactical/backend/api-cli.ts"
+    "tactical:api": "node --env-file-if-exists=.env.local src/features/tactical/backend/api-cli.ts",
+    "db:check": "node --env-file-if-exists=.env --env-file-if-exists=.env.local src/lib/mongodb-check.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.8.0",
@@ -26,7 +27,7 @@
     "h3-js": "4.5.0",
     "lucide-react": "1.47.0",
     "maplibre-gl": "5.24.1",
-    "mongodb": "7.9.0",
+    "mongodb": "^7.9.0",
     "next": "16.3.6",
     "react": "19.2.7",
     "react-dom": "19.2.7",

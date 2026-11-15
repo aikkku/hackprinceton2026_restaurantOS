@@ -3,6 +3,14 @@ import {
   propertyDetailResponseSchema,
   queryResponseSchema,
 } from "../../domain/local-data.ts";
+import {
+  runCandidatesPageSchema,
+  runSchema,
+  type RunCandidatesPage,
+  type RunRecord,
+} from "../../domain/runs.ts";
+import type { RestaurantIntake } from "../../domain/intake.ts";
+import type { CandidateFact } from "../../domain/matching.ts";
 import type { z } from "zod";
 
 export type Viewport = [number, number, number, number];
@@ -41,3 +49,55 @@ export function loadLocalArea({ cityId, bounds, budget, minimumArea, offset = 0,
 
 export const loadLocalProperty = (id: string, signal?: AbortSignal) =>
   request(`/api/expansion/properties/${encodeURIComponent(id)}`, propertyDetailResponseSchema, signal);
+
+// ---------------------------------------------------------------------------
+// Profile-driven citywide run client (Phase 2). The same run service backs
+// the browser flow; the acceptance e2e must not mock these routes.
+
+async function postJson<T>(url: string, body: unknown, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    signal,
+    cache: "no-store",
+  });
+  const parsed: unknown = await response.json();
+  if (!response.ok) {
+    const message = parsed && typeof parsed === "object" && "error" in parsed && parsed.error && typeof parsed.error === "object" && "message" in parsed.error && typeof parsed.error.message === "string"
+      ? parsed.error.message
+      : "The request failed.";
+    throw new LocalDataError(message, response.status);
+  }
+  return schema.parse(parsed);
+}
+
+export function createProfileRun(body: {
+  runId: string;
+  cityId: string;
+  intake: RestaurantIntake;
+  revisionId: string;
+  revisionNumber: number;
+  facts?: CandidateFact[];
+}, signal?: AbortSignal): Promise<RunRecord> {
+  return postJson("/api/expansion/runs", body, runSchema, signal);
+}
+
+export const getProfileRun = (runId: string, signal?: AbortSignal): Promise<RunRecord> =>
+  request(`/api/expansion/runs/${encodeURIComponent(runId)}`, runSchema, signal);
+
+export function getRunCandidatesRequest(
+  runId: string,
+  page: { offset?: number; limit?: number; group?: string | null } = {},
+  signal?: AbortSignal,
+): Promise<RunCandidatesPage> {
+  const params = new URLSearchParams();
+  if (page.offset !== undefined) params.set("offset", String(page.offset));
+  if (page.limit !== undefined) params.set("limit", String(page.limit));
+  if (page.group) params.set("group", page.group);
+  const query = params.size ? `?${params}` : "";
+  return request(`/api/expansion/runs/${encodeURIComponent(runId)}/candidates${query}`, runCandidatesPageSchema, signal);
+}
+
+export const cancelProfileRun = (runId: string, signal?: AbortSignal): Promise<RunRecord> =>
+  postJson(`/api/expansion/runs/${encodeURIComponent(runId)}/cancel`, {}, runSchema, signal);

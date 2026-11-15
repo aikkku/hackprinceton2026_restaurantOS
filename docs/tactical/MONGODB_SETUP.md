@@ -4,7 +4,7 @@
 
 Use **one database: `restaurantos`** for the whole application. `MONGODB_URI` and `MONGODB_DB` are shared server configuration names. Tactical currently owns only **`tactical_datasets`**. Rain can add Expansion collections inside the same database later; this implementation does not alter his data adapters or import his records.
 
-The Mongo connection helper lives in Tactical backend for now. Coordinate with Rain before promoting it to shared server infrastructure. The existing root frontend/domain/backend structure is retained.
+The verified Tactical Mongo connection helper lives in Tactical backend for now. Rain’s latest merged work also adds `src/lib/mongodb.ts`; it is preserved unchanged. Coordinate with Rain before consolidating the two clients, including the IPv4 setting verified here and the shared database name. Both can use the same Atlas URI; no second database is required. The existing frontend/domain/backend structure is retained.
 
 ## What is ready
 

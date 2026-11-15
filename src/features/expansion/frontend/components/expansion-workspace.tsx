@@ -52,9 +52,21 @@ import {
   type Weights,
 } from "../../domain/schemas.ts";
 import { persistScenarios, storageKeyFor } from "../storage.ts";
-import { loadLocalArea, loadLocalProperty, type Viewport } from "../data/local-market.ts";
+import {
+  cancelProfileRun,
+  createProfileRun,
+  getProfileRun,
+  getRunCandidatesRequest,
+  loadLocalArea,
+  loadLocalProperty,
+  LocalDataError as ClientDataError,
+  type Viewport,
+} from "../data/local-market.ts";
 import type { QueryCoverage } from "../../domain/local-data.ts";
 import { requirementDisplayValue, type ProfileRevision } from "../../domain/requirements.ts";
+import type { AssessedCandidate, CandidateGroup } from "../../domain/matching.ts";
+import type { ExcludedCandidate, RunRecord } from "../../domain/runs.ts";
+import { AssessmentList, RunSearch } from "./run-search";
 import { ScoutMap, type Selection } from "./map/scout-map";
 
 const money = (value: number | null) =>
@@ -78,6 +90,52 @@ const planningDraft = (property: ExpansionProperty): Draft => {
   const rent = baseRentMonthly(property.askingRent, property.floorAreaSqFt);
   return rent === null ? { ...toDraft({ baseRentMonthly: 0, passThroughMonthly: 750, otherFixedMonthly: 6000, contributionMargin: 0.35, initialInvestment: 90000, workingCapital: 25000, assumedSalesMonthly: null }), baseRentMonthly: "" } : toDraft(baselineFor(property));
 };
+
+/** Map a mappable run candidate to the shared property shape for map/list/inspector. */
+function candidateProperty(assessed: AssessedCandidate): ExpansionProperty {
+  const c = assessed.candidate;
+  const rent = c.rent;
+  let askingRent: ExpansionProperty["askingRent"] = null;
+  if (
+    rent &&
+    rent.low !== null &&
+    rent.high !== null &&
+    rent.low === rent.high &&
+    rent.currencyCode === 1 &&
+    rent.measurementCode === 1 &&
+    (rent.rateBasisCode === 1 || rent.rateBasisCode === 2)
+  ) {
+    askingRent = {
+      amount: rent.rateBasisCode === 1 ? rent.low * 12 : rent.low,
+      unit: "USD_PER_SF_YEAR",
+    };
+  }
+  const listingId = c.sourceIds.find((source) => source.startsWith("costar:listing:"))?.split(":").pop();
+  const spaceId = c.id.split(":").pop();
+  return {
+    id: c.id,
+    cityId: c.cityId,
+    h3Index: c.h3Index!,
+    name: c.name,
+    latitude: c.latitude!,
+    longitude: c.longitude!,
+    floorAreaSqFt: c.floorAreaSqFt,
+    askingRent,
+    availability: "unknown",
+    previousUse: null,
+    parkingSpaces: null,
+    sourceIds: c.sourceIds,
+    isDemo: false,
+    recordKind: "listing",
+    sourcePropertyId: c.propertyId,
+    sourceListingId: listingId ?? null,
+    sourceSpaceId: spaceId ?? null,
+    address: c.address,
+    propertyType: null,
+    recordDate: c.recordDate,
+    datasetDate: c.datasetDate,
+  };
+}
 
 export function ExpansionWorkspace({
   dataset: initialDataset,
@@ -133,6 +191,19 @@ export function ExpansionWorkspace({
   const analystRef = useRef<HTMLDialogElement>(null);
   const analystTrigger = useRef<HTMLButtonElement>(null);
   const restoreRequest = useRef<AbortController | null>(null);
+  // Profile-driven citywide run state (Phase 2).
+  const [run, setRun] = useState<RunRecord | null>(null);
+  const [runPhase, setRunPhase] = useState<"idle" | "starting" | "running" | "done" | "error">("idle");
+  const [runError, setRunError] = useState("");
+  const [runCandidates, setRunCandidates] = useState<AssessedCandidate[]>([]);
+  const [runExcluded, setRunExcluded] = useState<ExcludedCandidate[]>([]);
+  const [runExcludedTruncated, setRunExcludedTruncated] = useState(false);
+  const [runGroup, setRunGroup] = useState<CandidateGroup | null>(null);
+  const [runPage, setRunPage] = useState(0);
+  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const runIdRef = useRef<string | null>(null);
+  const mountedRef = useRef(true);
+  const runActive = run !== null && runPhase !== "idle";
   const budget = Number(budgetInput);
   const minimumArea = Number(minimumInput);
   const filtersValid =
@@ -146,13 +217,15 @@ export function ExpansionWorkspace({
   const areas = dataset.areas.filter((a) => a.cityId === cityId);
   const filteredProperties = useMemo(
     () =>
-      dataset.properties.filter(
-        (p) =>
-          p.cityId === cityId &&
-          filtersValid &&
-          (mode === "local" || propertyMatches(p, budget, minimumArea)),
-      ),
-    [dataset, cityId, filtersValid, budget, minimumArea, mode],
+      runActive
+        ? dataset.properties.filter((p) => p.cityId === cityId)
+        : dataset.properties.filter(
+            (p) =>
+              p.cityId === cityId &&
+              filtersValid &&
+              (mode === "local" || propertyMatches(p, budget, minimumArea)),
+          ),
+    [dataset, cityId, filtersValid, budget, minimumArea, mode, runActive],
   );
   const properties = filteredProperties.filter(
     (p) => !areaFilter || p.h3Index === areaFilter,
@@ -166,6 +239,9 @@ export function ExpansionWorkspace({
       a.h3Index ===
       (selection.kind === "area" ? selection.id : selectedProperty?.h3Index),
   ) ?? (detailArea?.h3Index === selectedProperty?.h3Index ? detailArea : undefined);
+  const selectedAssessment = runActive
+    ? runCandidates.find((item) => item.candidate.id === selectedProperty?.id) ?? null
+    : null;
   const relevantEvidence = [...new Map([...dataset.evidence, ...detailEvidence].map((item) => [item.id, item])).values()];
   const metadata = dataset.metadata ?? initialDataset.metadata;
   const areaResult = selectedArea
@@ -201,10 +277,133 @@ export function ExpansionWorkspace({
     if (analystOpen) analystRef.current?.showModal();
     else if (analystRef.current?.open) analystRef.current.close();
   }, [analystOpen]);
-  useEffect(() => () => restoreRequest.current?.abort(), []);
+  useEffect(() => {
+    // Set on setup so double-invoked effects (StrictMode-style) stay true;
+    // flipped only on true unmount.
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      restoreRequest.current?.abort();
+    };
+  }, []);
+
+  // Profile-driven run polling: status every ~700ms until terminal, then
+  // load the assessment pages. The candidates fetches intentionally carry no
+  // abort signal: the phase transition must never cancel applying results;
+  // only unmount does.
+  useEffect(() => {
+    const runId = runIdRef.current;
+    if (runPhase !== "running" || !runId) return;
+    let cancelled = false;
+    const controller = new AbortController();
+    const tick = async () => {
+      if (cancelled) return;
+      try {
+        const next = await getProfileRun(runId, controller.signal);
+        if (cancelled) return;
+        setRun(next);
+        if (
+          next.status === "completed" ||
+          next.status === "completed_with_gaps" ||
+          next.status === "failed" ||
+          next.status === "cancelled"
+        ) {
+          if (next.status === "failed") {
+            setRunError(next.error?.message ?? "The profile search failed.");
+          }
+          setRunPhase("done");
+          if (next.status !== "failed") {
+            try {
+              const first = await getRunCandidatesRequest(runId, { offset: 0, limit: 200 });
+              let all = [...first.candidates];
+              while (all.length < first.total && all.length < 1000) {
+                const page = await getRunCandidatesRequest(runId, { offset: all.length, limit: 200 });
+                if (!page.candidates.length) break;
+                all = [...all, ...page.candidates];
+              }
+              if (!mountedRef.current) return;
+              setRunCandidates(all);
+              setRunExcluded(first.excluded);
+              setRunExcludedTruncated(first.excludedTruncated);
+              setRunPage(0);
+              const mappable = all
+                .filter((item) => item.candidate.h3Index !== null && item.candidate.latitude !== null && item.candidate.longitude !== null)
+                .map(candidateProperty);
+              setDataset((current) => ({ ...current, areas: [], properties: mappable }));
+              const firstMeets = all.find((item) => item.group === "meets_assessed_requirements");
+              if (firstMeets) setSelection({ kind: "property", id: firstMeets.candidate.id });
+            } catch (failure) {
+              if (!mountedRef.current) return;
+              setRunError(failure instanceof Error ? failure.message : "The run results could not be read.");
+              setRunPhase("error");
+            }
+          }
+        } else {
+          pollTimer.current = setTimeout(() => {
+            void tick();
+          }, 700);
+        }
+      } catch (failure) {
+        if (!cancelled && !(failure instanceof DOMException && failure.name === "AbortError")) {
+          setRunError(failure instanceof Error ? failure.message : "The search status could not be read.");
+          setRunPhase("error");
+        }
+      }
+    };
+    void tick();
+    return () => {
+      cancelled = true;
+      controller.abort();
+      if (pollTimer.current) clearTimeout(pollTimer.current);
+    };
+  }, [runPhase]);
+
+  function startRun() {
+    if (!profile) return;
+    setRunError("");
+    setRunCandidates([]);
+    setRunExcluded([]);
+    setRunExcludedTruncated(false);
+    setRunGroup(null);
+    setRunPage(0);
+    setRunPhase("starting");
+    const runId = crypto.randomUUID();
+    runIdRef.current = runId;
+    void createProfileRun({
+      runId,
+      cityId,
+      intake: profile.revision.intakeSnapshot,
+      revisionId: profile.revision.revisionId,
+      revisionNumber: profile.revision.revisionNumber,
+    }).then((created) => {
+      setRun(created);
+      setRunPhase("running");
+    }).catch((failure: unknown) => {
+      setRunError(failure instanceof ClientDataError ? failure.message : "The profile search request failed.");
+      setRunPhase("error");
+    });
+  }
+
+  function cancelSearch() {
+    const runId = runIdRef.current;
+    if (!runId) return;
+    void cancelProfileRun(runId).catch((failure: unknown) => {
+      setRunError(failure instanceof ClientDataError ? failure.message : "The cancellation request failed.");
+    });
+  }
+
+  function newSearch() {
+    setRun(null);
+    setRunCandidates([]);
+    setRunExcluded([]);
+    setRunError("");
+    setRunGroup(null);
+    setRunPage(0);
+    startRun();
+  }
 
   useEffect(() => {
-    if (mode !== "local" || !filtersValid) return;
+    if (mode !== "local" || !filtersValid || runActive) return;
     const controller = new AbortController();
     const timer = setTimeout(() => {
       setQueryState("loading");
@@ -225,7 +424,7 @@ export function ExpansionWorkspace({
       });
     }, 200);
     return () => { clearTimeout(timer); controller.abort(); };
-  }, [mode, cityId, bounds, budget, minimumArea, offset, filtersValid, initialDataset.cities, queryAttempt]);
+  }, [mode, cityId, bounds, budget, minimumArea, offset, filtersValid, initialDataset.cities, queryAttempt, runActive]);
 
   useEffect(() => {
     if (mode !== "local" || selection.kind !== "property") return;
@@ -543,12 +742,14 @@ export function ExpansionWorkspace({
               onChange={(value) => { setBudgetInput(value); setOffset(0); }}
               suffix="USD / month"
               min={1}
+              disabled={runActive}
             />
             <NumericField
               label="Minimum space"
               value={minimumInput}
               onChange={(value) => { setMinimumInput(value); setOffset(0); }}
               suffix="sq ft"
+              disabled={runActive}
             />
             {!filtersValid && (
               <p role="alert" className="field-error">
@@ -557,7 +758,9 @@ export function ExpansionWorkspace({
               </p>
             )}
             <p className="small-note">
-              Budget filters base rent only. {mode === "local" ? "Unknown rent or size is included and must be verified." : "Unknown rent or size is excluded; availability may be unknown."}
+              {runActive
+                ? "The profile search drives the current map and list. Browse filters are disabled; panning changes the view, never the run results."
+                : `Budget filters base rent only. ${mode === "local" ? "Unknown rent or size is included and must be verified." : "Unknown rent or size is excluded; availability may be unknown."}`}
             </p>
             {mode === "local" && city.coverage && <p className="small-note">Market coverage: {number(city.coverage.propertyCount)} properties · {number(city.coverage.listingCount)} space/listing records · {number(city.coverage.mappableCount)} mappable records. Coverage describes this dataset, not all commercial space.</p>}
             <div className="rail-divider" />
@@ -606,15 +809,16 @@ export function ExpansionWorkspace({
           <div className="map-column">
             <div className="map-heading">
               <div>
-                <h2>{city.name} scouting grounds</h2>
+                <h2>{runActive ? `${city.name} profile matches` : `${city.name} scouting grounds`}</h2>
                 <span>
-                  {areas.length} analysis cells · {filteredProperties.length}{" "}
-                  {mode === "demo" ? "matching demo spaces" : "returned property/space records"}
+                  {runActive
+                    ? `${filteredProperties.length} assessed candidate spaces on the map`
+                    : `${areas.length} analysis cells · ${filteredProperties.length} ${mode === "demo" ? "matching demo spaces" : "returned property/space records"}`}
                 </span>
               </div>
               <span className="live-label">2D EXPLORER</span>
             </div>
-            {mode === "local" && <div className="query-status" role={queryState === "error" ? "alert" : "status"}>
+            {mode === "local" && !runActive && <div className="query-status" role={queryState === "error" ? "alert" : "status"}>
               {queryState === "loading" ? "Loading this map area… Previous results remain visible until the query finishes." : queryState === "error" ? <>{queryError} Previous results may be stale. <button className="text-button" onClick={() => setQueryAttempt((value) => value + 1)}>Retry area query</button></> : coverage ? <>Showing {coverage.returned ? coverage.offset + 1 : 0}–{coverage.offset + coverage.returned} of {number(coverage.totalMatching)} matching records in the queried bounds; maximum {coverage.limit} per page. {coverage.areasReturned} H3 cells for returned records{coverage.areasLimited ? " (additional matching cells are outside this page)" : ""}.</> : "Choose a supported market."}
               <div className="query-actions">
                 <button className="text-button" onClick={() => { setBounds(city.bounds); setOffset(0); setQueryAttempt((value) => value + 1); }}>Search whole supported market</button>
@@ -630,7 +834,7 @@ export function ExpansionWorkspace({
                 budget={scoringBudget}
                 selection={selection}
                 onSelect={select}
-                onViewportChange={mode === "local" ? (next) => { setBounds(next); setOffset(0); } : undefined}
+                onViewportChange={mode === "local" && !runActive ? (next) => { setBounds(next); setOffset(0); } : undefined}
               />
             ) : (
               <div className="empty-state">
@@ -638,22 +842,40 @@ export function ExpansionWorkspace({
               </div>
             )}
             <div className="map-legend">
-              <span>Area suitability</span>
-              <span>
-                <i className="legend-dot high" /> 70–100 Favorable
-              </span>
-              <span>
-                <i className="legend-dot mid" /> 40–69 Mixed
-              </span>
-              <span>
-                <i className="legend-dot low" /> 0–39 Less favorable
-              </span>
-              <span>
-                <i className="legend-dot unavailable" /> Unscored
-              </span>
+              <span>{runActive ? "Profile search pins" : "Area suitability"}</span>
+              {runActive ? (
+                <>
+                  <span>
+                    <i className="legend-dot high" /> Meets assessed requirements
+                  </span>
+                  <span>
+                    <i className="legend-dot mid" /> Needs verification
+                  </span>
+                  <span>
+                    <i className="legend-dot low" /> Does not meet
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span>
+                    <i className="legend-dot high" /> 70–100 Favorable
+                  </span>
+                  <span>
+                    <i className="legend-dot mid" /> 40–69 Mixed
+                  </span>
+                  <span>
+                    <i className="legend-dot low" /> 0–39 Less favorable
+                  </span>
+                  <span>
+                    <i className="legend-dot unavailable" /> Unscored
+                  </span>
+                </>
+              )}
             </div>
             <p className="map-footnote">
-              {mode === "local" ? "Real areas have no supported composite score. Counts and rents are individual snapshot metrics; they do not measure demand or competition." : "Coverage below 70% stays unscored. Partial coverage uses a lighter fill."} H3 cells are analysis regions, not neighborhood boundaries.
+              {runActive
+                ? "Pins are assessed candidate spaces from the full-city run. Panning or page size never changes the run results; excluded records stay in the excluded view."
+                : `${mode === "local" ? "Real areas have no supported composite score. Counts and rents are individual snapshot metrics; they do not measure demand or competition." : "Coverage below 70% stays unscored. Partial coverage uses a lighter fill."} H3 cells are analysis regions, not neighborhood boundaries.`}
             </p>
           </div>
           <aside
@@ -734,14 +956,25 @@ export function ExpansionWorkspace({
                 {snapshotFallback && <p className="warning">Dated saved property snapshot. The local source is unavailable.</p>}
                 {!filteredProperties.some(
                   (p) => p.id === selectedProperty.id,
-                ) && (
+                ) &&
+                  !runActive && (
                   <p className="warning">
                     This selection is outside the returned page, map bounds or filters. Its selected pin is retained; it may be outside the visible map.
                   </p>
                 )}
+                {runActive && selectedAssessment && (
+                  <AssessmentList assessed={selectedAssessment} />
+                )}
+                {runActive && !selectedAssessment && (
+                  <p className="small-note">
+                    This space is on the map but has no stored assessment in
+                    this run.
+                  </p>
+                )}
                 <p className="small-note">
-                  Base rent excludes pass-throughs. This property has no
-                  verified fit score, lease status, or permitted use.
+                  {runActive
+                    ? "The profile assessment above is deterministic and came from the full-city run. Active snapshot marketing does not verify current vacancy or permitted restaurant use."
+                    : "Base rent excludes pass-throughs. This property has no verified fit score, lease status, or permitted use."}
                 </p>
                 <button
                   className="primary full"
@@ -843,6 +1076,33 @@ export function ExpansionWorkspace({
         </section>
 
         <section className="discovery-lists">
+          {mode === "local" && (profile || runActive) ? (
+            <RunSearch
+              run={run}
+              phase={runPhase}
+              errorMessage={runError}
+              candidates={
+                runGroup
+                  ? runCandidates.filter((item) => item.group === runGroup)
+                  : runCandidates
+              }
+              excluded={runExcluded}
+              excludedTruncated={runExcludedTruncated}
+              group={runGroup}
+              onGroupChange={(next) => {
+                setRunGroup(next);
+                setRunPage(0);
+              }}
+              page={runPage}
+              onPageChange={setRunPage}
+              onStart={startRun}
+              onCancel={cancelSearch}
+              onRetry={newSearch}
+              onSelect={(candidateId) => select({ kind: "property", id: candidateId })}
+              selectedId={selection.kind === "property" ? selection.id : null}
+            />
+          ) : (
+          <>
           <div className="property-list-section" id="property-list">
             <div className="section-heading">
               <div>
@@ -952,6 +1212,8 @@ export function ExpansionWorkspace({
               })}
             </div>
           </details>
+          </>
+          )}
         </section>
 
         <section id="scenario-workbench" className="scenario-section">
@@ -1533,6 +1795,7 @@ function NumericField({
   max,
   step = "any",
   optional = false,
+  disabled = false,
 }: {
   label: string;
   value: string;
@@ -1542,6 +1805,7 @@ function NumericField({
   max?: number;
   step?: string;
   optional?: boolean;
+  disabled?: boolean;
 }) {
   const id = useId();
   return (
@@ -1555,6 +1819,7 @@ function NumericField({
         max={max}
         step={step}
         required={!optional}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
         aria-describedby={`${id}-unit`}
       />
