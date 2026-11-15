@@ -122,7 +122,22 @@ One change from the design below: for staffing, code picks the day guests **name
 
 ---
 
-## Step 4 — Line up the spread with what happened in the restaurant
+## Step 4 — Line up the spread with what happened in the restaurant · ✅ done
+
+Implemented as `restaurantEvents()`, `issueSpread()` and `alignmentHeadline()` in `domain/social-operations.ts`, plus an optional `operations.events` log in `domain/dataset.ts`. Each "Where to fix it" row has a daily strip: mention bars, a customer-groups-reached line, and event markers.
+
+- **Logged events:** the demo restaurant has one. On Nov 12, vented takeaway boxes went below reorder point and delivery orders were packed in flat boxes (`i34`). It's synthetic, like the rest of the fixture.
+- **Derived events:** schedule days where the floor ran above its orders-per-staff-hour target. That's every demo day except Wed, Nov 11.
+- **Rule as built:**
+  - Windows are equal-length before and after each event, up to 7 days, clipped to the sample.
+  - An event aligns only if mentions rose **and** the issue reached more customer groups than before **and** more than one.
+  - The "more than one group" condition was added during the build. Without it, weekend waits "aligned" with Friday's floor strain just by reappearing in their one group (0 → 1). That isn't spread.
+- **Demo result:**
+  - Packaging: "After Nov 12 · …: mentions 1 → 8, customer groups 1 → 4 (4 days before vs. after)".
+  - Wait time: shows 6 strain markers but never aligns.
+  - Pricing: no events.
+- No owner UI for logging events yet; they come from the dataset.
+- Per the no-explanation-text rule, the UI shows no methodology or "not proof of cause" notes. The wording "After" (never "because") and this doc carry that caveat.
 
 **Restaurant events, built from existing data:** `operationalEvents(operations)` in `social-operations.ts`.
 - **Low stock:** each below-threshold inventory item becomes an event dated at its `lastOrdered`. Label it honestly ("below threshold as of last order"), because there's no stock history.

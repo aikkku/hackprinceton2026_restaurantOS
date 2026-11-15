@@ -6,6 +6,7 @@ import { layoutLibrarySchema } from "./layout-library.ts";
 import { isScenarioReproducible } from "./scenario.ts";
 import { scenarioSchema, fixtureSchema } from "./schemas.ts";
 import { floorPlanDraftSchema } from "./analyze.ts";
+import { issueAreaSchema } from "./social.ts";
 
 export const restaurantIdSchema = z.string().regex(/^[a-z0-9][a-z0-9-]{0,79}$/);
 const id = z.string().min(1).max(120);
@@ -17,12 +18,14 @@ const inventory = z.object({ id, name: text, category: text, supplierId: id, cur
 export const menuItemSchema = z.object({ id, name: text, category: text, dineInPriceCents: cents, deliveryPriceCents: cents, ingredientCostCents: cents, packagingCostCents: cents, deliveryCommissionFraction: z.number().min(0).max(1), quantity: z.number().int().min(0).max(1_000_000) });
 export const transactionSchema = z.object({ id, date: z.iso.date(), description: text, kind: z.enum(["income", "expense"]), category: text, channel: z.enum(["dine-in", "delivery", "takeaway", "shared"]), amountCents: cents, sourceId: id });
 const competitor = z.object({ id, restaurant: text, menuItemId: id, item: text, priceCents: cents, observedOn: z.iso.date(), sourceId: id, approximate: z.boolean() });
+// Dated things that happened in the restaurant (a stockout, a supplier or price change), logged by the owner.
+export const restaurantEventSchema = z.object({ id, date: z.iso.date(), area: issueAreaSchema, label: text, recordId: id.optional() }).strict();
 export const datasetSchema = fixtureSchema.safeExtend({
   datasetVersion: z.literal(1),
   layoutConfigurations: layoutLibrarySchema,
   scenarioSnapshots: z.array(scenarioSchema).max(100),
   provenance: z.object({ origin: z.literal("synthetic"), sourceId: id, asOf: z.iso.date(), description: text }),
-  operations: z.object({ cashCalendar: cashCalendarSchema.optional(), financeReport: financeReportSchema.optional(), workforce: workforceSchema.optional(), currency: z.literal("USD"), employees: z.array(employee).max(100), suppliers: z.array(supplier).max(100), inventory: z.array(inventory).max(500), menu: z.array(menuItemSchema).max(500), transactions: z.array(transactionSchema).max(5000), competitors: z.array(competitor).max(500) }),
+  operations: z.object({ events: z.array(restaurantEventSchema).max(200).optional(), cashCalendar: cashCalendarSchema.optional(), financeReport: financeReportSchema.optional(), workforce: workforceSchema.optional(), currency: z.literal("USD"), employees: z.array(employee).max(100), suppliers: z.array(supplier).max(100), inventory: z.array(inventory).max(500), menu: z.array(menuItemSchema).max(500), transactions: z.array(transactionSchema).max(5000), competitors: z.array(competitor).max(500) }),
   photoPlans: z.object({ sample: floorPlanDraftSchema, blank: floorPlanDraftSchema, fallback: floorPlanDraftSchema }),
 }).superRefine((dataset, ctx) => {
   if (!restaurantIdSchema.safeParse(dataset.profile.id).success) ctx.addIssue({ code: "custom", path: ["profile", "id"], message: "Use a lowercase slug for restaurant ID." });
@@ -44,6 +47,8 @@ export const datasetSchema = fixtureSchema.safeExtend({
     if (workforce.demand.some(day => day.items.some(item => !menu.has(item.menuItemId)))) ctx.addIssue({ code: "custom", path: ["operations", "workforce"], message: "Demand must reference existing menu items." });
     if (dataset.operations.employees.some(employee => Math.abs(workforce.shifts.filter(shift => shift.employeeId === employee.id).reduce((sum, shift) => sum + shiftHours(shift), 0) - employee.hoursThisWeek) > .001)) ctx.addIssue({ code: "custom", path: ["operations", "employees"], message: "Roster hours must match the dated shifts." });
   }
+  const events = dataset.operations.events ?? [];
+  if (events.some(event => event.area === "supply" && event.recordId && !dataset.operations.inventory.some(item => item.id === event.recordId))) ctx.addIssue({ code: "custom", path: ["operations", "events"], message: "Supply events must reference existing inventory." });
   if (dataset.operations.inventory.some(i => !suppliers.has(i.supplierId))) ctx.addIssue({ code: "custom", path: ["operations", "inventory"], message: "Inventory must reference an existing supplier." });
   if (dataset.operations.competitors.some(c => !menu.has(c.menuItemId))) ctx.addIssue({ code: "custom", path: ["operations", "competitors"], message: "Comparisons must reference an existing menu item." });
   if ([...dataset.operations.transactions, ...dataset.operations.competitors].some(r => r.sourceId !== dataset.provenance.sourceId)) ctx.addIssue({ code: "custom", path: ["operations"], message: "Record source must match the dataset provenance." });

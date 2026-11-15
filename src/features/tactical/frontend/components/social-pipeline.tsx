@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { analyzeSocial, socialDatasetSchema, validateSemantics, type SocialDataset, type Semantics } from "../../domain/social";
-import { issueAction, issueReason, issueSignals, operationsLinksApply, rankIssues, rankingFormulas, rankingHeadline, type RankingKey } from "../../domain/social-operations";
+import { alignmentHeadline, issueAction, issueReason, issueSignals, issueSpread, operationsLinksApply, rankIssues, rankingFormulas, rankingHeadline, restaurantEvents, type IssueSpread, type RankingKey } from "../../domain/social-operations";
 import type { Dataset } from "../../domain/dataset";
 import type { AssistantTarget } from "../../domain/assistant";
 import demo from "../data/demo-social.json";
@@ -14,6 +14,26 @@ type Analysis = { semantics: Semantics; model: string; generatedAt: string; data
 function downloadJson(name: string, data: unknown) {
   const url = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: "application/json" }));
   const anchor = document.createElement("a"); anchor.href = url; anchor.download = name; anchor.click(); URL.revokeObjectURL(url);
+}
+const shortDate = (date: string) => new Date(`${date}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+function SpreadStrip({ spread, totalGroups, label }: { spread: IssueSpread; totalGroups: number; label: string }) {
+  if (!spread.days.length) return null;
+  const width = 600, base = 56, height = 44, step = width / spread.days.length;
+  const peak = Math.max(1, ...spread.days.map(day => day.mentions));
+  const groupY = (groups: number) => base - (totalGroups ? groups / totalGroups : 0) * height;
+  const line = spread.days.map((day, index) => `${index ? "L" : "M"}${index * step},${groupY(day.groupsSoFar)} L${(index + 1) * step},${groupY(day.groupsSoFar)}`).join(" ");
+  const x = (date: string) => (spread.days.findIndex(day => day.date === date) + 0.5) * step;
+  const first = spread.days[0], last = spread.days.at(-1)!;
+  return <div className="social-spread">
+    {spread.alignment && <p className="social-spread-headline">{alignmentHeadline(spread.alignment)}</p>}
+    <svg viewBox={`0 0 ${width} 72`} role="img" aria-label={`${label}: ${spread.days.reduce((sum, day) => sum + day.mentions, 0)} mentions ${shortDate(first.date)}–${shortDate(last.date)}, customer groups reached ${first.groupsSoFar} → ${last.groupsSoFar} of ${totalGroups}${spread.events.length ? `; ${spread.events.length} restaurant events` : ""}`}>
+      {spread.days.map((day, index) => day.mentions > 0 && <rect key={day.date} className="social-spread-bar" x={index * step + step * 0.2} width={step * 0.6} y={base - day.mentions / peak * height} height={day.mentions / peak * height}><title>{`${shortDate(day.date)}: ${day.mentions} mentions, ${day.groupsSoFar} groups reached`}</title></rect>)}
+      <path className="social-spread-groups" d={line} />
+      {spread.events.map(event => <line key={event.id} data-event={event.id} className={`social-spread-event ${spread.alignment?.event.id === event.id ? "is-aligned" : ""}`} x1={x(event.date)} x2={x(event.date)} y1={4} y2={base}><title>{`${shortDate(event.date)} · ${event.label}`}</title></line>)}
+      <text x={0} y={70}>{shortDate(first.date)}</text><text x={width} y={70} textAnchor="end">{shortDate(last.date)}</text>
+    </svg>
+    <div className="social-spread-legend"><span className="key-mentions">Mentions per day</span><span className="key-groups">Customer groups reached</span>{spread.events.length > 0 && <span className="key-events">Restaurant events</span>}</div>
+  </div>;
 }
 export function SocialPipeline({ restaurantId, dataset: restaurant, onLocate }: { restaurantId: string; dataset?: Dataset; onLocate?: (target: AssistantTarget) => void }) {
   const [dataset, setDataset] = useState<SocialDataset>(sample); const [analysis, setAnalysis] = useState<Analysis | null>(null);
@@ -30,10 +50,12 @@ export function SocialPipeline({ restaurantId, dataset: restaurant, onLocate }: 
   const actions = useMemo(() => {
     if (!analysis || !restaurant || !linksApply) return [];
     const texts = new Map(dataset.messages.map(message => [message.id, message.text]));
+    const events = restaurantEvents(restaurant);
     return issues.filter(issue => issue.negativeMentions > 0).map(issue => {
       const meta = analysis.semantics.topics.find(item => item.id === issue.topicId)!;
-      const topicMessages = metrics.topics.find(item => item.id === issue.topicId)!.messageIds.map(id => texts.get(id)!);
-      return { issue, action: issueAction(meta.area, topicMessages, restaurant) };
+      const topicMetrics = metrics.topics.find(item => item.id === issue.topicId)!;
+      const action = issueAction(meta.area, topicMetrics.messageIds.map(id => texts.get(id)!), restaurant);
+      return { issue, action, spread: issueSpread(topicMetrics.timeline, dataset, events, action) };
     });
   }, [analysis, restaurant, linksApply, dataset, issues, metrics]);
   const topic = metrics.topics.find(item => item.id === topicId);
@@ -83,7 +105,7 @@ export function SocialPipeline({ restaurantId, dataset: restaurant, onLocate }: 
   function save() { try { localStorage.setItem(storageKey, JSON.stringify(dataset)); setStatus("Conversation saved in this browser. Download the analysis report to retain AI results."); setError(""); } catch { setError("Could not save in this browser. Download the dataset instead."); } }
   function reopen() { try { const raw = localStorage.getItem(storageKey); if (!raw || raw.length > 512 * 1024) throw new Error(); replace(socialDatasetSchema.parse(JSON.parse(raw))); setStatus("Saved conversation reopened. Run AI again to interpret content."); } catch { setError("No valid saved conversation found. Current work is unchanged."); } }
   return <section className="sponsor-tool social-pipeline" aria-label="Content and connectivity pipeline">
-    <div className="section-header"><div><h3>What is being said—and who connects the conversation?</h3><p>Arlequin Track 2 · content + connectivity</p></div></div>
+    <div className="section-header"><div><h3>What is being said—and who connects the conversation?</h3></div></div>
     <ol className="social-steps"><li>Load messages + relationships</li><li>Calculate actor groups</li><li>Interpret message content</li><li>Join topics to connections</li></ol>
     <details><summary>Choose data, import or reopen</summary><div className="network-import"><p>Use the restaurant conversation, load a public Hacker News story, or import your own normalized messaging JSON. Maximum 40 messages. Public discussion is external context, not evidence about your restaurant’s customers.</p>
       <label>Hacker News story ID<input inputMode="numeric" pattern="[0-9]+" value={storyId} onChange={event => setStoryId(event.target.value)} /></label>
@@ -106,21 +128,20 @@ export function SocialPipeline({ restaurantId, dataset: restaurant, onLocate }: 
     {analysis && <section className="ai-surface social-fix-first" aria-label="Fix first">
       <h3>Fix first</h3>
       <p className="social-fix-headline">{rankingHeadline(issues)}</p>
-      <div className="transaction-table-wrap"><table className="transaction-table"><caption>Issues ranked three ways. Topics and tone come from AI; every count comes from source messages and reply/repost records.</caption>
-        <thead><tr><th scope="col">Issue</th><th scope="col">Why</th>{(["content", "connectivity", "combined"] as RankingKey[]).map(key => <th scope="col" className="social-rank" key={key}>{rankingFormulas[key].label}</th>)}<th scope="col" className="social-rank">Messages</th></tr></thead>
+      <div className="transaction-table-wrap"><table className="transaction-table">        <thead><tr><th scope="col">Issue</th><th scope="col">Why</th>{(["content", "connectivity", "combined"] as RankingKey[]).map(key => <th scope="col" className="social-rank" key={key}>{rankingFormulas[key].label}</th>)}<th scope="col" className="social-rank">Messages</th></tr></thead>
         <tbody>{issues.map(issue => { const shift = issue.ranks.content - issue.ranks.combined; return <tr key={issue.topicId} data-issue={issue.topicId}>
           <th scope="row">{issue.label}</th><td>{issueReason(issue)}</td>
           <td className="social-rank">#{issue.ranks.content}</td><td className="social-rank">#{issue.ranks.connectivity}</td>
           <td className="social-rank"><strong>#{issue.ranks.combined}</strong>{shift !== 0 && <span className={`social-rank-shift ${shift > 0 ? "up" : "down"}`}>{shift > 0 ? "↑" : "↓"}{Math.abs(shift)} vs. text only</span>}</td>
           <td className="social-rank"><button className="button ai-button compact" onClick={() => { setTopicId(issue.topicId); setGroupId(""); setQuery(""); }} aria-label={`Trace ${issue.label}`}>Trace</button></td>
         </tr>; })}</tbody></table></div>
-      {linksApply ? actions.length > 0 && <div className="social-fix-actions" aria-label="Where to fix it" role="group"><h4>Where to fix it</h4><ol>{actions.map(({ issue, action }) => <li key={issue.topicId} data-action-issue={issue.topicId}>
+      {linksApply ? actions.length > 0 && <div className="social-fix-actions" aria-label="Where to fix it" role="group"><h4>Where to fix it</h4><ol>{actions.map(({ issue, action, spread }) => <li key={issue.topicId} data-action-issue={issue.topicId}>
         <span className="social-fix-issue">#{issue.ranks.combined} {issue.label}</span>
         {action ? <><span className="social-fix-record"><b>{action.page} · {action.record}</b><small>{action.detail}</small></span><button className="button secondary compact" onClick={() => onLocate!(action.target)}>Open in {action.page}</button></>
           : <span className="social-fix-record"><small>No matching record in this restaurant&apos;s data.</small></span>}
-      </li>)}</ol><p>AI chose each issue&apos;s area (staffing, supply, pricing, food or floor). Code picked the record from words guests wrote and shows only stored values.</p></div>
-        : <p>Operations links apply only to this restaurant&apos;s own customer conversation, not public discussions.</p>}
-      <details><summary>How the rankings are calculated</summary><ul>{(Object.keys(rankingFormulas) as RankingKey[]).map(key => <li key={key}><strong>{rankingFormulas[key].label}:</strong> {rankingFormulas[key].formula}.</li>)}</ul><p>Ties fall back to the issue name. Groups are calculated from this sample&apos;s reply/repost structure, so reach describes this conversation, not every customer.</p></details>
+        <SpreadStrip spread={spread} totalGroups={issue.totalGroups} label={issue.label} />
+      </li>)}</ol></div>
+        : null}
     </section>}
     {analysis && <section className="ai-surface social-joined" aria-label="Content connectivity findings"><h3>Where AI themes meet observed connections</h3><p>Counts below are calculated from AI topic labels plus explicit reply/repost records. Same-topic replies show linked discussion; they do not prove adoption or information spread.</p>{metrics.topics.map(item => <article key={item.id}><h4>{item.label}</h4><p>{item.description}</p><p>{item.messageIds.length} messages · {item.actorCount} actors · {item.groups.filter(group => group.count).length} structural groups · {item.crossGroupLinks.length} same-topic cross-group interactions</p><button className="button ai-button compact" onClick={() => { setTopicId(item.id); setGroupId(""); setQuery(""); }}>Trace this theme</button><details><summary>Explicit message paths · {item.conversationLinks.length}</summary>{item.conversationLinks.map(link => <p key={link.messageId}><button className="button ai-button compact" onClick={() => setSelectedMessage(link.messageId)}>{link.parentId} → {link.messageId}</button> · {link.kind} · {link.timestamp}</p>)}{!item.conversationLinks.length && <p>Shared content only; no explicit same-topic message path in this sample.</p>}</details></article>)}</section>}
     <div className="assumption-grid"><label>Theme filter<select value={topicId} onChange={event => setTopicId(event.target.value)}><option value="">All themes</option>{metrics.topics.map(item => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label><label>Community filter<select value={groupId} onChange={event => setGroupId(event.target.value)}><option value="">All groups</option>{metrics.groups.map(group => <option key={group.id}>{group.id}</option>)}</select></label><label>Search message text<input type="search" value={query} onChange={event => setQuery(event.target.value)} /></label></div>

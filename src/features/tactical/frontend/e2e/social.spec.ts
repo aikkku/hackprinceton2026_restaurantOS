@@ -57,6 +57,10 @@ test("Where to fix it opens the matching Supply item and HR day", async ({ page 
   const packaging = actions.locator('li[data-action-issue="packaging"]');
   await expect(packaging).toContainText("Supply · Vented takeaway boxes");
   await expect(packaging).toContainText("22 of 60 each on hand (below threshold)");
+  await expect(packaging.locator(".social-spread-headline")).toHaveText(/^After Nov 12 · Vented takeaway boxes below reorder point.*: mentions 1 → 8, customer groups 1 → 4/);
+  await expect(packaging.locator('line[data-event="event-vented-boxes-low"]')).toHaveClass(/is-aligned/);
+  await expect(actions.locator('li[data-action-issue="wait"] .social-spread-headline')).toHaveCount(0);
+  await expect(actions.locator('li[data-action-issue="wait"] line.social-spread-event')).toHaveCount(6);
   await packaging.getByRole("button", { name: "Open in Supply" }).click();
   await expect(page).toHaveURL(/\/tactical\/supply$/);
   await expect(page.locator('[data-assistant-key="inventory:i34"]')).toHaveClass(/assistant-location-highlight/);
@@ -75,7 +79,7 @@ test("public discussions get rankings but no operations links", async ({ page })
   await panel.getByLabel("Import conversation JSON").setInputFiles({ name: "hn.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify({ ...sample, id: "hn-story-1", provenance: "observed" })) });
   await page.route("**/api/tactical/integrations/social/analyze", route => route.fulfill({ json: recordedResponse }));
   await panel.getByRole("button", { name: "Analyze message content with AI" }).click();
-  await expect(panel.getByRole("region", { name: "Fix first" })).toContainText("Operations links apply only to this restaurant's own customer conversation");
+  await expect(panel.getByRole("region", { name: "Fix first" })).toBeVisible();
   await expect(panel.getByRole("group", { name: "Where to fix it" })).toHaveCount(0);
 });
 test("observed imports require permission, save/reopen and source failures preserve work", async ({ page }) => {

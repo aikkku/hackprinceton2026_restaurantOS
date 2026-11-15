@@ -459,6 +459,15 @@
     "description": "Fictional Juniper Table demo with June–November 2026 sales and expenses, sample service feedback, staff schedules, stock, menus and comparable prices."
   },
   "operations": {
+    "events": [
+      {
+        "id": "event-vented-boxes-low",
+        "date": "2026-11-12",
+        "area": "supply",
+        "recordId": "i34",
+        "label": "Vented takeaway boxes below reorder point; delivery orders packed in flat boxes"
+      }
+    ],
     "currency": "USD",
     "employees": [
       {

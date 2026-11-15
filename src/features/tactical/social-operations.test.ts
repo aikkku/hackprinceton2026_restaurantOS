@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { analyzeSocial, socialDatasetSchema, validateSemantics, type Semantics } from "./domain/social.ts";
-import { issueAction, issueReason, issueSignals, operationsLinksApply, rankIssues, rankingHeadline } from "./domain/social-operations.ts";
+import { alignmentHeadline, issueAction, issueReason, issueSignals, issueSpread, operationsLinksApply, rankIssues, rankingHeadline, restaurantEvents } from "./domain/social-operations.ts";
 import { datasetSchema } from "./domain/dataset.ts";
 
 const read = (name: string) => JSON.parse(readFileSync(new URL(`./frontend/data/${name}`, import.meta.url), "utf8"));
@@ -74,4 +74,35 @@ test("routing fails closed: unknown words, other areas, missing workforce and pu
   assert.equal(quiet.target.id, "2026-11-10"); assert.match(quiet.detail, /no weekday named by guests$/);
   assert.equal(issueAction("floor", [], restaurant)!.target.page, "floor");
   assert.equal(operationsLinksApply(sample), true); assert.equal(operationsLinksApply({ ...sample, id: "hn-story-42302171" }), false);
+});
+
+const spreadFor = (id: string, dataset = restaurant) => {
+  const analysis = analyzeSocial(sample, recorded);
+  return issueSpread(analysis.topics.find(topic => topic.id === id)!.timeline, sample, restaurantEvents(dataset), issueAction(recorded.topics.find(topic => topic.id === id)!.area, topicTexts(id), dataset));
+};
+
+test("restaurant events combine the logged stock event with floor-strain schedule days", () => {
+  const events = restaurantEvents(restaurant);
+  assert.deepEqual(events.filter(event => event.source === "logged").map(event => [event.date, event.recordId]), [["2026-11-12", "i34"]]);
+  // Every demo week day except Wednesday (5.17) is above the target of 6 orders per floor-staff hour.
+  assert.deepEqual(events.filter(event => event.source === "schedule").map(event => event.date), ["2026-11-09", "2026-11-10", "2026-11-12", "2026-11-13", "2026-11-14", "2026-11-15"]);
+  assert.deepEqual(restaurantEvents({ ...restaurant, operations: { ...restaurant.operations, workforce: undefined, events: undefined } }), []);
+});
+
+test("packaging spread aligns with the boxes event; contained wait-time complaints never align", () => {
+  const packaging = spreadFor("packaging");
+  assert.equal(packaging.days.length, 15); assert.equal(packaging.days.at(-1)!.groupsSoFar, 4);
+  assert.deepEqual(packaging.events.map(event => event.id), ["event-vented-boxes-low"]);
+  assert.deepEqual(packaging.alignment && { id: packaging.alignment.event.id, days: packaging.alignment.days, before: packaging.alignment.before, after: packaging.alignment.after },
+    { id: "event-vented-boxes-low", days: 4, before: { mentions: 1, groups: 1 }, after: { mentions: 8, groups: 4 } });
+  assert.equal(alignmentHeadline(packaging.alignment!), "After Nov 12 · Vented takeaway boxes below reorder point; delivery orders packed in flat boxes: mentions 1 → 8, customer groups 1 → 4 (4 days before vs. after)");
+  const wait = spreadFor("wait");
+  assert.equal(wait.events.length, 6); assert.equal(wait.alignment, null);
+  assert.equal(spreadFor("pricing").alignment, null); assert.deepEqual(spreadFor("pricing").events, []);
+});
+
+test("events outside the sample, for other records, or without data never align", () => {
+  const moved = { ...restaurant, operations: { ...restaurant.operations, events: [{ id: "late", date: "2026-11-20", area: "supply" as const, label: "Late", recordId: "i34" }, { id: "other", date: "2026-11-12", area: "supply" as const, label: "Other item", recordId: "i35" }] } };
+  assert.equal(spreadFor("packaging", moved).alignment, null); assert.deepEqual(spreadFor("packaging", moved).events, []);
+  assert.deepEqual(issueSpread([], { ...sample, messages: [] }, restaurantEvents(restaurant), null), { days: [], events: [], alignment: null });
 });

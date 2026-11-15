@@ -148,3 +148,59 @@ export function issueAction(area: IssueArea, texts: string[], dataset: Dataset):
 
 // Public discussions (Hacker News) are not this restaurant's customers, so they get rankings but no operations links.
 export const operationsLinksApply = (data: SocialDataset) => !data.id.startsWith("hn-story-");
+
+// ---- Step 4: line up an issue's spread with dated restaurant events ----
+export type RestaurantEvent = { id: string; date: string; area: IssueArea; label: string; recordId: string | null; source: "logged" | "schedule" };
+export type SpreadDay = { date: string; mentions: number; groupsSoFar: number };
+export type Window = { mentions: number; groups: number };
+export type Alignment = { event: RestaurantEvent; days: number; before: Window; after: Window };
+export type IssueSpread = { days: SpreadDay[]; events: RestaurantEvent[]; alignment: Alignment | null };
+
+const dayOf = (timestamp: string) => timestamp.slice(0, 10);
+const addDays = (date: string, days: number) => new Date(Date.parse(`${date}T00:00:00Z`) + days * DAY).toISOString().slice(0, 10);
+const daysBetween = (from: string, to: string) => Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY);
+
+// Logged owner events plus schedule days where the floor ran above its orders-per-staff-hour target.
+export function restaurantEvents(dataset: Dataset): RestaurantEvent[] {
+  const logged: RestaurantEvent[] = (dataset.operations.events ?? []).map(event => ({ ...event, recordId: event.recordId ?? null, source: "logged" }));
+  let strain: RestaurantEvent[] = [];
+  try {
+    const target = dataset.operations.workforce!.assumptions.targetOrdersPerFloorHour;
+    strain = workforceMetrics(dataset).days.filter(day => day.peakOrdersPerFloorHour !== null && day.peakOrdersPerFloorHour > target)
+      .map(day => ({ id: `floor-strain-${day.date}`, date: day.date, area: "staffing", label: `Floor at ${day.peakOrdersPerFloorHour} peak orders per staff hour (target ${target})`, recordId: day.date, source: "schedule" }));
+  } catch { strain = []; }
+  return [...logged, ...strain].sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
+}
+
+// Equal windows before and after each event (up to 7 days, clipped to the sample). An event aligns only if
+// mentions rose and the issue reached more customer groups than before, and more than one (0 → 1 is not spread).
+// This reports timing, never cause.
+export function issueSpread(timeline: { timestamp: string; groupId: string }[], data: SocialDataset, events: RestaurantEvent[], action: IssueAction | null): IssueSpread {
+  if (!data.messages.length) return { days: [], events: [], alignment: null };
+  const stamps = data.messages.map(message => dayOf(message.timestamp)).sort();
+  const start = stamps[0], end = stamps.at(-1)!;
+  const seen = new Set<string>();
+  const days = Array.from({ length: daysBetween(start, end) + 1 }, (_, index) => {
+    const date = addDays(start, index); const today = timeline.filter(item => dayOf(item.timestamp) === date);
+    for (const item of today) seen.add(item.groupId);
+    return { date, mentions: today.length, groupsSoFar: seen.size };
+  });
+  const relevant = action ? events.filter(event => event.area === action.area && event.date >= start && event.date <= end
+    && (event.source !== "logged" || !event.recordId || event.recordId === action.target.id)) : [];
+  const count = (from: string, to: string): Window => {
+    const items = timeline.filter(item => { const date = dayOf(item.timestamp); return date >= from && date <= to; });
+    return { mentions: items.length, groups: new Set(items.map(item => item.groupId)).size };
+  };
+  const candidates = relevant.flatMap(event => {
+    const length = Math.min(7, daysBetween(event.date, end) + 1, daysBetween(start, event.date));
+    if (length < 1) return [];
+    const before = count(addDays(event.date, -length), addDays(event.date, -1)), after = count(event.date, addDays(event.date, length - 1));
+    return after.mentions > before.mentions && after.groups > Math.max(before.groups, 1) ? [{ event, days: length, before, after }] : [];
+  }).sort((a, b) => (b.after.groups - b.before.groups) - (a.after.groups - a.before.groups) || (b.after.mentions - b.before.mentions) - (a.after.mentions - a.before.mentions) || a.event.date.localeCompare(b.event.date));
+  return { days, events: relevant, alignment: candidates[0] ?? null };
+}
+
+export function alignmentHeadline(alignment: Alignment) {
+  const date = new Date(`${alignment.event.date}T12:00:00Z`).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+  return `After ${date} · ${alignment.event.label}: mentions ${alignment.before.mentions} → ${alignment.after.mentions}, customer groups ${alignment.before.groups} → ${alignment.after.groups} (${alignment.days} days before vs. after)`;
+}
