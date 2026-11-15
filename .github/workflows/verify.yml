@@ -23,6 +23,11 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: node --test deploy/vultr/preflight.test.mjs
+      - name: Test automatic deployment decisions and rollback
+        run: |
+          python3 -m unittest discover -s deploy/vultr -p 'test_*.py' -v
+          bash -n deploy/vultr/install-autodeploy.sh
+          systemd-analyze verify deploy/vultr/restaurantos-deploy.service deploy/vultr/restaurantos-deploy.timer
       - name: Validate Compose without secrets
         run: docker compose -f deploy/vultr/compose.yaml config --quiet
         env:

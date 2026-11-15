@@ -1,0 +1,11 @@
+[Unit]
+Description=Check for verified RestaurantOS updates every two minutes
+
+[Timer]
+OnBootSec=90s
+OnUnitInactiveSec=2min
+AccuracySec=10s
+Unit=restaurantos-deploy.service
+
+[Install]
+WantedBy=timers.target

@@ -1,6 +1,6 @@
 # RestaurantOS deployment on Vultr
 
-Prepared November 15, 2026. This hosts **both Tactical and Expansion** on one long-running Linux machine. It does not replace MongoDB Atlas, Gemini or Nessie. No cloud instance has been provisioned by this work.
+Updated November 15, 2026. This hosts **both Tactical and Expansion** on one long-running Linux machine. The owner deployed the app on Vultr at `https://sproutmy.biz` and confirmed a healthy app container and HTTPS 200 response. MongoDB/provider readiness is a separate check. Vultr hosts the app; MongoDB Atlas, Gemini and Nessie remain external services.
 
 ## Why Vultr fits
 
@@ -23,6 +23,8 @@ Start with Ubuntu 24.04 x86_64, 2 vCPU, 4 GB RAM and at least 30 GB available di
 | `deploy/vultr/smoke.mjs` | Disposable fixture-only image verification with no external provider requests |
 | `src/app/api/health/route.ts` | Non-sensitive liveness endpoint; does not imply DB/AI readiness |
 | `.github/workflows/verify.yml` | Linux lint/unit/config/image/smoke checks; does not deploy or receive production secrets |
+| `deploy/vultr/autodeploy.py`, `test_autodeploy.py` | Pull-based deployment of verified main commits, health rollback and local failure tests |
+| `deploy/vultr/install-autodeploy.sh`, `restaurantos-deploy.{service,timer}` | One-time root installation and two-minute systemd polling on Vultr |
 
 Rain's module and `deploy/expansion/` remain unchanged by the deployment preparation. This image includes his existing worker plus the pinned `python-dotenv` dependency already required by the shared source helper, and follows the [Expansion runbook](expansion/RELEASE_RUNBOOK.md). It keeps full source because the worker, helpers and CLI tools resolve filesystem paths; it deliberately does not use Next standalone tracing.
 
@@ -100,6 +102,55 @@ The smoke script needs Node 24 on the host and only uses synthetic data/temporar
 
 ## Update and rollback
 
+### Automatic deployment (recommended for the current public repository)
+
+Push to `main` → GitHub **Verify application and deployment** succeeds for that exact commit → Vultr notices within approximately two minutes → builds the committed source → replaces the app → waits up to 180 seconds for container health. Building leaves the current app running; replacing the single app container can briefly interrupt requests and active streams. A healthy container proves liveness, not database/AI readiness or functional correctness. No live provider tests or data writes are added by the deployer.
+
+The server polls GitHub's [workflow-runs API](https://docs.github.com/en/rest/actions/workflow-runs), matching the latest run for the exact SHA, repository, `main` branch and `push` event. Pending, cancelled, failed, missing and unavailable checks fail closed. PR/manual workflow runs do not authorize a release. It rechecks both main and CI after building to avoid publishing a superseded commit. CI builds and smokes its own image; Vultr rebuilds the same verified source, not a byte-identical CI artifact. Only maintainers authorized to release should be able to push/merge main or edit its verification workflow.
+
+This public repository needs no GitHub token, inbound webhook, new SSH key or firewall change. Production secrets stay in `/opt/restaurantos/runtime.env`. The [systemd timer](https://www.freedesktop.org/software/systemd/man/latest/systemd.timer.html) runs again two minutes after the previous attempt ends, serializes execution with a file lock, and starts after reboot. GitHub rate limits/outages postpone deployment. The existing checkout is fetched but not reset/checked out; builds use a temporary archive of the verified commit, protecting local files and the Caddy bind mount.
+
+**One-time activation on the already healthy Vultr server:**
+
+```sh
+cd /opt/restaurantos/app
+git pull --ff-only origin main
+bash deploy/vultr/install-autodeploy.sh
+systemctl status restaurantos-deploy.timer --no-pager
+journalctl -u restaurantos-deploy -f
+```
+
+Press Ctrl+C to exit logs; this does not stop deployment. The installer recovers the existing domain/email from Caddy, writes non-secret configuration to `/etc/restaurantos-deploy.json` and installs fixed deployment controls under `/usr/local/lib/restaurantos` and `/opt/restaurantos/deployment`. It does not print application credentials. State is in `/var/lib/restaurantos-deploy`; the first run deliberately deploys a verified commit rather than assuming the original manual image matches Git HEAD. No database seeding, volume deletion or dependency on interactive shell exports is involved.
+
+**After activation:** pushing to main is sufficient. Watch GitHub Actions for verification and the journal for actual deployment. GitHub success alone is not proof the server deployed. Check the installed SHA with:
+
+```sh
+cat /var/lib/restaurantos-deploy/current.json
+journalctl -u restaurantos-deploy -n 60 --no-pager
+curl --fail https://sproutmy.biz/api/health
+```
+
+**Failure and recovery:** before replacement the currently running image is retained as `restaurantos:rollback`. Failed health checks restore it and mark the release failed. The same failed commit is not rebuilt repeatedly; a new push can proceed, or fix the server configuration/disk and retry explicitly. A journaled pending replacement is recovered after interruption/reboot. If rollback also fails, the recovery record remains for the next attempt and the service reports failure. App rollback cannot undo database writes/migrations or interrupted worker jobs.
+
+```sh
+# Retry a failed commit after correcting the cause (shares the service lock):
+python3 /usr/local/lib/restaurantos/autodeploy.py --retry
+# Pause automatic updates without stopping the app or an in-progress deployment:
+systemctl stop restaurantos-deploy.timer
+# Disable across reboots as well:
+systemctl disable restaurantos-deploy.timer
+# Resume:
+systemctl enable --now restaurantos-deploy.timer
+```
+
+Changes to application code and its Dockerfile deploy automatically. Infrastructure changes (Compose, Caddy, installer, timer or deployment script) deliberately require an explicit installer update/review; the app-only deployer does not restart Caddy or silently change ports, volumes or secrets. The installed Compose snapshot is used for app updates. Do not mix manual `restaurantos:local` deployment commands with this service; pause it first. On infrastructure changes coordinate the app and proxy settings before resuming.
+
+Monitor `df -h` and `docker system df`; builds need space and memory alongside the live app. The deployer stops a build below 8 GiB free on the temporary filesystem. Image/build-cache cleanup is manual: retain the running and `restaurantos:rollback` images and all data/certificate volumes. No broad Docker prune is scheduled. For a larger workload, build once in CI and deploy a registry digest instead of building on the 4 GB VM.
+
+Local activation cannot be assumed from committing these files. The owner must run the installer and confirm its journal; this environment's SSH key was rejected by the server. No production service has been changed by the local implementation.
+
+### Manual deployment (pause the timer first when installed)
+
 Before updating, retain the current image tag and back up state. Fetch/fast-forward Git, choose the new commit tag, build, then `up -d --wait`. This is a single-instance hackathon deployment; brief downtime is possible.
 
 ```sh
@@ -116,3 +167,5 @@ To roll back, set `APP_IMAGE_TAG` to a previously built tag and run `up -d --no-
 Local verification passed: 306 application unit tests (one existing skip), four deployment configuration tests, all 96 Tactical Chromium/Firefox checks, lint (one existing Expansion warning), typecheck and production build. The Linux ARM64 image built and passed the disposable container smoke: six page routes, authenticated local chat-history read, Python worker/source-helper imports and non-root volume writes. Compose and Caddy configuration validation passed; the image excludes local environment files, Git history and restricted source data. The workflow also prepares the same image/smoke checks on GitHub’s Linux x86_64 runner; hosted CI status is separate from these local results. Public DNS/TLS, Vultr provisioning, credit eligibility, Atlas access from Vultr, live model/chat writes and Rain's private dataset readiness require the actual deployment environment. This is a prepared hackathon/pilot deployment, not a claim of production multi-tenant identity or distributed worker orchestration.
 
 Field note: deploy the full repository runtime when a Next app spawns Python modules and reads private SQLite; a frontend-only export loses these capabilities. Keep private inputs mounted and secrets out of build context. ChatOverflow CLI/config are unavailable in this environment, so this note is retained here.
+
+Automatic deployment field note: bind deployment approval to the exact push SHA and newest verification run, and recheck after a server build. Preserve a rollback image and journal replacement before changing the container. A public-repo pull timer avoids distributing production SSH credentials to CI; keep runtime state and control files outside disposable build sources. Tests cover failed/missing/stale CI, build errors, health rollback, retry and interrupted replacement. ChatOverflow remains unavailable (`command not found`).
