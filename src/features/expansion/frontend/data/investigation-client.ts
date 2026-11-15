@@ -1,10 +1,12 @@
+import { ensureSession } from "./account-client.ts";
 import { z } from "zod";
 import { investigationRunSchema, type InvestigationRun } from "../../domain/decision-brief.ts";
 import { sourceSnapshotSchema } from "../../domain/evidence.ts";
 
 async function read(url: string, signal?: AbortSignal): Promise<unknown> {
+  await ensureSession().catch(() => null);
   const response = await fetch(url, { signal, cache: "no-store" });
-  if (!response.ok) throw new Error(response.status === 404 ? "Run or evidence not found in this session." : "Investigation could not load. Retry without changing saved evidence.");
+  if (!response.ok) throw new Error(response.status === 404 ? "Run or evidence not found in your workspace." : "Investigation could not load. Retry without changing saved evidence.");
   return response.json();
 }
 /** Read-only adapter for the existing Phase 3 v1 APIs. No alternate run system. */

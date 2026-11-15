@@ -1,3 +1,4 @@
+import { ensureSession } from "./account-client.ts";
 import {
   agentCapabilitiesSchema,
   agentRunRecordSchema,
@@ -23,6 +24,7 @@ export class AgentClientError extends Error {
 }
 
 async function request<T>(url: string, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
+  await ensureSession().catch(() => null);
   const response = await fetch(url, { signal, cache: "no-store" });
   const body: unknown = await response.json();
   if (!response.ok) {
@@ -65,6 +67,7 @@ async function postAgentRun(
   body: unknown,
   signal?: AbortSignal,
 ): Promise<AgentRunRecord> {
+  await ensureSession().catch(() => null);
   const response = await fetch("/api/expansion/agent-runs", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -89,6 +92,7 @@ export const getAgentRun = (runId: string, signal?: AbortSignal): Promise<AgentR
   request(`/api/expansion/agent-runs/${encodeURIComponent(runId)}`, agentRunRecordSchema, signal);
 
 export async function cancelAgentRun(runId: string, signal?: AbortSignal): Promise<AgentRunRecord> {
+  await ensureSession().catch(() => null);
   const response = await fetch(`/api/expansion/agent-runs/${encodeURIComponent(runId)}/cancel`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -144,6 +148,7 @@ export function openAgentEventStream(
     controller = new AbortController();
     const url = `/api/expansion/agent-runs/${encodeURIComponent(runId)}/events?after=${lastSeq}`;
     try {
+      await ensureSession().catch(() => null);
       const response = await fetch(url, { signal: controller.signal, cache: "no-store" });
       if (!response.ok || !response.body) {
         if (!closed) scheduleReconnect();

@@ -10,6 +10,8 @@ import type { AssessedCandidate, CandidateFact } from "../../domain/matching.ts"
 import { requirementDisplayValue } from "../../domain/requirements.ts";
 import { BRIEF_STORAGE_KEY, decodeBriefs, persistBriefs, resetBriefs } from "../brief-storage.ts";
 import { loadInvestigationRun, refreshCandidateSources } from "../data/investigation-client.ts";
+import { importBrowserCopies, listAccountBriefs, loadAgentEvidence, saveAccountBrief, type AccountBrief } from "../data/account-client.ts";
+import { PROFILE_DRAFT_STORAGE_KEY } from "../storage.ts";
 import { GROUP_LABELS, REQUIREMENT_LABELS } from "./run-search.tsx";
 import "./decision-workbench.css";
 
@@ -43,14 +45,15 @@ const VERIFICATION_GAP: Record<string, string> = {
   "market.neighborhoodPreference": "Needs a sourced neighborhood boundary lookup; address text is not membership.",
 };
 
-function initialChoice(bundle: InvestigationRun, base: AssessedCandidate): BriefChoice {
+/** Revision 0 starts from the live Phase 4 sources the agent run attached (if any), never fixtures. */
+function initialChoice(bundle: InvestigationRun, base: AssessedCandidate, agentSources?: SourceSnapshot): BriefChoice {
   const financeInputs = emptyFinanceInputs();
   const numeric = (id: string) => { const requirement = bundle.profile.requirements.requirements.find(x => x.id === id); return requirement?.value.kind === "number" ? requirement.value.value : null; };
   financeInputs.totalFunds = numeric("funds.totalAvailable");
   financeInputs.reserve = numeric("funds.emergencyReserve");
   return {
     candidateId: base.candidate.id, assessmentHistory: [],
-    assessment: reassessCandidate(base, bundle.profile.requirements, [], emptySources(base.candidate.id), { id: crypto.randomUUID(), parentId: null, revisionNumber: 0, evaluatedAt: new Date().toISOString() }),
+    assessment: reassessCandidate(base, bundle.profile.requirements, [], agentSources ?? emptySources(base.candidate.id), { id: crypto.randomUUID(), parentId: null, revisionNumber: 0, evaluatedAt: new Date().toISOString() }),
     financeInputs, financeResults: calculateDecisionFinance(base.candidate, financeInputs),
   };
 }
@@ -71,11 +74,15 @@ export function DecisionWorkbench({ requestedRunId, currentProfileRevisionId }: 
   const [currentAddress, setCurrentAddress] = useState("");
   const [priceLevel, setPriceLevel] = useState("");
   const [pendingFinance, setPendingFinance] = useState(false);
+  const [accountBriefs, setAccountBriefs] = useState<AccountBrief[]>([]);
+  const [accountState, setAccountState] = useState<{ status: "loading" | "ok" | "unavailable"; message: string }>({ status: "loading", message: "Checking your private workspace…" });
+  const [agentSources, setAgentSources] = useState<Map<string, SourceSnapshot>>(new Map());
   const sectionRef = useRef<HTMLElement>(null);
   const generationRef = useRef(0);
 
-  const applyBundle = (next: InvestigationRun) => {
-    setBundle(next); setChoices(Object.fromEntries(next.search.candidates.map(x => [x.candidate.id, initialChoice(next, x)])));
+  const applyBundle = (next: InvestigationRun, evidence: Map<string, SourceSnapshot> = new Map()) => {
+    setAgentSources(evidence);
+    setBundle(next); setChoices(Object.fromEntries(next.search.candidates.map(x => [x.candidate.id, initialChoice(next, x, evidence.get(x.candidate.id))])));
     setActiveId(next.search.candidates[0]?.candidate.id ?? ""); setSelected([]); setRestored(null); setRunInput(next.run.runId); setPendingFinance(false);
   };
   useEffect(() => {
@@ -85,16 +92,18 @@ export function DecisionWorkbench({ requestedRunId, currentProfileRevisionId }: 
         const decoded = decodeBriefs(localStorage.getItem(BRIEF_STORAGE_KEY));
         if (decoded.status === "ok") setSaved(decoded.briefs);
         else { setStorageBlocked(true); setNotice(decoded.reason); }
-      } catch { setStorageBlocked(true); setNotice("Browser storage is blocked. Work stays in memory; saving is unavailable."); }
+      } catch { setStorageBlocked(true); setNotice("Browser storage is blocked. Work stays in memory; saving to this browser is unavailable."); }
     });
+    void listAccountBriefs().then(result => { setAccountBriefs(result.briefs); setAccountState({ status: "ok", message: `Private workspace storage: ${result.storage}.` }); })
+      .catch(failure => setAccountState({ status: "unavailable", message: failure instanceof Error ? failure.message : "Account storage is unavailable; briefs save to this browser only." }));
   }, []);
   useEffect(() => {
     if (!requestedRunId) return;
     const controller = new AbortController();
     const generation = ++generationRef.current;
-    void loadInvestigationRun(requestedRunId, controller.signal).then(next => {
+    void Promise.all([loadInvestigationRun(requestedRunId, controller.signal), loadAgentEvidence(requestedRunId, controller.signal)]).then(([next, evidence]) => {
       if (generation !== generationRef.current) return;
-      applyBundle(next); setBusy(false); setError("");
+      applyBundle(next, evidence); setBusy(false); setError("");
       sectionRef.current?.scrollIntoView({ block: "start" });
       sectionRef.current?.focus({ preventScroll: true });
     }).catch(failure => { if (!controller.signal.aborted) { setBusy(false); setError(failure instanceof Error ? failure.message : "Run could not load."); } });
@@ -104,7 +113,7 @@ export function DecisionWorkbench({ requestedRunId, currentProfileRevisionId }: 
   const load = async () => {
     setBusy(true); setError("");
     const generation = ++generationRef.current;
-    try { const next = await loadInvestigationRun(runInput); if (generation === generationRef.current) applyBundle(next); }
+    try { const [next, evidence] = await Promise.all([loadInvestigationRun(runInput), loadAgentEvidence(runInput)]); if (generation === generationRef.current) applyBundle(next, evidence); }
     catch (failure) { setError(failure instanceof Error ? failure.message : "Run could not load."); }
     finally { setBusy(false); }
   };
@@ -140,9 +149,35 @@ export function DecisionWorkbench({ requestedRunId, currentProfileRevisionId }: 
     try {
       const brief = createDecisionBrief({ id: crypto.randomUUID(), title, createdAt: new Date().toISOString(), parentBriefId: restored?.id ?? null, runSnapshot: bundle,
         choices: selected.map(id => choices[id]), nextQuestions: [...new Set([...bundle.summary.followUps, ...selected.flatMap(id => choices[id].assessment.assessments.filter(x => x.status === "unknown").map(x => x.reason)), ...selected.flatMap(id => choices[id].financeResults.gaps)])] });
-      const next = [brief, ...saved].slice(0, 10);
-      persistBriefs(localStorage, next); setSaved(next); setRestored(brief); setNotice("Decision brief saved with frozen evidence and calculation snapshots.");
+      let browserSaved = false;
+      if (!storageBlocked) {
+        try { const next = [brief, ...saved].slice(0, 10); persistBriefs(localStorage, next); setSaved(next); browserSaved = true; } catch { browserSaved = false; }
+      }
+      setRestored(brief);
+      setNotice(browserSaved ? "Decision brief saved in this browser with frozen evidence and calculation snapshots. Saving to your private workspace…" : "Saving to your private workspace…");
+      void saveAccountBrief(brief).then(record => {
+        setAccountBriefs(old => [record, ...old.filter(x => x.brief.id !== record.brief.id)]);
+        setAccountState({ status: "ok", message: `Private workspace storage: ${record.storage}.` });
+        setNotice(`Decision brief saved${browserSaved ? " in this browser and" : ""} to your private workspace (${record.storage}). Reload restores it from the server.`);
+      }).catch(failure => {
+        setAccountState({ status: "unavailable", message: failure instanceof Error ? failure.message : "Account storage is unavailable." });
+        if (browserSaved) setNotice(`Saved in this browser only. Workspace save failed: ${failure instanceof Error ? failure.message : "storage unavailable"}`);
+        else setError(`Saving failed in both places; your work remains in memory. ${failure instanceof Error ? failure.message : ""}`);
+      });
     } catch (failure) { setError(failure instanceof Error ? failure.message : "Saving failed. Your work remains in memory."); }
+  };
+  const importCopies = async () => {
+    setBusy(true); setError("");
+    try {
+      // Originals are read, never removed: the browser copy stays whatever the outcome.
+      let profileDraft: unknown;
+      try { const raw = localStorage.getItem(PROFILE_DRAFT_STORAGE_KEY); profileDraft = raw ? JSON.parse(raw) : undefined; } catch { profileDraft = undefined; }
+      const result = await importBrowserCopies({ ...(profileDraft === undefined ? {} : { profileDraft }), briefs: saved });
+      const counts = result.items.reduce((acc, item) => ({ ...acc, [item.status]: (acc[item.status] ?? 0) + 1 }), {} as Record<string, number>);
+      setNotice(`Import finished: ${counts.imported ?? 0} imported, ${counts.duplicate ?? 0} already present, ${counts.rejected ?? 0} rejected. Browser copies were not changed.${result.items.filter(x => x.reason).map(x => ` ${x.kind} ${x.id ?? ""}: ${x.reason}`).join("")}`);
+      const refreshed = await listAccountBriefs(); setAccountBriefs(refreshed.briefs);
+    } catch (failure) { setError(`Import failed; nothing was deleted. ${failure instanceof Error ? failure.message : ""}`); }
+    finally { setBusy(false); }
   };
   const restore = (brief: DecisionBrief) => {
     generationRef.current += 1;
@@ -154,7 +189,7 @@ export function DecisionWorkbench({ requestedRunId, currentProfileRevisionId }: 
     if (!bundle) return;
     if (pendingFinance) setNotice("Unapplied finance edits were discarded when changing spaces. Applied plans remain unchanged.");
     setPendingFinance(false);
-    if (!choices[id]) setChoices(old => ({ ...old, [id]: initialChoice(bundle, bundle.search.candidates.find(x => x.candidate.id === id)!) }));
+    if (!choices[id]) setChoices(old => ({ ...old, [id]: initialChoice(bundle, bundle.search.candidates.find(x => x.candidate.id === id)!, agentSources.get(id)) }));
     setActiveId(id);
   };
 
@@ -165,10 +200,13 @@ export function DecisionWorkbench({ requestedRunId, currentProfileRevisionId }: 
     {busy && <p role="status">Loading investigation evidence…</p>}
     {error && <p className="warning" role="alert">{error}</p>}
     {notice && <p role="status" className="decision-notice">{notice}</p>}
-    <details className="saved-briefs"><summary><Bookmark size={15} /> Saved decision briefs ({saved.length})</summary>
+    <details className="saved-briefs"><summary><Bookmark size={15} /> Saved decision briefs ({accountBriefs.length} in workspace · {saved.length} in this browser)</summary>
+      <p className="small-note" role="status">{accountState.message}</p>
+      {accountBriefs.map(record => <article key={`account-${record.brief.id}`}><strong>{record.brief.title}</strong> <span className="tiny-badge">Private workspace</span>{record.provenance === "browser_import" && <span className="tiny-badge">Imported{record.runVerified ? "" : " · run snapshot unverified"}</span>}<p>{record.brief.runSnapshot.profile.intake.restaurant.name} · profile revision {record.brief.runSnapshot.profile.revisionNumber} · {record.brief.createdAt} · {record.brief.runSnapshot.run.executionMode === "scripted" ? "Scripted test model" : "Live model"}</p><button className="secondary" onClick={() => restore(record.brief)}>Restore workspace brief: {record.brief.title}</button></article>)}
+      {saved.length > 0 && accountState.status === "ok" && <button className="secondary" disabled={busy} onClick={() => void importCopies()}>Import browser copies to your workspace</button>}
       {storageBlocked && <><p className="warning">Saving is disabled. Existing storage is preserved.</p><button className="secondary" onClick={() => { try { resetBriefs(localStorage); setStorageBlocked(false); setSaved([]); setNotice("Brief storage reset explicitly. Legacy scenarios are unchanged."); } catch { setError("Browser storage is still blocked."); } }}>Reset brief storage</button></>}
       {!saved.length && <p>No decision briefs saved yet. Legacy scenarios remain in the existing saved plans.</p>}
-      {saved.map(brief => <article key={brief.id}><strong>{brief.title}</strong><p>{brief.runSnapshot.profile.intake.restaurant.name} · profile revision {brief.runSnapshot.profile.revisionNumber} · {brief.createdAt} · {brief.runSnapshot.run.executionMode === "scripted" ? "Scripted test model" : "Live model"}</p><button className="secondary" onClick={() => restore(brief)}>Restore brief: {brief.title}</button></article>)}
+      {saved.map(brief => <article key={brief.id}><strong>{brief.title}</strong> <span className="tiny-badge">This browser</span><p>{brief.runSnapshot.profile.intake.restaurant.name} · profile revision {brief.runSnapshot.profile.revisionNumber} · {brief.createdAt} · {brief.runSnapshot.run.executionMode === "scripted" ? "Scripted test model" : "Live model"}</p><button className="secondary" onClick={() => restore(brief)}>Restore brief: {brief.title}</button></article>)}
     </details>
     {bundle && <>
       <div className="decision-run-meta"><p><strong>{bundle.profile.intake.restaurant.name}</strong> · profile revision {bundle.profile.revisionNumber} · run {bundle.run.runId}</p><p>{bundle.run.executionMode === "scripted" ? "Deep Agents · scripted test model (synthetic acceptance, not live-model proof)" : "Deep Agents · live model"} · {bundle.run.datasetId ?? "Dataset unavailable"} · dataset date {bundle.run.datasetDate ?? "unknown"}</p><p>Profile origin: {bundle.profile.intake.origin}. Property source: {syntheticRun ? "synthetic test inputs" : "dated local records"}.</p></div>
@@ -208,7 +246,7 @@ export function DecisionWorkbench({ requestedRunId, currentProfileRevisionId }: 
             <div className="decision-inline"><button className="secondary" disabled={busy} onClick={() => void refresh()}><RefreshCw size={14} /> Refresh sources and reassess</button>
               {syntheticRun && <button className="secondary" disabled={busy} onClick={() => void refresh("synthetic")}>Load labeled synthetic source fixtures</button>}</div>
             {syntheticRun && <p className="small-note">Synthetic fixtures run fixture payloads through the real adapters for this synthetic run only. They are not live integration proof and never verify a requirement.</p>}
-            <p>Source snapshot: {choice.assessment.sources.refreshedAt}. Restoring never refreshes automatically.</p>
+            <p>Source snapshot: {choice.assessment.sources.refreshedAt}{agentSources.has(activeId) && choice.assessment.revisionNumber === 0 ? " (collected during the agent run's inspection stage)" : ""}. Restoring never refreshes automatically.</p>
             <ul>{choice.assessment.sources.statuses.map(source => <li key={source.provider}><strong>{source.provider}: {source.status}</strong> · {source.mode} · {source.reason}</li>)}</ul>
             {SCOPE_GROUPS.map(group => { const items = choice.assessment.sources.observations.filter(x => x.scope === group.scope); return items.length > 0 && <section key={group.scope} className="decision-scope" aria-label={group.title}><h4>{group.title} ({items.length})</h4><p className="small-note">{group.note}</p>{items.map(source => <article key={source.id} className={`decision-source${source.isSynthetic ? " synthetic" : ""}`}><h4>{source.isSynthetic && <span className="tiny-badge">SYNTHETIC FIXTURE</span>} {source.label} · {source.origin} · {source.scope}</h4><p>Evidence {source.id} · source date {source.sourceDate ?? "unknown"} · retrieved {source.retrievedAt}</p><ul>{[...source.details, ...source.limitations].map((detail, i) => <li key={i}>{detail}</li>)}</ul>{source.referenceUrl && <a href={source.referenceUrl} target="_blank" rel="noreferrer">Source reference</a>}{source.viewerUrl && <iframe title={`Matterport viewer for ${active.candidate.name}`} src={source.viewerUrl} loading="lazy" allowFullScreen sandbox="allow-scripts allow-same-origin allow-presentation" />}{source.imageUrl && <details><summary>View permitted dated site imagery</summary>{/* Native image keeps provider bytes local; never sends them to a third-party optimizer. */}<Image unoptimized width={1400} height={1400} src={source.imageUrl} alt="Vexcel site context; parking access and capture freshness are unverified" /></details>}</article>)}</section>; })}
             <ul>{choice.assessment.sources.gaps.map((gap, index) => <li key={index}>{gap}</li>)}</ul>
@@ -222,7 +260,7 @@ export function DecisionWorkbench({ requestedRunId, currentProfileRevisionId }: 
           {selected.length >= 2 && <ComparisonTable choices={selected.map(id => choices[id])} capLabel={requirementDisplayValue(bundle.profile.requirements.requirements.find(x => x.id === "occupancy.monthlyLimit")!)} />}
           <div className="decision-comparison-grid">{selected.map(id => <article key={id}><h4>{choices[id].assessment.candidate.name} · {choices[id].assessment.candidate.suite ?? id}</h4><p>{GROUP_LABELS[choices[id].assessment.group]}</p><FinanceSummary choice={choices[id]} /><button className="secondary" onClick={() => chooseSpace(id)}>Investigate compared space</button><button className="secondary" onClick={() => setSelected(old => old.filter(x => x !== id))}>Remove from comparison</button></article>)}</div>
         </section>
-        <div className="decision-inline"><label>Brief title<input value={title} maxLength={160} onChange={event => setTitle(event.target.value)} /></label><button className="primary" disabled={selected.length < 2 || storageBlocked || busy || pendingFinance || !title.trim()} onClick={save}><Bookmark size={15} />Save decision brief</button></div>
+        <div className="decision-inline"><label>Brief title<input value={title} maxLength={160} onChange={event => setTitle(event.target.value)} /></label><button className="primary" disabled={selected.length < 2 || (storageBlocked && accountState.status !== "ok") || busy || pendingFinance || !title.trim()} onClick={save}><Bookmark size={15} />Save decision brief</button></div>
         {restored && <details open className="decision-next"><summary>Saved brief · next questions</summary><ul>{restored.nextQuestions.map((question, index) => <li key={index}>{question}</li>)}</ul><p>Source snapshots are for local review. Restricted provider content is not exported.</p></details>}
       </>}
     </>}

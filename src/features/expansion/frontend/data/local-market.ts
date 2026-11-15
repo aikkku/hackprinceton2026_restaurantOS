@@ -1,3 +1,4 @@
+import { ensureSession } from "./account-client.ts";
 import {
   marketsResponseSchema,
   propertyDetailResponseSchema,
@@ -21,6 +22,7 @@ export class LocalDataError extends Error {
 }
 
 async function request<T>(url: string, schema: z.ZodType<T>, signal?: AbortSignal) {
+  if (url.startsWith("/api/expansion/runs")) await ensureSession().catch(() => null);
   const response = await fetch(url, { signal, cache: "no-store" });
   const body: unknown = await response.json();
   if (!response.ok) {
@@ -55,6 +57,7 @@ export const loadLocalProperty = (id: string, signal?: AbortSignal) =>
 // the browser flow; the acceptance e2e must not mock these routes.
 
 async function postJson<T>(url: string, body: unknown, schema: z.ZodType<T>, signal?: AbortSignal): Promise<T> {
+  await ensureSession().catch(() => null);
   const response = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

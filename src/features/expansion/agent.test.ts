@@ -35,6 +35,12 @@ import { POST as cancelAgentRoute } from "../../app/api/expansion/agent-runs/[id
 import { GET as eventsRoute } from "../../app/api/expansion/agent-runs/[id]/events/route.ts";
 import { POST as toolBridgeRoute } from "../../app/api/expansion/agent-tools/route.ts";
 import { GET as capabilitiesRoute } from "../../app/api/expansion/agent-capabilities/route.ts";
+import { OWNER_COOKIE, ownerCookieValue } from "./backend/owner.ts";
+
+// Phase 5: route ownership comes from a signed owner cookie, never a session header.
+process.env.EXPANSION_SESSION_SECRET ??= "phase5-route-test-secret-0123456789abcdef";
+process.env.EXPANSION_PERSISTENCE = "off";
+const ownerCookie = (owner: string) => `${OWNER_COOKIE}=${encodeURIComponent(ownerCookieValue(owner))}`;
 
 const fixtureDir = fileURLToPath(new URL("./agent/fixtures", import.meta.url));
 
@@ -395,7 +401,7 @@ test("SSE route replays from Last-Event-ID and closes after terminal", async () 
   await writeFile(path, JSON.stringify({ ...record, status: "completed", completedAt: "2026-11-14T12:00:02.000Z" }));
 
   const request = new Request("http://test.local/api/expansion/agent-runs/events-run-2/events?after=1", {
-    headers: { "x-expansion-session": "local" },
+    headers: { cookie: ownerCookie("local") },
   });
   const response = await eventsRoute(request, { params: Promise.resolve({ id: "events-run-2" }) });
   assert.equal(response.status, 200);
@@ -412,8 +418,8 @@ test("SSE route replays from Last-Event-ID and closes after terminal", async () 
 test("agent-runs route creates a queued run (spawn disabled)", async () => {
   const request = new Request("http://test.local/api/expansion/agent-runs", {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-expansion-session": "local" },
-    body: JSON.stringify(createInput("route-run-1")),
+    headers: { "Content-Type": "application/json", cookie: ownerCookie("local") },
+    body: JSON.stringify({ ...createInput("route-run-1"), revisionNumber: 11 }),
   });
   const response = await createAgentRunRoute(request);
   assert.equal(response.status, 201);
@@ -425,20 +431,20 @@ test("agent-runs route creates a queued run (spawn disabled)", async () => {
 test("agent-runs route is idempotent and conflicts on payload drift", async () => {
   const first = new Request("http://test.local/api/expansion/agent-runs", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(createInput("route-run-2")),
+    headers: { "Content-Type": "application/json", cookie: ownerCookie("local") },
+    body: JSON.stringify({ ...createInput("route-run-2"), revisionNumber: 12 }),
   });
   assert.equal((await createAgentRunRoute(first)).status, 201);
   const again = new Request("http://test.local/api/expansion/agent-runs", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(createInput("route-run-2")),
+    headers: { "Content-Type": "application/json", cookie: ownerCookie("local") },
+    body: JSON.stringify({ ...createInput("route-run-2"), revisionNumber: 12 }),
   });
   assert.equal((await createAgentRunRoute(again)).status, 200);
   const drift = new Request("http://test.local/api/expansion/agent-runs", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ...createInput("route-run-2"), revisionNumber: 9 }),
+    headers: { "Content-Type": "application/json", cookie: ownerCookie("local") },
+    body: JSON.stringify({ ...{ ...createInput("route-run-2"), revisionNumber: 12 }, revisionNumber: 9 }),
   });
   assert.equal((await createAgentRunRoute(drift)).status, 409);
 });
@@ -446,19 +452,19 @@ test("agent-runs route is idempotent and conflicts on payload drift", async () =
 test("agent run status/cancel routes work end to end", async () => {
   const create = new Request("http://test.local/api/expansion/agent-runs", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(createInput("route-run-3")),
+    headers: { "Content-Type": "application/json", cookie: ownerCookie("local") },
+    body: JSON.stringify({ ...createInput("route-run-3"), revisionNumber: 13 }),
   });
   await createAgentRunRoute(create);
   const status = await getAgentRunRoute(
-    new Request("http://test.local/api/expansion/agent-runs/route-run-3", { headers: { "x-expansion-session": "local" } }),
+    new Request("http://test.local/api/expansion/agent-runs/route-run-3", { headers: { cookie: ownerCookie("local") } }),
     { params: Promise.resolve({ id: "route-run-3" }) },
   );
   assert.equal((await status.json()).status, "queued");
   const cancel = await cancelAgentRoute(
     new Request("http://test.local/api/expansion/agent-runs/route-run-3/cancel", {
       method: "POST",
-      headers: { "x-expansion-session": "local" },
+      headers: { cookie: ownerCookie("local") },
     }),
     { params: Promise.resolve({ id: "route-run-3" }) },
   );
@@ -466,7 +472,7 @@ test("agent run status/cancel routes work end to end", async () => {
   const cancelAgain = await cancelAgentRoute(
     new Request("http://test.local/api/expansion/agent-runs/route-run-3/cancel", {
       method: "POST",
-      headers: { "x-expansion-session": "local" },
+      headers: { cookie: ownerCookie("local") },
     }),
     { params: Promise.resolve({ id: "route-run-3" }) },
   );
@@ -476,8 +482,8 @@ test("agent run status/cancel routes work end to end", async () => {
 test("tool bridge route enforces auth, allowlist and scoping", async () => {
   const create = new Request("http://test.local/api/expansion/agent-runs", {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(createInput("route-run-4")),
+    headers: { "Content-Type": "application/json", cookie: ownerCookie("local") },
+    body: JSON.stringify({ ...createInput("route-run-4"), revisionNumber: 14 }),
   });
   await createAgentRunRoute(create);
   await writeToken("route-run-4", "route-token-4");
@@ -493,7 +499,7 @@ test("tool bridge route enforces auth, allowlist and scoping", async () => {
     return { status: response.status, body: await response.json() };
   };
 
-  const unauth = await call("profile.readiness_report", { revisionId: "agent-test-revision", revisionNumber: 1 }, null);
+  const unauth = await call("profile.readiness_report", { revisionId: "agent-test-revision", revisionNumber: 14 }, null);
   assert.equal(unauth.status, 401);
 
   const unknown = await call("shell.exec", { command: "whoami" }, "route-token-4");
@@ -503,7 +509,7 @@ test("tool bridge route enforces auth, allowlist and scoping", async () => {
   const pathInjection = await call("scout.search_city", { cityId: "../../etc" }, "route-token-4");
   assert.equal(pathInjection.status, 400);
 
-  const ok = await call("profile.readiness_report", { revisionId: "agent-test-revision", revisionNumber: 1 }, "route-token-4");
+  const ok = await call("profile.readiness_report", { revisionId: "agent-test-revision", revisionNumber: 14 }, "route-token-4");
   assert.equal(ok.status, 200);
   assert.equal(ok.body.ok, true);
 });

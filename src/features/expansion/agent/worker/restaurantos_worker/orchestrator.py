@@ -32,6 +32,7 @@ from .versions import AGENT_RUN_VERSION, ARTIFACT_VERSION
 DEFAULT_RUN_TIMEOUT_S = 900.0
 MAX_RUN_TIMEOUT_S = 3600.0
 STAGE_ORDER = ["readiness", "market", "site_scout", "space_inspector", "finance"]
+TERMINAL_STATUSES = {"completed", "completed_with_gaps", "failed", "cancelled"}
 
 REDACTED_FAILURE = "model_or_framework_failed"
 REDACTED_MESSAGE = "The agent run failed; no provider details were exposed."
@@ -74,10 +75,24 @@ class Orchestrator:
             self.run_timeout_s = min(float(timeout_raw), MAX_RUN_TIMEOUT_S)
         except ValueError:
             self.run_timeout_s = DEFAULT_RUN_TIMEOUT_S
+        self.superseded = False
         self.emitter = Emitter(self.request.runId, self.event_log, self._record_update)
 
     # -- run.json bookkeeping ------------------------------------------------
+    def _disk_is_terminal(self) -> bool:
+        try:
+            on_disk = self.directory.read_artifact("run.json", AgentRunRecord)
+        except Exception:  # noqa: BLE001 — unreadable means "not terminal"
+            return False
+        return on_disk.status in TERMINAL_STATUSES
+
     def _write_record(self) -> None:
+        # Phase 5: terminal records are immutable on disk. If the server already
+        # recovered this run (worker exit / stall) or a terminal was written,
+        # never overwrite it back to running or to a different terminal state.
+        if self.superseded or self._disk_is_terminal():
+            self.superseded = True
+            return
         self.directory.write_artifact("run.json", self.record)
 
     def _record_update(self, spec: dict[str, Any]) -> None:
@@ -108,6 +123,8 @@ class Orchestrator:
         self._write_record()
 
     def _emit_terminal(self, event_type: str, payload: dict[str, Any] | None = None) -> None:
+        if self.superseded:
+            return  # the server already recorded the terminal state; keep the log consistent
         self.emitter({"type": event_type, "stage": None, "payload": payload})
 
     # -- main ---------------------------------------------------------------
@@ -131,6 +148,7 @@ class Orchestrator:
             token=os.environ.get("EXPANSION_AGENT_RUN_TOKEN", ""),
             directory=directory,
         )
+        bridge.session_id = request.sessionId
 
         model_info = {
             "framework": "deepagents",
