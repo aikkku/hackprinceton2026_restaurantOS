@@ -6,6 +6,7 @@ import type { AssessedCandidate } from "../../domain/matching.ts";
 import {
   bestMatches,
   budgetCap,
+  checkQuestion,
   costLabel,
   costPin,
   displayOrder,
@@ -63,14 +64,35 @@ export function Places({ workspace, views, saved, selectedId, notice, onSelect, 
   const restNoFit = rest.filter((v) => v.assessed.group === "does_not_meet");
   // Keep a place picked on the map visible in the list.
   const expanded = showAll || (selectedId !== null && !best.includes(selectedId));
-  const mapPlaces = useMemo<MapPlace[]>(() => orderedViews.map(({ assessed }) => {
-    const cost = monthlyCost(assessed.candidate);
-    const estimate = workspace.rentEstimates.get(assessed.candidate.id);
+  const mapPlaces = useMemo<MapPlace[]>(() => orderedViews.map(({ assessed, image }) => {
+    const candidate = assessed.candidate;
+    const cost = monthlyCost(candidate);
+    const estimate = workspace.rentEstimates.get(candidate.id);
+    const neighborhood = assessed.assessments.find((a) => a.requirementId === "market.neighborhoodPreference");
+    const area = neighborhood?.status === "pass" ? neighborhood.sourceValue : null;
+    const suite = candidate.suite ? `Suite ${candidate.suite}` : null;
+    // The card shows the suite in the eyebrow, so strip it from the name.
+    const cleanName = suite && candidate.name.endsWith(` · ${suite}`) ? candidate.name.slice(0, -` · ${suite}`.length) : candidate.name;
+    const question = assessed.assessments.map((a) => checkQuestion(a)).find((q): q is string => Boolean(q)) ?? null;
+    const size = candidate.floorAreaSqFt !== null
+      ? `${candidate.floorAreaSqFt.toLocaleString("en-US")} sq ft`
+      : candidate.sizeRangeSqFt.minimum !== null && candidate.sizeRangeSqFt.maximum !== null
+        ? `${candidate.sizeRangeSqFt.minimum.toLocaleString("en-US")}–${candidate.sizeRangeSqFt.maximum.toLocaleString("en-US")} sq ft`
+        : "";
     return {
-      id: assessed.candidate.id, name: assessed.candidate.name, lat: assessed.candidate.latitude, lng: assessed.candidate.longitude,
+      id: candidate.id,
+      name: cleanName,
+      location: [area, suite].filter(Boolean).join(" · ") || "Neighborhood not confirmed",
+      address: candidate.address ?? "Address not listed",
+      lat: candidate.latitude,
+      lng: candidate.longitude,
       fit: fitForGroup(assessed.group),
       price: cost.kind === "unknown" && estimate ? estimatePin(estimate) : costPin(cost),
-      saved: saved.includes(assessed.candidate.id),
+      priceLabel: cost.kind === "unknown" && estimate ? estimateCostLabel(estimate) : costLabel(cost),
+      size,
+      question,
+      image,
+      saved: saved.includes(candidate.id),
     };
   }), [orderedViews, workspace.rentEstimates, saved]);
 
@@ -136,7 +158,7 @@ export function Places({ workspace, views, saved, selectedId, notice, onSelect, 
         </div>
       </section>
       <section className="sx-mapbox" aria-label="Map">
-        <PlacesMap places={mapPlaces} selectedId={selectedId} onSelect={onSelect} center={null} note={workspace.isSynthetic ? "Synthetic test positions" : "Positions from listing records"} />
+        <PlacesMap places={mapPlaces} selectedId={selectedId} onSelect={onSelect} onOpen={onOpen} onToggleSave={onToggleSave} center={null} note={workspace.isSynthetic ? "Synthetic test positions" : "Positions from listing records"} />
       </section>
     </main>
   );
