@@ -1,6 +1,6 @@
 /* Floor-specific scene tokens keep the editor independent of legacy scene styling. */
 .tactical-workspace .floor-editor {
-  --scene-mat: #f5f5f1;
+  --scene-mat: #eef0e9;
   --scene-floor: #ede7db;
   --scene-wall: #bbb8ad;
   --scene-table: #c6a17b;
@@ -15,19 +15,51 @@
   --floor-danger-fill: #c43b361c;
   --floor-warning: #c99a18;
   --floor-warning-fill: #e8b82c16;
+  --art-floor: #ded1b9;
+  --art-floor-light: #e8dcc5;
+  --art-floor-dark: #cbb998;
+  --art-floor-joint: #ac9775;
+  --art-wood-light: #d0a777;
+  --art-wood: #bb8958;
+  --art-wood-dark: #9c704b;
+  --art-wood-edge: #805b3e;
+  --art-fabric-light: #98b19b;
+  --art-fabric: #738e78;
+  --art-fabric-dark: #4b6957;
+  --art-frame: #344f42;
+  --art-stitch: #c5d3b9;
+  --art-stone: #cfcbbd;
+  --art-stone-light: #f3eee2;
+  --art-wall: #f8f6ed;
+  --art-wall-side: #c0bba9;
+  --art-wall-line: #a59e8b;
+  --art-shadow: #334239;
+  --art-daylight: #fffaf0;
+  --art-linen: #d9dbc9;
+  --art-porcelain: #fffdf3;
+  --art-rim: #cec9b7;
+  --art-cutlery: #7a8175;
+  --art-glass: #dce8da;
+  --art-brass: #b99558;
+  --art-terracotta: #c38e66;
+  --art-soil: #695541;
+  --art-leaf: #3b684b;
+  --art-leaf-light: #759464;
+  --art-register: #4c5d52;
+  --art-screen: #9eb4a5;
   display: grid;
   gap: 12px;
   min-width: 0;
 }
 .tactical-workspace .floor-studio {
   border: 1px solid var(--floor-line);
-  border-radius: 16px;
+  border-radius: 20px;
   background: var(--ros-surface);
-  box-shadow: 0 4px 24px #273d2f06;
+  box-shadow: 0 8px 36px #273d2f09;
   min-width: 0;
 }
 .tactical-workspace .floor-topbar, .tactical-workspace .floor-save-group { display: flex; align-items: center; gap: 8px; }
-.tactical-workspace .floor-topbar { justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--floor-line); gap: 12px; }
+.tactical-workspace .floor-topbar { justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--floor-line); gap: 12px; }
 .tactical-workspace .floor-save-group { min-width: 0; }
 .tactical-workspace .floor-save-group .button { min-height: 36px; border-radius: 8px; padding: 7px 13px; font-size: .8rem; }
 .tactical-workspace .floor-save-group select {
@@ -46,11 +78,11 @@
 }
 .tactical-workspace .floor-save-indicator { flex-shrink: 0; width: 5px; height: 5px; border-radius: 50%; background: var(--ros-control-border); margin-right: 3px; }
 .tactical-workspace .floor-save-indicator.is-dirty { background: var(--floor-warning); }
-.tactical-workspace .floor-canvas { position: relative; overflow: hidden; background: var(--scene-mat); border-radius: 0 0 16px 16px; }
-.tactical-workspace .floor-canvas .floor-svg { height: clamp(360px, min(54vw, calc(100svh - 390px)), 610px); padding: 12px 16px 50px; box-sizing: border-box; outline-offset: -4px; }
+.tactical-workspace .floor-canvas { position: relative; overflow: hidden; background: radial-gradient(ellipse at 44% 35%, #fbfaf3, var(--scene-mat) 78%); border-radius: 0 0 20px 20px; }
+.tactical-workspace .floor-canvas .floor-svg { height: clamp(420px, calc(100svh - 275px), 760px); padding: 20px 24px 46px; box-sizing: border-box; outline-offset: -4px; }
 .tactical-workspace .floor-map-tools {
   position: absolute; right: 16px; bottom: 14px; display: flex; gap: 3px; padding: 4px;
-  border: 1px solid var(--floor-line); border-radius: 10px; background: var(--ros-surface); box-shadow: 0 2px 10px #273d2f08;
+  border: 1px solid var(--floor-line); border-radius: 12px; background: var(--ros-surface); box-shadow: 0 4px 16px #273d2f0d;
 }
 .tactical-workspace .floor-map-tools .icon-button, .tactical-workspace .floor-placement-chip .icon-button {
   display: grid; place-items: center; min-width: 34px; min-height: 34px; padding: 7px; border: 0; border-radius: 6px; background: transparent; color: var(--ros-forest);
@@ -110,7 +142,7 @@
 .tactical-workspace .floor-editor .floor-wall-outer { fill: #fcfcf9; stroke: var(--scene-wall); stroke-width: 1px; vector-effect: non-scaling-stroke; filter: drop-shadow(0 3px 3px #26362c15); }
 .tactical-workspace .floor-editor .svg-wall { stroke: var(--scene-wall); stroke-width: 1px; }
 .tactical-workspace .floor-board-line { stroke: #c1b7a3; stroke-width: .01; opacity: .32; fill: none; }
-.tactical-workspace .floor-editor .floor-furniture-art { filter: drop-shadow(0 1.5px 1px #24342813); }
+.tactical-workspace .floor-editor .floor-furniture-art { filter: drop-shadow(1px 2px 1.1px #293d2a30); }
 .tactical-workspace .floor-editor .svg-table { stroke: #a68563; stroke-width: .018; }
 .tactical-workspace .floor-editor .svg-chair { stroke: #5b7666; stroke-width: .015; }
 .tactical-workspace .floor-editor .svg-chair-seam { fill: none; stroke: #c3d0ba; stroke-width: .018; stroke-linecap: round; }

@@ -1,5 +1,21 @@
 # Tactical — current implementation and remaining work
 
+**Latest Customer Reviews redesign (2026-11-15):** Phase 4 introduces a three-view navigation bar, compact laptop filters, sage rating summary, scrolling purple themes and wider review cards. The relationship graph now has adjacent filters/metrics; content analysis shares the Sprout cards, tables and evidence styling. AI replies, disabled posting, reason tooltips, imports, exports, network calculations and incremental MongoDB classifications are retained. Keyboard users can focus and scroll the review feed and source timeline. No data/schema/backend changes or Expansion edits. See [review workflow](REVIEW_WORKFLOW.md); HR is next.
+
+Review design validation: 272 unit tests passed with one existing skip; all 80 existing browser checks passed in the initial full run. After fixing a selector in the new laptop test and refining the layout, all 30 focused review/AI/social/sponsor checks passed, including both new laptop cases. Lint/typecheck/build passed with existing Expansion warnings. Visual review covered all three views, and the live preview loaded 30 cached MongoDB classifications with nine high-priority records.
+
+**Latest Floor Plan redesign (2026-11-15):** Phase 3 adds a larger laptop scene, staggered wood flooring/grain, layered walls, daylight/shadows, upholstered seating, detailed place settings, stone counters, plants and a cashier register. Pure SVG art is isolated in `floor-scene-art.tsx`/`.css`, shared with palette thumbnails. Coordinates, object counts, seat rules, AI context and persistence are unchanged. Red overlaps and yellow clearance warnings remain above the artwork. No database writes or Expansion edits were needed. See [Floor Plan guide](FLOOR_PLAN_GUIDE.md).
+
+Floor validation: 272 unit tests passed with one existing skip; all 80 Tactical browser checks passed across Chromium/Firefox; lint, typecheck and production build passed with existing Expansion warnings. The laptop scene was visually inspected in the browser.
+
+**Latest shell redesign (2026-11-15):** Phase 2 introduces the Sprout laptop sidebar, shared onboarding/workspace palette and brand, page headings, source/revision disclosure and compact purple AI access. All six sections stay mounted and retain working state. Brand/setup/Expansion exits guard unsaved floor edits. Dedicated mobile redesign is deferred by user direction. See [shell implementation](SPROUT_SHELL.md).
+
+Shell validation: all 74 existing browser checks plus six new laptop-shell checks passed across Chromium/Firefox; 272 unit tests passed with one existing skip; typecheck/build passed. Lint has no errors. Existing Expansion lint/build warnings remain. Manual laptop review passed against the MongoDB-backed restaurant.
+
+**Latest design increment (2026-11-15):** Sprout welcome (`/`), three-step onboarding (`/onboarding`) and `/register` compatibility route are implemented. Demo defaults on, ignores entered details and selected files, and opens the existing validated mock restaurant without writes. Real document processing remains explicitly unavailable when unchecked. The [redesign roadmap](DESIGN_REDESIGN_PLAN.md) sequences the shared shell and every page while preserving all current functionality. No Expansion module or existing Tactical page behavior was changed in this phase.
+
+Validation for this increment: 272 unit tests passed (one existing skip), 74 Tactical browser checks passed, typecheck/build passed, and lint has no errors. Existing Expansion lint/build warnings remain. Live MongoDB-backed onboarding and desktop/mobile visual checks passed.
+
 **Latest Capital One increment (2026-11-15):** Cash calendar now connects the Nessie sandbox balance/bills to editable payroll, restock and payment assumptions. Month/Agenda, daily evidence, reserve warnings, saved bank/input snapshots and explicit refresh failures are implemented. MongoDB revision 8 contains the new mocks. See [Cash calendar](CASH_CALENDAR.md).
 
 

@@ -1,93 +1,130 @@
+/* Customer intelligence presentation; existing modules still own data and analysis. */
 .tactical-workspace .review-insights {
-  margin-top: var(--ros-space-5);
-  padding: var(--ros-space-5);
-
-  .review-demo-label { margin-inline-start: auto; }
-  .review-insights-body { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.3fr); gap: var(--ros-space-5); margin-top: var(--ros-space-5); }
-  .review-summary { padding-inline-end: var(--ros-space-5); border-inline-end: 1px solid var(--ros-border); }
-  .rating-overview { display: flex; justify-content: space-between; align-items: start; gap: var(--ros-space-2); }
-  .rating-average { font-size: 1.85rem; font-weight: 670; line-height: 1.1; }
-  .rating-average small { font-size: .9rem; font-weight: 500; color: var(--ros-muted); }
-  .rating-overview p { color: var(--ros-muted); font-size: .82rem; margin-top: var(--ros-space-1); }
-  .rating-distribution { padding: 0; list-style: none; margin: var(--ros-space-4) 0 var(--ros-space-5); }
-  .rating-distribution li { display: grid; grid-template-columns: 46px minmax(0, 1fr) 14px; gap: var(--ros-space-2); align-items: center; color: var(--ros-muted); font-size: .78rem; margin-bottom: var(--ros-space-1); }
-  .rating-distribution progress { appearance: none; width: 100%; height: 7px; overflow: hidden; border: 0; border-radius: 99px; background: var(--ros-border); color: var(--ros-forest); }
-  .rating-distribution progress::-webkit-progress-bar { background: var(--ros-border); }
-  .rating-distribution progress::-webkit-progress-value { background: var(--ros-forest); border-radius: 99px; }
-  .rating-distribution progress::-moz-progress-bar { background: var(--ros-forest); border-radius: 99px; }
-  .review-method { font-size: .8rem; color: var(--ros-muted); margin: var(--ros-space-2) 0; }
-  .review-theme-list { display: grid; gap: 6px; }
-  .review-theme { display: flex; justify-content: space-between; align-items: center; gap: var(--ros-space-2); min-width: 0; padding: 8px 10px; border-radius: 7px; border: 1px solid var(--ros-border); background: var(--ros-canvas); color: var(--ros-forest); text-align: left; }
-  .review-theme span { font-size: .85rem; font-weight: 580; }
-  .review-theme small { color: var(--ros-muted); white-space: nowrap; font-size: .75rem; }
-  .review-theme:hover, .review-theme[aria-pressed="true"] { border-color: var(--ros-focus); background: var(--ros-tint); }
-  .review-mission-link { margin-top: var(--ros-space-4); padding: var(--ros-space-3); border-radius: 8px; background: var(--ros-warm-surface); }
-  .review-mission-link p { margin: var(--ros-space-2) 0; font-size: .83rem; color: var(--ros-muted); }
-  .review-search { display: grid; gap: var(--ros-space-1); font-weight: 580; font-size: .83rem; }
-  .review-search-field { display: flex; align-items: center; gap: var(--ros-space-2); padding-inline: 10px; border: 1px solid var(--ros-control-border); border-radius: 7px; color: var(--ros-muted); }
-  .review-search-field:focus-within { outline: 2px solid var(--ros-focus); outline-offset: 3px; }
-  .review-search-field input { border: 0; min-width: 0; width: 100%; min-height: 39px; font: inherit; color: var(--ros-ink); background: transparent; outline: none; }
-  .review-search-field svg { flex-shrink: 0; }
-  .review-filter-controls .checkbox { margin-top: var(--ros-space-3); }
-  .review-results-heading { min-height: 37px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: var(--ros-space-1); margin-top: var(--ros-space-2); }
-  .review-results-heading p { font-size: .8rem; color: var(--ros-muted); }
-  .review-list { margin-top: var(--ros-space-2); max-height: 530px; overflow: auto; padding: 2px; }
-  .review-list blockquote, .review-list small { overflow-wrap: anywhere; }
-  .review-empty { margin-top: var(--ros-space-4); background: var(--ros-canvas); padding: var(--ros-space-4); border-radius: 8px; font-size: .88rem; color: var(--ros-muted); }
-  .review-empty button { margin-top: var(--ros-space-2); }
+  --review-radius: var(--sp-radius, 16px);
+  --review-surface: var(--sp-surface, #fff);
+  --review-sage: var(--sp-card, #e8eee8);
+  --review-orange: var(--sp-accent, #e99a53);
+  --review-line: var(--sp-line, #dce2da);
+  min-width: 0; margin: 0;
 }
-
-@media (max-width: 750px) {
-  .tactical-workspace .review-insights {
-    .review-insights-body { grid-template-columns: minmax(0, 1fr); }
-    .review-summary { padding-inline-end: 0; border-inline-end: 0; }
-    .review-list { max-height: none; }
-  }
-}
-
-@media (max-width: 620px) {
-  .tactical-workspace .review-insights {
-    padding: var(--ros-space-3);
-    .panel-heading { flex-wrap: wrap; }
-    .review-demo-label { margin-inline-start: 0; }
-  }
-}
-
-.tactical-workspace .review-insights { margin-top: 12px; }
-.tactical-workspace .review-theme-list { max-height: 300px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 3px 7px 3px 3px; align-content: start; }
-.tactical-workspace .review-insights .review-theme span { overflow-wrap: anywhere; }
-.tactical-workspace .review-analysis-status { position: relative; display: grid; gap: 5px; background: var(--ai-surface); border: 1px solid var(--ai-border); border-radius: 10px; padding: 14px 110px 14px 14px; margin-top: 18px; color: var(--ai-ink); }
-.tactical-workspace .review-analysis-title { display: flex; align-items: center; gap: 7px; font-size: .84rem; }
-.tactical-workspace .review-analysis-status > p { font-size: .78rem; line-height: 1.5; }
-.tactical-workspace .review-analysis-status > button { position: absolute; right: 12px; top: 14px; }
-.tactical-workspace .review-ai-badge { display: inline-flex; border: 1px solid var(--ai-border); color: var(--ai-ink); background: var(--ai-surface); border-radius: 4px; font-size: .65rem; padding: 2px 5px; white-space: nowrap; }
-.tactical-workspace .button.review-ai-button { background: var(--ai-surface); border: 1px solid var(--ai-border); color: var(--ai-ink); }
-.tactical-workspace .button.review-ai-button:hover:not(:disabled) { background: #eee4fc; border-color: var(--ai-strong); }
-.tactical-workspace .review-insights .review-theme-ai { color: var(--ai-ink); background: var(--ai-surface); border-color: var(--ai-border); }
-.tactical-workspace .review-insights .review-theme-ai[aria-pressed="true"] { border-color: var(--ai-strong); box-shadow: inset 3px 0 var(--ai-strong); background: #eee4fc; }
-.tactical-workspace .review-ai-filters { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding-top: 12px; color: var(--ai-ink); }
-.tactical-workspace .review-ai-filters .checkbox { margin: 0; font-size: .82rem; accent-color: var(--ai-strong); }
-.tactical-workspace .review-sentiment { display: grid; gap: 4px; font-size: .74rem; }
-.tactical-workspace .review-sentiment select { min-height: 34px; color: var(--ai-ink); background: var(--ai-surface); border: 1px solid var(--ai-border); border-radius: 6px; padding: 5px 8px; }
-.tactical-workspace .review-priority-badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 5px; padding: 3px 7px; background: var(--ai-surface); border: 1px solid var(--ai-border); color: var(--ai-ink); font-size: .7rem; }
-.tactical-workspace .review-ai-labels { cursor: help; color: var(--ai-ink); background: var(--ai-surface); border-radius: 7px; padding: 9px 10px; margin-block: 8px; font-size: .78rem; }
-.tactical-workspace .review-ai-labels > p { display: flex; align-items: center; gap: 4px; text-transform: none; }
+.tactical-workspace .review-navigation { display: flex; flex-wrap: wrap; gap: 6px; padding: 5px; margin-bottom: 20px; width: fit-content; max-width: 100%; border: 1px solid var(--review-line); background: var(--review-surface); border-radius: 14px; }
+.tactical-workspace .review-navigation button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; padding: 9px 16px; border: 0; border-radius: 10px; background: transparent; color: var(--ros-muted); font: inherit; font-size: .81rem; cursor: pointer; }
+.tactical-workspace .review-navigation button:hover { background: var(--ros-canvas); color: var(--ros-forest); }
+.tactical-workspace .review-navigation button[aria-pressed="true"] { background: var(--ros-forest); color: var(--review-surface); }
+.tactical-workspace .review-analysis-status { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding: 8px 16px; color: var(--ai-ink); background: var(--ai-surface); border: 1px solid var(--ai-border); border-radius: 12px; }
+.tactical-workspace .review-analysis-title { display: flex; align-items: center; gap: 7px; font-size: .78rem; }
+.tactical-workspace .review-analysis-title .review-ai-badge { display: none; }
+.tactical-workspace .review-analysis-status > p { font-size: .76rem; line-height: 1.5; }
+.tactical-workspace .review-analysis-status > button { margin-left: auto; }
+.tactical-workspace .review-insights-body { display: grid; grid-template-columns: 270px minmax(0, 1fr); align-items: start; gap: 24px; margin-top: 20px; }
+.tactical-workspace .review-summary { display: grid; gap: 16px; min-width: 0; }
+.tactical-workspace .review-rating-card, .tactical-workspace .review-themes-card { padding: 20px; background: var(--review-surface); border: 1px solid var(--review-line); border-radius: var(--review-radius); }
+.tactical-workspace .review-rating-card { background: var(--review-sage); }
+.tactical-workspace .review-rail-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tactical-workspace .review-rail-heading h3 { font-size: .88rem; font-weight: 600; letter-spacing: -.02em; }
+.tactical-workspace .review-rail-heading .pill { font-size: .62rem; background: #ffffff80; }
+.tactical-workspace .rating-overview { margin-top: 20px; }
+.tactical-workspace .rating-average { display: flex; align-items: center; gap: 9px; font-size: 2.5rem; font-weight: 600; letter-spacing: -.06em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.tactical-workspace .rating-average > svg { color: var(--review-orange); fill: var(--review-orange); }
+.tactical-workspace .rating-average small { font-size: .88rem; font-weight: 400; letter-spacing: 0; color: var(--ros-muted); align-self: end; padding-bottom: 5px; }
+.tactical-workspace .rating-overview p { color: var(--ros-muted); font-size: .74rem; margin-top: 8px; }
+.tactical-workspace .rating-distribution { padding: 0; list-style: none; margin: 20px 0 0; }
+.tactical-workspace .rating-distribution li { display: grid; grid-template-columns: 42px minmax(0, 1fr) 18px; gap: 10px; align-items: center; color: var(--ros-muted); font-size: .72rem; margin-bottom: 7px; font-variant-numeric: tabular-nums; }
+.tactical-workspace .rating-distribution li:last-child { margin-bottom: 0; }
+.tactical-workspace .rating-distribution li > span:last-child { text-align: right; }
+.tactical-workspace .rating-distribution progress { appearance: none; width: 100%; height: 5px; overflow: hidden; border: 0; border-radius: 99px; background: #ffffffa8; color: var(--ros-forest); }
+.tactical-workspace .rating-distribution progress::-webkit-progress-bar { background: #ffffffa8; }
+.tactical-workspace .rating-distribution progress::-webkit-progress-value { background: var(--ros-forest); border-radius: 99px; }
+.tactical-workspace .rating-distribution progress::-moz-progress-bar { background: var(--ros-forest); border-radius: 99px; }
+.tactical-workspace .review-method { font-size: .74rem; color: var(--ros-muted); margin: 9px 0; line-height: 1.6; }
+.tactical-workspace .review-theme-list { display: grid; align-content: start; gap: 7px; max-height: 240px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; padding: 3px 7px 3px 3px; margin: 10px -3px -3px; }
+.tactical-workspace .review-theme { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-width: 0; min-height: 42px; padding: 9px 10px; border-radius: 9px; border: 1px solid transparent; background: var(--ai-surface); color: var(--ai-ink); text-align: left; cursor: pointer; }
+.tactical-workspace .review-theme span { font-size: .78rem; font-weight: 500; overflow-wrap: anywhere; }
+.tactical-workspace .review-theme small { white-space: nowrap; font-size: .64rem; }
+.tactical-workspace .review-theme:hover { border-color: var(--ai-border); }
+.tactical-workspace .review-theme[aria-pressed="true"] { border-color: var(--ai-strong); box-shadow: inset 3px 0 var(--ai-strong); }
+.tactical-workspace .review-browser { min-width: 0; }
+.tactical-workspace .review-filter-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 12px; border: 1px solid var(--review-line); border-radius: var(--review-radius); background: var(--review-surface); }
+.tactical-workspace .review-search { display: grid; flex: 1 1 200px; min-width: 0; gap: 7px; font-weight: 500; font-size: .76rem; }
+.tactical-workspace .review-search-field { display: flex; align-items: center; gap: 9px; padding-inline: 12px; border: 1px solid var(--review-line); border-radius: 10px; color: var(--ros-muted); background: var(--ros-canvas); }
+.tactical-workspace .review-search-field:focus-within { outline: 2px solid var(--ros-focus); outline-offset: 3px; }
+.tactical-workspace .review-search-field input { border: 0; min-width: 0; width: 100%; min-height: 40px; font: inherit; color: var(--ros-ink); background: transparent; outline: none; }
+.tactical-workspace .review-search-field svg { flex-shrink: 0; }
+.tactical-workspace .review-ai-filters { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; color: var(--ai-ink); }
+.tactical-workspace .review-ai-filters .checkbox { margin: 0; font-size: .76rem; accent-color: var(--ai-strong); }
+.tactical-workspace .review-sentiment { display: flex; align-items: center; gap: 8px; font-size: .72rem; }
+.tactical-workspace .review-sentiment select { min-height: 34px; color: var(--ai-ink); background: var(--ai-surface); border: 1px solid var(--ai-border); border-radius: 8px; padding: 5px 8px; }
+.tactical-workspace .review-results-heading { min-height: 44px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px; }
+.tactical-workspace .review-results-heading p { font-size: .74rem; color: var(--ros-muted); }
+.tactical-workspace .review-insights .review-list { list-style: none; margin: 0; padding: 3px 8px 3px 3px; max-height: clamp(380px, calc(100svh - 340px), 700px); overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.tactical-workspace .review-insights .review-list > li { padding: 20px; border: 1px solid var(--review-line); border-radius: var(--review-radius); margin-bottom: 12px; background: var(--review-surface); box-shadow: 0 3px 12px #183b3503; }
+.tactical-workspace .review-insights .review-meta { display: flex; align-items: center; gap: 8px; font-size: .69rem; }
+.tactical-workspace .review-insights .review-meta time { margin-left: auto; }
+.tactical-workspace .review-card-rating { display: inline-flex; align-items: center; gap: 4px; color: var(--ros-ink); padding-left: 3px; font-weight: 600; }
+.tactical-workspace .review-card-rating svg { fill: var(--review-orange); color: var(--review-orange); }
+.tactical-workspace .review-insights .review-list blockquote { margin: 16px 0; font-size: .91rem; line-height: 1.75; color: var(--ros-ink); }
+.tactical-workspace .review-list blockquote, .tactical-workspace .review-list small { overflow-wrap: anywhere; }
+.tactical-workspace .review-source-id { display: block; font-size: .65rem; margin-top: 10px; }
+.tactical-workspace .review-empty { margin-top: 16px; padding: 24px; border: 1px dashed var(--review-line); background: var(--review-surface); border-radius: var(--review-radius); font-size: .88rem; color: var(--ros-muted); }
+.tactical-workspace .review-empty button { margin-top: 12px; }
+.tactical-workspace .review-ai-badge { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--ai-border); color: var(--ai-ink); background: var(--ai-surface); border-radius: 5px; font-size: .63rem; padding: 2px 5px; white-space: nowrap; }
+.tactical-workspace .button.review-ai-button { background: var(--ai-surface); border: 1px solid var(--ai-border); color: var(--ai-ink); border-radius: 8px; }
+.tactical-workspace .button.review-ai-button:hover:not(:disabled) { border-color: var(--ai-strong); }
+.tactical-workspace .review-priority-badge { display: inline-flex; align-items: center; gap: 4px; border-radius: 5px; padding: 3px 7px; background: var(--ai-surface); border: 1px solid var(--ai-border); color: var(--ai-ink); font-size: .65rem; }
+.tactical-workspace .review-ai-labels { cursor: help; color: var(--ai-ink); background: var(--ai-surface); border-radius: 8px; padding: 8px 10px; margin-block: 8px; font-size: .74rem; }
+.tactical-workspace .review-ai-labels > p { display: flex; align-items: center; gap: 6px; line-height: 1.6; }
 .tactical-workspace .review-ai-labels svg { flex-shrink: 0; }
-.tactical-workspace .review-list .review-ai-labels p, .tactical-workspace .review-list .review-ai-labels small { color: var(--ai-ink); }
-.tactical-workspace .review-priority-link { margin-top: 14px; padding: 12px; border: 1px solid var(--ai-border); border-radius: 8px; background: var(--ai-surface); color: var(--ai-ink); }
-.tactical-workspace .review-priority-link p { font-size: .8rem; margin-bottom: 9px; }
-.tactical-workspace .review-reply { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ros-border); }
+.tactical-workspace .review-list .review-ai-labels p { color: var(--ai-ink); }
+.tactical-workspace .review-priority-link { padding: 16px; border: 1px solid var(--ai-border); border-radius: var(--review-radius); background: var(--ai-surface); color: var(--ai-ink); }
+.tactical-workspace .review-priority-link p { font-size: .78rem; line-height: 1.6; margin-bottom: 10px; }
+.tactical-workspace .review-reply { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--review-line); }
 .tactical-workspace .review-reply-actions { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
-.tactical-workspace .review-reply-draft { padding: 12px; border: 1px solid var(--ai-border); border-radius: 8px; margin-top: 10px; background: var(--ai-surface); color: var(--ai-ink); }
-.tactical-workspace .review-reply-draft label { display: grid; gap: 7px; font-size: .78rem; font-weight: 550; }
-.tactical-workspace .review-reply-draft textarea { width: 100%; min-width: 0; resize: vertical; padding: 10px; color: var(--ai-ink); border: 1px solid var(--ai-border); border-radius: 6px; background: white; font: inherit; line-height: 1.6; }
-.tactical-workspace .review-reply-draft button { margin-top: 8px; }
+.tactical-workspace .review-reply-actions > button:last-child { margin-left: auto; }
+.tactical-workspace .review-reply-draft { padding: 14px; border: 1px solid var(--ai-border); border-radius: 12px; margin-top: 12px; background: var(--ai-surface); color: var(--ai-ink); }
+.tactical-workspace .review-reply-draft label { display: grid; gap: 9px; font-size: .78rem; font-weight: 550; }
+.tactical-workspace .review-reply-draft textarea { width: 100%; min-width: 0; resize: vertical; padding: 12px; color: var(--ai-ink); border: 1px solid var(--ai-border); border-radius: 8px; background: var(--review-surface); font: inherit; line-height: 1.7; }
+.tactical-workspace .review-reply-draft button { margin-top: 9px; }
 .tactical-workspace .review-ai-error { color: var(--ai-ink); font-size: .8rem; padding: 8px 0; }
+
+/* These network styles are page-scoped: Finance sponsor panels are unchanged. */
+.tactical-workspace .review-insights .sponsor-tool { padding: 24px; gap: 20px; background: var(--review-surface); border: 1px solid var(--review-line); border-radius: 20px; }
+.tactical-workspace .review-insights .sponsor-tool .section-header { margin: 0; align-items: start; gap: 20px; }
+.tactical-workspace .review-insights .sponsor-tool h3 { font-size: 1.1rem; letter-spacing: -.03em; }
+.tactical-workspace .review-insights .sponsor-tool h4 { font-size: .91rem; }
+.tactical-workspace .review-insights .sponsor-tool p, .tactical-workspace .review-insights .sponsor-tool li { font-size: .81rem; line-height: 1.75; }
+.tactical-workspace .review-insights .sponsor-tool > p { color: var(--ros-muted); }
+.tactical-workspace .review-insights .sponsor-tool details { border-color: var(--review-line); border-radius: 12px; padding: 16px; background: var(--ros-canvas); }
+.tactical-workspace .review-insights .sponsor-tool details[open] > summary { margin-bottom: 14px; }
+.tactical-workspace .review-insights .sponsor-tool summary { font-size: .82rem; font-weight: 550; }
+.tactical-workspace .review-insights .network-metrics { gap: 10px; }
+.tactical-workspace .review-insights .network-metrics span { flex: 1 1 140px; padding: 16px; border: 0; border-radius: 12px; background: var(--review-sage); color: var(--ros-forest); font-size: .81rem; }
+.tactical-workspace .review-insights .network-chart { border-color: var(--review-line); border-radius: var(--review-radius); background: radial-gradient(ellipse at center, var(--review-surface), var(--review-sage)); max-height: 460px; }
+.tactical-workspace .review-insights .transaction-table-wrap { border: 1px solid var(--review-line); border-radius: 12px; }
+.tactical-workspace .review-insights .transaction-table { font-size: .78rem; }
+.tactical-workspace .review-insights .transaction-table th { background: var(--review-sage); font-weight: 550; }
+.tactical-workspace .review-insights .transaction-table td { padding: 14px 12px; }
+.tactical-workspace .review-insights .transaction-table caption { padding: 14px 12px; text-align: left; color: var(--ros-muted); font-size: .76rem; }
+.tactical-workspace .review-insights .network-evidence article { border-color: var(--ros-forest); background: var(--review-sage); border-radius: 8px; }
+.tactical-workspace .review-insights .social-steps { list-style: none; counter-reset: pipeline; padding: 0; gap: 8px; }
+.tactical-workspace .review-insights .social-steps li { counter-increment: pipeline; display: flex; align-items: center; gap: 10px; border: 1px solid var(--review-line); background: var(--ros-canvas); border-radius: 10px; padding: 12px; font-size: .73rem; }
+.tactical-workspace .review-insights .social-steps li::before { content: counter(pipeline, decimal-leading-zero); color: var(--ros-muted); font-size: .64rem; }
+.tactical-workspace .review-insights .social-timeline li { background: var(--review-surface); border-color: var(--review-line); border-left-color: var(--ros-forest); padding: 20px; }
+.tactical-workspace .review-insights .social-timeline { max-height: 650px; overflow-y: auto; overscroll-behavior: contain; padding: 3px; }
+.tactical-workspace .review-insights .ai-workbench { margin: 0; padding: 20px; border-radius: var(--review-radius); }
+.tactical-workspace .review-insights .ai-surface details { background: var(--ai-surface); border-color: var(--ai-border); }
+.tactical-workspace .review-insights .social-ai-cell { color: var(--ai-ink); }
+.tactical-workspace .review-network-workspace { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 24px; align-items: start; }
+.tactical-workspace .review-network-controls { display: grid; gap: 20px; }
+.tactical-workspace .review-network-controls .assumption-grid { grid-template-columns: minmax(0, 1fr); margin: 0; gap: 14px; }
+.tactical-workspace .review-network-controls .network-metrics { display: grid; grid-template-columns: 1fr 1fr; }
+.tactical-workspace .review-network-controls .network-metrics span { padding: 12px; font-size: .74rem; }
+.tactical-workspace .review-network-figure { margin: 0; min-width: 0; }
+.tactical-workspace .review-network-figure figcaption { margin-top: 12px; font-size: .72rem; line-height: 1.7; color: var(--ros-muted); }
 @media (max-width: 750px) {
-  .tactical-workspace .review-insights .review-list { max-height: 70vh; overflow-y: auto; overscroll-behavior: contain; }
+  .tactical-workspace .review-insights-body { grid-template-columns: minmax(0, 1fr); }
+  .tactical-workspace .review-network-workspace { grid-template-columns: minmax(0, 1fr); }
+  .tactical-workspace .review-insights .review-list { max-height: 70vh; }
   .tactical-workspace .review-theme-list { max-height: 220px; }
-}
-@media (max-width: 430px) {
-  .tactical-workspace .review-analysis-status { padding: 12px; }
-  .tactical-workspace .review-analysis-status > button { position: static; justify-self: start; margin-top: 4px; }
+  .tactical-workspace .review-navigation button { padding-inline: 10px; }
+  .tactical-workspace .review-insights .sponsor-tool { padding: 12px; }
 }

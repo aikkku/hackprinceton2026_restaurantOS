@@ -1,0 +1,29 @@
+/* Tactical-owned design primitives shared by onboarding and the workspace shell.
+   Rain's --sx-* palette remains unchanged; cross-domain adoption needs coordination. */
+.sprout-theme {
+  --sp-primary: #183b35;
+  --sp-primary-hover: #244e45;
+  --sp-bg: #faf8f4;
+  --sp-card: #e8eee8;
+  --sp-surface: #fff;
+  --sp-accent: #e99a53;
+  --sp-accent-soft: #f8e9db;
+  --sp-ink: #262923;
+  --sp-muted: #646e65;
+  --sp-line: #dce2da;
+  --sp-ai: #7043a3;
+  --sp-ai-bg: #f0eaf8;
+  --sp-error: #a23b2e;
+  --sp-error-bg: #fff1ed;
+  --sp-radius: 16px;
+  --sp-radius-lg: 26px;
+  --sp-shadow: 0 16px 48px #183b3508;
+  --sp-fast: 160ms;
+  --sp-space-1: 4px;
+  --sp-space-2: 8px;
+  --sp-space-3: 12px;
+  --sp-space-4: 16px;
+  --sp-space-5: 24px;
+  --sp-space-6: 32px;
+  --sp-space-7: 48px;
+}

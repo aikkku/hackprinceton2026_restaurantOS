@@ -10,6 +10,34 @@ const records: AnalyzedReview[] = demo.reviews.map((review, index) => ({
 }));
 const state = (rows: AnalyzedReview[]) => ({ ok: true, records: rows, total: demo.reviews.length, pending: demo.reviews.length - rows.length, busy: false, storage: "mongodb" });
 
+test("laptop review views retain filters and independently scroll by keyboard", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.route("**/api/tactical/reviews/analysis**", route => route.fulfill({ json: state(records) }));
+  await page.goto("/tactical/reviews");
+  await expect(page.getByText("30 of 30 classified · saved to MongoDB")).toBeVisible();
+  const navigation = page.getByRole("navigation", { name: "Customer signals views" });
+  const feed = page.getByRole("list", { name: "Customer review results" });
+  const themes = page.getByRole("region", { name: "Filter by review theme" });
+  for (const region of [feed, themes]) {
+    await region.focus();
+    await region.press("End");
+    await expect.poll(() => region.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+  }
+  await page.getByRole("checkbox", { name: "High priority" }).check();
+  await expect(page.locator("[data-review-id]")).toHaveCount(1);
+  await navigation.getByRole("button", { name: "Relationship network", exact: true }).click();
+  await expect(navigation.getByRole("button", { name: "Relationship network", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByLabel("Relationship filter").selectOption("commented");
+  await navigation.getByRole("button", { name: "Content & connectivity", exact: true }).click();
+  await expect(page.getByRole("region", { name: "Content and connectivity pipeline" })).toBeVisible();
+  await navigation.getByRole("button", { name: "Relationship network", exact: true }).click();
+  await expect(page.getByLabel("Relationship filter")).toHaveValue("commented");
+  await navigation.getByRole("button", { name: "Review evidence", exact: true }).click();
+  await expect(page.getByRole("checkbox", { name: "High priority" })).toBeChecked();
+  await expect(page.locator("[data-review-id]")).toHaveCount(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
 test("reviews use saved AI themes, sentiment and high priority instead of fixture mission tags", async ({ page }) => {
   let generations = 0;
   await page.route("**/api/tactical/ai/session", route => route.fulfill({ json: { unlocked: true } }));

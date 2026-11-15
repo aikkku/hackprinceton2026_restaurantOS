@@ -26,38 +26,13 @@
   h2 { font-size: 1.13rem; }
   h3 { font-size: .94rem; }
 
-  .app-bar { background: var(--ros-forest); color: white; }
-  .app-bar-inner {
-    display: flex;
-    align-items: center;
-    gap: var(--ros-space-5);
-    width: min(1328px, 100%);
-    min-height: 66px;
-    padding-inline: var(--ros-space-6);
-    margin-inline: auto;
-  }
-  .brand { color: inherit; text-decoration: none; display: flex; align-items: center; gap: 10px; font-size: 1.12rem; font-weight: 680; }
-  .brand-icon { width: 32px; height: 32px; border: 1px solid #ffffff40; border-radius: 9px; display: grid; place-items: center; color: var(--ros-sage); }
-  .brand:focus-visible { outline-color: var(--ros-sage); }
-  .workspace-switch { display: flex; align-items: center; gap: var(--ros-space-4); }
-  .workspace-switch a { color: white; font-size: .88rem; text-underline-offset: 4px; }
-  .workspace-switch a:focus-visible { outline-color: var(--ros-sage); }
-  .current-mode { color: var(--ros-sage); font-size: .88rem; padding-inline-start: var(--ros-space-5); border-inline-start: 1px solid #ffffff32; }
-  .demo-badge, .pill { display: inline-flex; align-items: center; border-radius: 999px; font-size: .74rem; font-weight: 650; white-space: nowrap; padding: 4px 9px; }
-  .demo-badge { margin-inline-start: auto; color: #35270f; background: var(--ros-amber); }
-  .pill { background: var(--ros-tint); color: var(--ros-forest); }
+  .pill { display: inline-flex; align-items: center; border-radius: 999px; font-size: .74rem; font-weight: 650; white-space: nowrap; padding: 4px 9px; background: var(--ros-tint); color: var(--ros-forest); }
   .pill-warm { color: var(--ros-warm-text); background: #f8eace; }
-  .workspace-main { width: min(1328px, 100%); margin-inline: auto; padding: 30px var(--ros-space-6) var(--ros-space-5); }
-  .restaurant-heading { display: flex; align-items: end; justify-content: space-between; gap: var(--ros-space-4); margin-bottom: var(--ros-space-5); }
-  .restaurant-heading h1 { font-size: clamp(1.85rem, 4vw, 2.65rem); letter-spacing: -.044em; }
-  .restaurant-heading p { margin-top: var(--ros-space-1); color: var(--ros-muted); }
   .summary-stats { display: flex; flex-shrink: 0; gap: var(--ros-space-2); }
   .summary-stats div { min-width: 89px; padding: 8px 13px; background: var(--ros-surface); border: 1px solid var(--ros-border); border-radius: 10px; }
   .summary-stats dt { font-size: .74rem; color: var(--ros-muted); }
   .summary-stats dd { font-weight: 680; font-size: 1.25rem; line-height: 1.25; font-variant-numeric: tabular-nums; }
 
-  .workspace-links { display: flex; gap: var(--ros-space-4); margin-bottom: var(--ros-space-4); flex-wrap: wrap; }
-  .workspace-links a { color: var(--ros-forest); font-size: .88rem; font-weight: 600; text-underline-offset: 4px; }
   .scene-scroll { overflow: auto; max-height: 660px; }
   .scene-controls { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 16px; font-size: .8rem; color: var(--ros-muted); border-top: 1px solid var(--ros-border); }
   .scene-controls output { min-width: 42px; text-align: center; }
@@ -214,15 +189,6 @@
 
 @media (max-width: 620px) {
   .tactical-workspace {
-    .app-bar-inner, .workspace-main { padding-inline: var(--ros-space-3); }
-    .app-bar-inner { min-height: 56px; gap: var(--ros-space-2); flex-wrap: wrap; padding-block: var(--ros-space-2); }
-    .workspace-switch { display: flex; align-items: center; gap: var(--ros-space-4); }
-  .workspace-switch a { color: white; font-size: .88rem; text-underline-offset: 4px; }
-  .workspace-switch a:focus-visible { outline-color: var(--ros-sage); }
-  .workspace-switch { order: 3; flex-basis: 100%; }
-    .current-mode { padding-inline-start: 0; border-inline-start: 0; }
-    .workspace-main { padding-top: var(--ros-space-4); }
-    .restaurant-heading { align-items: start; flex-direction: column; margin-bottom: var(--ros-space-4); }
     .summary-stats div { min-width: 83px; }
     .floor-heading, .scenario-panel { padding: var(--ros-space-3); }
     .scene { padding: 0; min-height: auto; }
@@ -234,8 +200,6 @@
 }
 
 .tactical-workspace [hidden] { display: none !important; }
-.tactical-workspace .workspace-links a[aria-current="page"] { background: var(--ros-forest); color: white; }
-.tactical-workspace .workspace-links a { padding: 8px 12px; border-radius: 8px; text-decoration: none; }
 .tactical-workspace .scenarios-page .saved-scenarios { display: none; }
 .tactical-workspace .decisions-page .scenario-panel > :not(.saved-scenarios) { display: none; }
 .tactical-workspace .decisions-page .saved-scenarios { border-top: 0; margin-top: 0; padding-top: 0; }

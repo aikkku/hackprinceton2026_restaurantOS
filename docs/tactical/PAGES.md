@@ -2,6 +2,10 @@
 
 [Documentation index](README.md) · [Detailed inventory and backlog](IMPLEMENTATION_STATUS.md)
 
+Tactical now uses the [Sprout laptop shell](SPROUT_SHELL.md): persistent left navigation, current restaurant context, a source/revision disclosure, and purple AI access. Internal navigation preserves working state. Brand/setup/Expansion links guard unsaved floor edits. Floor Plan now has a larger illustrated scene with timber flooring, layered walls and detailed furniture materials; its existing editor behavior is retained. Customer Reviews now has compact laptop filters, a rating/theme rail, wider review cards and consistent network/evidence surfaces. Dedicated mobile redesign is deferred; HR is next.
+
+Public entry now starts at `/` with the Sprout welcome page. `/onboarding` provides restaurant details → optional file selection with a small **Demo** checkbox → a live summary of the existing mock restaurant. `/register` redirects there. Demo ignores entered information and all file contents; files stay local. Unchecked Demo blocks completion until real document processing is implemented. Setup opens existing saved work and does not create an account or reset the database. Direct workspace links still work. See the [page-by-page design rollout](DESIGN_REDESIGN_PLAN.md).
+
 All six sections share the persistent Tactical shell and one validated, server-selected synthetic dataset. Choose local fixture or MongoDB mode through server configuration; MongoDB errors remain visible. See [database setup](MONGODB_SETUP.md). Internal links preserve open editor state. Browser reload restores saved floor-plan versions from the configured source.
 
 | Page | Implemented | Next work |

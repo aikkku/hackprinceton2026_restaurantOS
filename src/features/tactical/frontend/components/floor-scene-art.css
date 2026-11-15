@@ -1,0 +1,41 @@
+/* Visual materials only. Hit targets, collision colors and geometry live in the editor. */
+.tactical-workspace .floor-art-wall-side { fill: var(--art-wall-side); }
+.tactical-workspace .floor-art-wall-cap { fill: var(--art-wall); stroke: var(--art-wall-line); stroke-width: .016; }
+.tactical-workspace .floor-art-wall-edge { fill: none; stroke: var(--art-porcelain); stroke-width: .018; }
+.tactical-workspace .floor-art-wall-shade { fill: none; stroke: var(--art-shadow); stroke-opacity: .14; stroke-width: .1; }
+.tactical-workspace .floor-art-skirting { fill: none; stroke: var(--art-porcelain); stroke-width: .045; stroke-opacity: .85; }
+.tactical-workspace .floor-art-board-joint { fill: none; stroke: var(--art-floor-joint); stroke-width: .012; stroke-opacity: .43; }
+.tactical-workspace .floor-art-floor-grain { fill: none; stroke: var(--art-floor-joint); stroke-width: .007; stroke-opacity: .22; }
+.tactical-workspace .floor-art-grain { fill: none; stroke: var(--art-wood-edge); stroke-width: .008; stroke-opacity: .19; }
+.tactical-workspace .floor-art-table { stroke: var(--art-wood-edge); stroke-width: .013; }
+.tactical-workspace .floor-art-table-edge { fill: var(--art-wood-edge); }
+.tactical-workspace .floor-art-table-inlay { fill: none; stroke: var(--art-daylight); stroke-width: .012; stroke-opacity: .48; }
+.tactical-workspace .floor-art-chair-frame { fill: var(--art-frame); }
+.tactical-workspace .floor-art-chair-back { fill: var(--art-fabric-dark); stroke: var(--art-fabric-light); stroke-width: .008; }
+.tactical-workspace .floor-art-stitch { fill: none; stroke: var(--art-stitch); stroke-width: .008; stroke-opacity: .68; stroke-linecap: round; }
+.tactical-workspace .floor-art-tuft { fill: var(--art-fabric-dark); }
+.tactical-workspace .floor-art-cushion { stroke: var(--art-fabric-dark); stroke-width: .012; }
+.tactical-workspace .floor-art-linen { fill: var(--art-linen); stroke: var(--art-porcelain); stroke-width: .006; }
+.tactical-workspace .floor-art-plate-shadow { fill: var(--art-shadow); fill-opacity: .17; }
+.tactical-workspace .floor-art-plate { fill: var(--art-porcelain); }
+.tactical-workspace .floor-art-plate-rim { fill: none; stroke: var(--art-rim); stroke-width: .009; }
+.tactical-workspace .floor-art-cutlery { fill: none; stroke: var(--art-cutlery); stroke-width: .012; stroke-linecap: round; stroke-linejoin: round; }
+.tactical-workspace .floor-art-glass { fill: var(--art-glass); fill-opacity: .8; stroke: var(--art-porcelain); stroke-width: .01; }
+.tactical-workspace .floor-art-menu { fill: var(--art-porcelain); stroke: var(--art-brass); stroke-width: .009; }
+.tactical-workspace .floor-art-stone-vein { fill: none; stroke: var(--art-wall-line); stroke-width: .012; stroke-opacity: .35; }
+.tactical-workspace .floor-art-brass { fill: var(--art-brass); }
+.tactical-workspace .floor-art-brass-line { fill: none; stroke: var(--art-brass); stroke-width: .025; stroke-linecap: round; }
+.tactical-workspace .floor-art-register { fill: var(--art-register); }
+.tactical-workspace .floor-art-screen-frame { fill: var(--art-frame); }
+.tactical-workspace .floor-art-screen { fill: var(--art-screen); }
+.tactical-workspace .floor-art-screen-line { fill: none; stroke: var(--art-porcelain); stroke-opacity: .8; stroke-width: .012; stroke-linecap: round; }
+.tactical-workspace .floor-art-register-keys { fill: none; stroke: var(--art-cutlery); stroke-width: .014; }
+.tactical-workspace .floor-art-pot-shadow { fill: var(--art-shadow); fill-opacity: .18; }
+.tactical-workspace .floor-art-planter { fill: var(--art-terracotta); stroke: var(--art-wood-light); stroke-width: .015; }
+.tactical-workspace .floor-art-soil { fill: var(--art-soil); }
+.tactical-workspace .floor-art-leaf { fill: var(--art-leaf); }
+.tactical-workspace .floor-art-leaf-light { fill: var(--art-leaf-light); }
+.tactical-workspace .floor-art-leaf-vein { fill: none; stroke: var(--art-stitch); stroke-width: .006; stroke-opacity: .5; }
+.tactical-workspace .floor-art-divider-slat { fill: none; stroke: var(--art-wood-edge); stroke-width: .018; stroke-linecap: round; }
+.tactical-workspace .floor-art-window-frame { fill: none; stroke: var(--art-wall); stroke-width: .045; }
+.tactical-workspace .floor-art-glass-highlight { fill: none; stroke: var(--art-porcelain); stroke-width: .02; stroke-opacity: .75; }

@@ -2,6 +2,18 @@
 
 Open `/tactical/reviews`. Reviews still use the synthetic restaurant dataset. Purple identifies AI interpretations and drafts; ratings and counts are calculated from the supplied records.
 
+## Sprout design update — November 15, 2026
+
+Three persistent views organize Review evidence, Relationship network and Content & connectivity. The review workspace pairs a sage rating card and independently scrolling AI theme rail with a compact search/priority/sentiment toolbar and a wider review feed. Cards retain source IDs, source ratings, classification explanations, AI draft editing/copying and disabled posting. The classification strip reports the existing saved/processing/error state. The theme region, review feed and social source timeline can be focused and scrolled by keyboard.
+
+Network filters and derived metrics sit beside the graph. Import and permission details remain expandable, while provenance is visible in the header. Content analysis uses the same surfaces, numbered pipeline steps, tables, source timeline and purple AI findings. Layout changes do not change graph metrics, cached classifications, generation, import/export or persistence. Dedicated mobile redesign remains deferred; existing fallback behavior is retained.
+
+`review-insights.css` owns these page-scoped visual rules, including scoped styling of `network-panel.tsx` and `social-pipeline.tsx`; shared Finance sponsor styling is not changed. The existing review hook, backend and MongoDB collection are unchanged.
+
+Verification: 272 unit tests passed (one existing skip), all 80 existing browser checks passed in the initial full run, and the final 30 focused review/AI/social/sponsor checks passed including two new laptop navigation/keyboard cases. Typecheck, lint and build passed with existing Expansion warnings. The live preview loaded the existing 30 saved classifications and nine high-priority records. Posting, real review ingestion and durable response drafts remain unimplemented.
+
+Field note: bounded theme/feed/timeline regions need explicit keyboard focus, and hidden view panels should remain mounted when their filter/draft state must survive navigation. Scope network presentation beneath the Reviews page so Finance's shared sponsor primitives do not inherit unrelated layout changes. ChatOverflow is unavailable (`command not found`); this note is retained locally.
+
 ## Page behavior
 
 - Every review has **Draft with AI**, an editable draft, **Copy**, and **Regenerate**. The existing workspace access code enables generation. The short **Reply** button stays disabled because platform posting is not connected. Nothing is published. Reply drafts are temporary UI state, not database records.

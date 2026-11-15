@@ -1,9 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { UtensilsCrossed } from "lucide-react";
 import type { Dataset } from "../../domain/dataset";
 import { modernFloorLibrary } from "../../domain/floor-editor";
 import { FloorEditor, type FloorContext } from "./floor-editor";
@@ -14,16 +12,8 @@ import { FinancePage } from "./finance-page";
 import { AiAssistant } from "./ai-assistant";
 import { AnalyzePlan } from "./analyze-plan";
 import { AiAccessProvider } from "./ai-workbench";
+import { WorkspaceShell } from "./sprout/workspace-shell";
 import "./tactical.css";
-
-const pages = [
-  ["/tactical", "Floor Plan"],
-  ["/tactical/reviews", "Customer Reviews & Social Media"],
-  ["/tactical/hr", "HR"],
-  ["/tactical/supply", "Supply Management"],
-  ["/tactical/finance", "Financial Intelligence"],
-  ["/tactical/ai", "AI Assistant"],
-];
 
 export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: Dataset; dataSource: string; revision: number | null }) {
   const pathname = usePathname();
@@ -41,28 +31,8 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
   }
 
   return (
-    <div className="tactical-workspace">
-      <header className="app-bar">
-        <div className="app-bar-inner">
-          <a className="brand" href="/tactical"><span className="brand-icon"><UtensilsCrossed size={19} /></span>RestaurantOS</a>
-          <nav className="workspace-switch" aria-label="Workspace">
-            <span className="current-mode" aria-current="page">Manage restaurant</span>
-            <Link href="/expansion" onClick={(event) => {
-              if (context.dirty && !window.confirm("Leave Tactical and discard unsaved layout changes?")) event.preventDefault();
-            }}>Explore expansion</Link>
-          </nav>
-          <span className="demo-badge">Demo · {dataSource}{revision !== null ? ` · revision ${revision}` : ""}</span>
-        </div>
-      </header>
-      <main className="workspace-main">
-        <div className="restaurant-heading">
-          <div><h1>{fixture.profile.name}</h1><p>{fixture.profile.cuisine} · {fixture.profile.location}</p></div>
-        </div>
-
-        <nav className="workspace-links" aria-label="Tactical sections">
-          {pages.map(([href, label]) => <Link key={href} href={href} aria-current={pathname === href ? "page" : undefined}>{label}</Link>)}
-        </nav>
-        <AiAccessProvider enabled={section !== "supply"} renderControls={section !== "floor" && section !== "supply"}>
+    <AiAccessProvider enabled={section !== "supply"} renderControls={false}>
+      <WorkspaceShell profile={fixture.profile} dataSource={dataSource} revision={revision} dirty={context.dirty}>
         <div hidden={section !== "floor"}>
           <FloorEditor template={fixture.layout} saved={fixture.layoutConfigurations} cloud={revision !== null}
             analysisRequested={section === "floor" ? analysisRequested : 0} onContext={setContext} />
@@ -83,8 +53,7 @@ export function TacticalWorkspace({ fixture, dataSource, revision }: { fixture: 
         <div hidden={section !== "ai"}>
           <AiAssistant restaurantId={fixture.profile.id} layout={context.layout} layoutVersions={context.library} />
         </div>
-        </AiAccessProvider>
-      </main>
-    </div>
+      </WorkspaceShell>
+    </AiAccessProvider>
   );
 }

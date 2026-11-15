@@ -6,6 +6,8 @@ Start with **[Current implementation and remaining work](IMPLEMENTATION_STATUS.m
 
 | Document | Purpose | Update when |
 | --- | --- | --- |
+| [SPROUT_SHELL.md](SPROUT_SHELL.md) | Laptop sidebar, shared Tactical design primitives, navigation guards and state-preservation review | Shell behavior or ownership changes |
+| [DESIGN_REDESIGN_PLAN.md](DESIGN_REDESIGN_PLAN.md) | Sprout visual direction, implemented Demo onboarding and step-by-step redesign of every page without losing functionality | Each redesign phase ships or its review gate changes |
 | [CONNECTED_DATA_AND_AI_PLAN.md](CONNECTED_DATA_AND_AI_PLAN.md) | Proposed shared context, durable AI artifacts, decisions and database migration | Centralization scope is agreed or a phase ships |
 | [MONGODB_SETUP.md](MONGODB_SETUP.md) | Shared database, environment setup, seed/export, protected APIs and live verification | Database/API behavior changes |
 | [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) | Detailed current-versus-target status, source map, task IDs, priorities, dependencies, limitations and acceptance criteria | A feature ships, scope changes or verification finds a gap |

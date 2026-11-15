@@ -2,7 +2,17 @@
 
 [Documentation index](README.md) · [Current inventory and backlog](IMPLEMENTATION_STATUS.md)
 
-Use Node.js 22.18 or newer, run `npm ci` and `npm run dev`, then open `/tactical`. The root route also opens Tactical. The core restaurant layout, assumptions and review excerpts come from the editable [demo fixture](../../src/features/tactical/frontend/data/demo-restaurant.json). Browser storage holds saved layouts and scenarios independently.
+Use Node.js 22.18 or newer, run `npm ci` and `npm run dev`, then open `/` for Sprout welcome and onboarding, or `/tactical` to open the existing workspace directly. The core restaurant layout, assumptions and review excerpts come from the editable [demo fixture](../../src/features/tactical/frontend/data/demo-restaurant.json). Browser storage holds saved layouts and scenarios independently.
+
+## Sprout onboarding review
+
+1. Open `/`, choose **Let’s get started**, and optionally enter any restaurant name/location and goal.
+2. Continue to the upload step. **Demo** starts checked. Select or drop arbitrary menu, space, sales or other files; remove a file to check the preview. No file bytes are sent to the server.
+3. Uncheck Demo: real document processing is clearly unavailable and completion is disabled. Recheck it and choose **Set up demo**.
+4. The ready screen shows the current mock restaurant and dataset-derived counts, regardless of the entered details or selected files. Open Floor Plan, Finance or Reviews. The current saved work remains available.
+5. Try `/register`, a narrow screen, keyboard navigation, Back, and reload. Basic answers/mode return in this tab; files need reselection. A dataset outage shows a retryable error rather than a false success.
+
+See the [complete redesign sequence](DESIGN_REDESIGN_PLAN.md). Existing page walkthroughs follow below.
 
 ## 1. Explore the starting layout
 
