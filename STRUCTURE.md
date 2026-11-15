@@ -172,3 +172,8 @@ The Arlequin Track 2 workflow lives in Tactical: `domain/social.ts` owns message
 ## Connected assistant
 
 `domain/assistant.ts` defines bounded chat/tool/result/change schemas. `backend/assistant/{service,tools,repository}.ts` separates protected orchestration, canonical tool execution and transactional Mongo persistence. `/api/tactical/assistant` is the thin route; `tactical_conversations` stores source-linked history. `backend/demo-store.ts` shares process-local demo edits with the ordinary dataset loader. `frontend/components/ai-assistant.tsx` and `components/assistant/` own the chat and interactive cards. `frontend/assistant-navigation.tsx` reveals and briefly highlights stable record targets; the workspace reconciles successful edits without resetting unrelated floor drafts. See [Assistant workflow](docs/tactical/ASSISTANT_WORKFLOW.md).
+
+
+## Full-app deployment
+
+`deploy/vultr/` packages the Next.js app and existing Expansion Python worker for one persistent Linux host. `docs/DEPLOYMENT_VULTR.md` covers runtime secrets, Atlas, HTTPS, private volume provisioning and rollback. `.github/workflows/verify.yml` validates the image without production credentials. `/api/health` is liveness only. Existing `deploy/expansion/` remains Rain-owned and unchanged.
