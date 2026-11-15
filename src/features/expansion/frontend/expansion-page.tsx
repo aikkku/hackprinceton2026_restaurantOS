@@ -17,7 +17,7 @@ import { AskDrawer, type AskContext } from "./sprout/ask.tsx";
 import { Compare } from "./sprout/compare.tsx";
 import { CostResults, CostWizard, costSteps, type CostKey } from "./sprout/costs.tsx";
 import { Home, type PlanEntry } from "./sprout/home.tsx";
-import { checkQuestion, costLabel, fitForGroup, makeChoice, monthlyCost, numberRequirement, rangeLabel, FIT_LABEL } from "./sprout/model.ts";
+import { checkQuestion, costLabel, fitForGroup, makeChoice, monthlyCost, numberRequirement, rangeLabel, sourcesNeverChecked, FIT_LABEL } from "./sprout/model.ts";
 import { NeedsReview, NeedsWizard } from "./sprout/needs.tsx";
 import { PlaceDetail } from "./sprout/place-detail.tsx";
 import { Places, type PlaceView } from "./sprout/places.tsx";
@@ -241,7 +241,8 @@ export default function ExpansionPage() {
     });
   };
 
-  const refreshSources = async (id: string, mode: "live" | "synthetic") => {
+  /** `auto`: the quiet first lookup when a never-checked place is opened (no notices; the button stays for retries). */
+  const refreshSources = async (id: string, mode: "live" | "synthetic", auto = false) => {
     if (!workspace) return;
     const choice = ensureChoice(id);
     if (!choice) return;
@@ -249,13 +250,27 @@ export default function ExpansionPage() {
     try {
       const sources = await refreshCandidateSources(workspace.runId, id, { currentAddress: null, priceLevel: null, sourceMode: mode });
       revise(id, choice.assessment.notes, sources);
+      if (auto) { setPlaceState({ busy: false, notice: "", error: "" }); return; }
       const found = sources.observations.length;
       setPlaceState({ busy: false, error: "", notice: mode === "synthetic"
         ? "Loaded test source examples. They’re labeled as tests and can’t confirm a must-have."
         : found ? `Found ${found} new ${found === 1 ? "source" : "sources"}. We re-checked this place.` : "No new details were available. What we had is kept." });
     } catch {
-      setPlaceState({ busy: false, notice: "", error: "We couldn’t reach the sources right now. What we had is kept. Try again later." });
+      setPlaceState({ busy: false, notice: "", error: auto ? "" : "We couldn’t reach the sources right now. What we had is kept. Try again later." });
     }
+  };
+
+  // Opening a place the search didn't inspect fetches its scan/photo once, as if "Look for missing details" was pressed.
+  const autoChecked = useRef(new Set<string>());
+  const openPlace = (id: string) => {
+    const choice = ensureChoice(id);
+    setPlaceState({ busy: false, notice: "", error: "" });
+    setScreen({ name: "place", id });
+    if (!workspace || !choice || workspace.source === "saved_plan" || workspace.isSynthetic) return;
+    const key = `${workspace.runId}:${id}`;
+    if (autoChecked.current.has(key) || !sourcesNeverChecked(choice.assessment.sources)) return;
+    autoChecked.current.add(key);
+    void refreshSources(id, "live", true);
   };
 
   const applyFinance = (id: string, inputs: DecisionFinanceInputs) => {
@@ -403,7 +418,7 @@ export default function ExpansionPage() {
       break;
     case "places":
       body = workspace && <Places workspace={workspace} views={views} saved={saved} selectedId={selectedId} notice={listNotice}
-        onSelect={setSelectedId} onOpen={(id) => { ensureChoice(id); setPlaceState({ busy: false, notice: "", error: "" }); setScreen({ name: "place", id }); }}
+        onSelect={setSelectedId} onOpen={openPlace}
         onToggleSave={toggleSave} onCompare={() => setScreen({ name: "compare" })} onNewSearch={startNeeds} />;
       break;
     case "place": {
@@ -419,7 +434,7 @@ export default function ExpansionPage() {
     case "compare":
       body = workspace && <Compare workspace={workspace} choices={compareChoices} images={new Map(compareChoices.map((c) => [c.candidateId, imageFor(c.candidateId)]))} pick={pick}
         onPick={(id) => { ensureChoice(id); setPick(id); }} onWorkOut={() => setScreen({ name: "costs", step: 0 })} onAsk={askCompare}
-        onOpen={(id) => { ensureChoice(id); setPlaceState({ busy: false, notice: "", error: "" }); setScreen({ name: "place", id }); }} onBack={() => setScreen({ name: "places" })} />;
+        onOpen={openPlace} onBack={() => setScreen({ name: "places" })} />;
       break;
     case "costs": {
       const choice = pick ? choiceFor(pick) : null;

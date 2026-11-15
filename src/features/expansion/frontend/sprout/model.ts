@@ -349,12 +349,19 @@ export function compareTake(items: CompareInput[], requirements: SearchRequireme
 // ---------------------------------------------------------------------------
 // Choices (assessment + finance working state per place)
 
+const NOT_CHECKED = "Not checked yet.";
+
 export function emptySources(candidateId: string, now = new Date().toISOString()): SourceSnapshot {
   return {
     version: EVIDENCE_VERSION, candidateId, refreshedAt: now,
-    statuses: providerNames.map((provider) => ({ provider, status: "unavailable", mode: "unavailable", checkedAt: now, capabilities: [], reason: "Not checked yet." })),
+    statuses: providerNames.map((provider) => ({ provider, status: "unavailable", mode: "unavailable", checkedAt: now, capabilities: [], reason: NOT_CHECKED })),
     observations: [], gaps: ["Source evidence has not been checked yet."],
   };
+}
+
+/** True when no source lookup has ever run for this place (only the emptySources placeholder). */
+export function sourcesNeverChecked(sources: SourceSnapshot): boolean {
+  return sources.observations.length === 0 && sources.statuses.every((status) => status.reason === NOT_CHECKED);
 }
 
 /** Revision 0 for a place: the run's evidence (if any) reassessed against the run's requirements. */
