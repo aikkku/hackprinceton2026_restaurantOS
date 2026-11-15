@@ -1,0 +1,30 @@
+{
+  "bootstrap": {
+    "version": "expansion-agent-v1",
+    "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "scope": {
+      "runId": "synthetic-contract-run",
+      "sessionId": "synthetic-session",
+      "revisionId": "synthetic-r1",
+      "datasetId": "synthetic-contract-v1",
+      "snapshotId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    }
+  },
+  "request": {
+    "version": "expansion-agent-v1",
+    "id": 1,
+    "token": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "scope": {
+      "runId": "synthetic-contract-run",
+      "sessionId": "synthetic-session",
+      "revisionId": "synthetic-r1",
+      "datasetId": "synthetic-contract-v1",
+      "snapshotId": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    },
+    "operation": "readiness",
+    "artifactRefs": []
+  },
+  "salesInput": {"fixedCostsMonthly": 10000, "contributionMargin": 0.4},
+  "salesOutput": {"status": "available", "requiredSalesMonthly": 25000},
+  "occupancyOutput": {"known": true, "low": 2400, "high": 2400, "notes": [], "serviceInclusion": "included"}
+}

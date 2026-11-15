@@ -274,3 +274,11 @@ Append this completed record after each implementation attempt, including partia
 - This ledger is initialized with every phase `not_started`; it does not claim the new application flow works yet.
 - Only documentation is changed. Application tests, provider calls, worker setup and deployments were not executed for this documentation-only task. Document-link/structure checks are reported in the chat completion; they do not satisfy implementation gates.
 - Next agent: read the runbook and Phase 1, inspect current code, implement the profile path, run its tests, then append H-001 with actual results.
+
+### Handoff H-004-contracts — 2026-11-14 — Phase 3/4 interface freeze (implementation in progress)
+
+- User requested concurrent development on separate computers: Phase 3 owns framework/worker/bridge/run/events; Phase 4 owns evidence adapters, investigation/comparison, finance extensions and saved briefs. No Phase 4 adapter implementations are included here.
+- Stable boundary documented in `docs/expansion/PHASE3_AGENT_INTERFACES.md`. New schemas: `domain/agent-scope.ts`, `domain/agent.ts`, `domain/agent-providers.ts`; additive optional run fields in `domain/runs.ts`; explicit registration in `backend/agent-providers.ts`. Existing Phase 2 candidate, assessment, evidence, occupancy and required-sales DTOs are reused.
+- Version IDs: `expansion-agent-v1`, `expansion-agent-providers-v1`; existing `expansion-run-v1` stays readable. Six run artifacts, five specialist names, opaque snapshot binding and replayable SSE envelope are frozen in these files. Later breaking changes require explicit coordination.
+- Shared fixture `agent/fixtures/contract.json` is synthetic; `agent-contracts.test.ts` passes 2/2 with `node --test --test-concurrency=1 src/features/expansion/agent-contracts.test.ts`. Complete Phase 3 integration gates are still pending. The small interface commit is intended to be synced before the whole phase is done.
+- Phase 4: implement optional `market`, `inspect`, `financeInputs` hooks against these request/result schemas; register once via `registerAgentProviders`; use explicit unavailable capability results until access is verified. Final integration must exercise those actual outputs through the real worker. Do not mutate historical candidate assessments or duplicate arithmetic in Python.

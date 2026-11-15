@@ -2,6 +2,7 @@ import { z } from "zod";
 import { intakeSchema } from "./intake.ts";
 import { searchRequirementsSchema } from "./requirements.ts";
 import { assessedCandidateSchema, candidateGroups } from "./matching.ts";
+import { agentStateSchema } from "./agent.ts";
 
 /**
  * Run wire contracts (Rain-owned, shared by backend and frontend).
@@ -60,6 +61,8 @@ export const runSchema = z.object({
   error: z
     .object({ code: z.string().min(1), message: z.string().min(1) })
     .nullable(),
+  executionMode: z.enum(["deterministic", "agent"]).optional(),
+  agent: agentStateSchema.optional(),
 });
 export type RunRecord = z.infer<typeof runSchema>;
 export type RunCounts = z.infer<typeof runSchema>["counts"];
