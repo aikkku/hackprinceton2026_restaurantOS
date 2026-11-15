@@ -127,7 +127,7 @@
 @media (max-width: 760px) {
   .ob-header { width: calc(100% - 40px); min-height: 76px; gap: 12px; }
   .sprout-onboarding .sprout-brand { font-size: 26px; gap: 8px; }
-  .sprout-onboarding .sprout-brand svg { width: 31px; }
+  .sprout-onboarding .sprout-brand-mark { width: 40px; }
   .ob-motto { display: none; }
   .ob-header-link { font-size: 11px; gap: 6px; }
   .ob-footer { width: calc(100% - 40px); font-size: 10px; padding: 20px 0; }

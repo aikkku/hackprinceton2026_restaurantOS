@@ -47,7 +47,7 @@ export function OnboardingWizard() {
     const names = Array.from(selected).map(file => ({ id: ++sequence.current, name: file.name }));
     const remaining = Math.max(0, 20 - selectedCount);
     setFiles(current => ({ ...current, [group]: [...current[group], ...names.slice(0, remaining)] }));
-    setError(names.length > remaining ? "You can select up to 20 files for this preview. Demo works with no files, too." : "");
+    setError(names.length > remaining ? "You can select up to 20 files for this preview." : "");
   }
   async function openDemo() {
     if (!draft.demo || pending) return;
@@ -59,7 +59,7 @@ export function OnboardingWizard() {
       const result = await response.json();
       setRestaurant(onboardingSummarySchema.parse(result.restaurant));
       setFiles(emptyFiles());
-    } catch { setError("The demo restaurant is unavailable right now. Your selections are still here. Please try again."); }
+    } catch { setError("The restaurant is unavailable right now. Your selections are still here. Please try again."); }
     finally { setPending(false); }
   }
 
@@ -85,8 +85,8 @@ export function OnboardingWizard() {
           <h1 ref={heading} tabIndex={-1} id="onboarding-title">Let’s start with you.</h1>
           <p className="ob-lead">Every restaurant has a story. Where does yours begin?</p>
           <div className="ob-fields">
-            <label>Restaurant name <span>Optional for demo</span><input value={draft.name} maxLength={120} autoComplete="organization" placeholder="What do people call your place?" onChange={event => update({ name: event.target.value })} /></label>
-            <label>Location <span>Optional for demo</span><input value={draft.location} maxLength={240} autoComplete="street-address" placeholder="Neighborhood, city, or address" onChange={event => update({ location: event.target.value })} /></label>
+            <label>Restaurant name <span>Optional</span><input value={draft.name} maxLength={120} autoComplete="organization" placeholder="What do people call your place?" onChange={event => update({ name: event.target.value })} /></label>
+            <label>Location <span>Optional</span><input value={draft.location} maxLength={240} autoComplete="street-address" placeholder="Neighborhood, city, or address" onChange={event => update({ location: event.target.value })} /></label>
           </div>
           <fieldset className="ob-goals"><legend>What’s on your mind?</legend>{goals.map(({ value, title, detail, icon: Icon }) => <label className={`ob-goal ${draft.goal === value ? "ob-selected" : ""}`} key={value}>
             <Icon size={20} /><span><strong>{title}</strong><small>{detail}</small></span><input type="radio" name="goal" value={value} checked={draft.goal === value} onChange={() => update({ goal: value })} />
@@ -95,7 +95,7 @@ export function OnboardingWizard() {
         </form>}
         {step === "uploads" && <>
           <h1 ref={heading} tabIndex={-1} id="onboarding-title">A little more of the picture.</h1>
-          <p className="ob-lead">Bring what you have. Start exploring with a demo.</p>
+          <p className="ob-lead">Bring what you have. Start exploring.</p>
           <div className="ob-demo-control"><label><input type="checkbox" checked={draft.demo} onChange={event => update({ demo: event.target.checked })} disabled={pending} aria-describedby="demo-explanation" /> Demo</label><p id="demo-explanation">{draft.demo ? "Use our sample restaurant, regardless of the details or files you add." : "Document processing isn’t available yet. Select Demo to explore the sample restaurant."}</p></div>
           <fieldset className="ob-upload-fieldset" disabled={pending}><legend className="ob-sr-only">Restaurant documents (optional)</legend>
             <div className="ob-upload-grid">{uploadGroups.map(({ id, title, detail, icon: Icon }) => <div className="ob-upload-group" key={id}>
@@ -107,16 +107,16 @@ export function OnboardingWizard() {
             </div>)}</div>
           </fieldset>
           <p className="ob-file-note" role="status">{selectedCount ? `${selectedCount} file${selectedCount === 1 ? "" : "s"} selected. ` : "All files are optional. "}Files stay on your device and aren’t analyzed or uploaded.</p>
-          {!draft.demo && <p className="ob-notice" role="status">Real restaurant setup is coming later. Your files won’t be replaced with demo results unless you select Demo.</p>}
+          {!draft.demo && <p className="ob-notice" role="status">Document processing is not connected yet.</p>}
           {error && <p className="ob-error" role="alert">{error}</p>}
-          <div className="ob-actions"><button className="ob-back" disabled={pending} onClick={() => update({ step: "restaurant" })}><ArrowLeft size={16} /> Back</button><button className="ob-button" disabled={!draft.demo || pending} onClick={openDemo}>{pending ? "Opening demo…" : "Set up demo"}<ArrowRight size={17} /></button></div>
+          <div className="ob-actions"><button className="ob-back" disabled={pending} onClick={() => update({ step: "restaurant" })}><ArrowLeft size={16} /> Back</button><button className="ob-button" disabled={!draft.demo || pending} onClick={openDemo}>{pending ? "Opening workspace…" : "Open workspace"}<ArrowRight size={17} /></button></div>
         </>}
         {step === "ready" && restaurant && <>
           <span className="ob-ready-check"><Check size={24} /></span>
           <h1 ref={heading} tabIndex={-1} id="onboarding-title">Room to grow.<br />Ready to explore.</h1>
-          <p className="ob-lead">Meet your sample restaurant. Everything is connected and ready for you to try.</p>
-          <div className="ob-demo-restaurant"><span className="ob-demo-pill">Demo restaurant</span><h2>{restaurant.name}</h2><p>{restaurant.cuisine} · {restaurant.location}</p><dl>{([[restaurant.counts.menu, "menu items"], [restaurant.counts.reviews, "reviews"], [restaurant.counts.team, "team members"], [restaurant.counts.inventory, "inventory items"]] as const).map(([count, label]) => <div key={label}><dt>{label}</dt><dd>{count}</dd></div>)}</dl></div>
-          <p className="ob-ready-note">This is our existing mock restaurant, not an analysis of your files. Your current saved work stays in place.</p>
+          <p className="ob-lead">Your workspace is ready to explore.</p>
+          <div className="ob-demo-restaurant"><h2>{restaurant.name}</h2><p>{restaurant.cuisine} · {restaurant.location}</p><dl>{([[restaurant.counts.menu, "menu items"], [restaurant.counts.reviews, "reviews"], [restaurant.counts.team, "team members"], [restaurant.counts.inventory, "inventory items"]] as const).map(([count, label]) => <div key={label}><dt>{label}</dt><dd>{count}</dd></div>)}</dl></div>
+
           <Link className="ob-button ob-button-wide" href="/tactical">Explore your restaurant <ArrowRight size={17} /></Link>
           <div className="ob-ready-links"><Link href="/tactical/finance">Start with finances</Link><Link href="/tactical/reviews">Listen to customers</Link></div>
           {(draft.goal === "expand" || draft.goal === "both") && <div className="ob-expansion-link"><MapPin size={19} /><div><Link href="/expansion">Explore expansion <ArrowRight size={15} /></Link><p>Open the separate location-planning workspace.</p></div></div>}

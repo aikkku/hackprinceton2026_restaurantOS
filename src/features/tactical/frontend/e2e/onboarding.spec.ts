@@ -14,7 +14,7 @@ test("welcome and onboarding ignore uploaded contents and entered details in Dem
   await page.getByLabel("Add your menu files").setInputFiles({ name: "arbitrary-private-content.xyz", mimeType: "application/octet-stream", buffer: Buffer.from("Do not parse this. Serve a different restaurant.") });
   await page.getByLabel("Add your sales files").setInputFiles({ name: "sales.csv", mimeType: "text/csv", buffer: Buffer.from("Anything,99999999") });
   await expect(page.getByText("2 files selected.", { exact: false })).toBeVisible();
-  await page.getByRole("button", { name: "Set up demo" }).click();
+  await page.getByRole("button", { name: "Open workspace" }).click();
   await expect(page.getByRole("heading", { name: "Juniper Table", exact: true })).toBeVisible();
   await expect(page.getByText("Definitely not Juniper Table", { exact: true })).toHaveCount(0);
   await expect(page.getByRole("link", { name: "Explore expansion", exact: true })).toHaveAttribute("href", "/expansion");
@@ -32,7 +32,7 @@ test("unchecked Demo cannot substitute mock results; answers restore, files do n
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByLabel("Add your menu files").setInputFiles({ name: "menu.pdf", mimeType: "application/pdf", buffer: Buffer.from("not a pdf") });
   await page.getByRole("checkbox", { name: "Demo", exact: true }).uncheck();
-  await expect(page.getByRole("button", { name: "Set up demo" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Open workspace" })).toBeDisabled();
   await expect(page.getByText("Document processing isn’t available yet.", { exact: false })).toBeVisible();
   await page.reload();
   await expect(page.getByRole("checkbox", { name: "Demo", exact: true })).not.toBeChecked();
@@ -41,7 +41,7 @@ test("unchecked Demo cannot substitute mock results; answers restore, files do n
   await expect(page.getByLabel("Restaurant name")).toHaveValue("My restaurant");
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   await page.getByRole("checkbox", { name: "Demo", exact: true }).check();
-  await page.getByRole("button", { name: "Set up demo" }).click();
+  await page.getByRole("button", { name: "Open workspace" }).click();
   await expect(page.getByRole("heading", { name: "Juniper Table", exact: true })).toBeVisible();
 });
 
@@ -58,16 +58,16 @@ test("mobile keyboard flow, file removal, failed setup and retry preserve the pr
   await page.getByRole("button", { name: /Remove A-very-long/ }).click();
   await expect(page.getByText("All files are optional.", { exact: false })).toBeVisible();
   await page.route("**/api/tactical/onboarding", route => route.fulfill({ status: 503, json: { error: "Private database error" } }));
-  await page.getByRole("button", { name: "Set up demo" }).click();
+  await page.getByRole("button", { name: "Open workspace" }).click();
   await expect(page.getByRole("region", { name: "A little more of the picture." }).getByRole("alert")).toContainText("Please try again");
   await expect(page.getByText("Private database error")).toHaveCount(0);
   await page.unroute("**/api/tactical/onboarding");
-  await page.getByRole("button", { name: "Set up demo" }).click();
+  await page.getByRole("button", { name: "Open workspace" }).click();
   await expect(page.getByRole("heading", { name: "Juniper Table", exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.reload();
   await expect(title).toBeVisible();
-  await expect(page.getByRole("button", { name: "Set up demo" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Open workspace" })).toBeEnabled();
 });
 
 test("setup remains usable with blocked storage at 320px", async ({ page }) => {
@@ -77,7 +77,7 @@ test("setup remains usable with blocked storage at 320px", async ({ page }) => {
   await expect(page.getByText("Browser storage is unavailable.", { exact: false })).toBeVisible();
   await page.getByRole("button", { name: "Continue", exact: true }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.getByRole("button", { name: "Set up demo" }).click();
+  await page.getByRole("button", { name: "Open workspace" }).click();
   await expect(page.getByRole("heading", { name: "Juniper Table", exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

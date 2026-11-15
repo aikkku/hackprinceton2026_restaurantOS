@@ -33,7 +33,7 @@ export function executeAssistantTools(plan: AssistantPlan, dataset: Dataset, rev
     }
     if (call.tool === "stock_overview") {
       const items = call.ids.length ? select(dataset.operations.inventory, call.ids, "", row => row.name) : dataset.operations.inventory.filter(row => row.current < row.threshold).sort((a, b) => a.current / a.threshold - b.current / b.threshold).slice(0, 15);
-      blocks.push({ type: "chart", title: "Stock against reorder points", rows: items.map(item => ({ label: item.name, value: item.current / item.threshold * 100, detail: `${item.current} / ${item.threshold} ${item.unit} · ${stockStatus(item.current, item.threshold)}`, target: target("inventory", item.id, item.name) })), note: "100% marks the reorder point. These are recorded demo quantities, not live shelf measurements. No orders are placed." });
+      blocks.push({ type: "chart", title: "Stock against reorder points", rows: items.map(item => ({ label: item.name, value: item.current / item.threshold * 100, detail: `${item.current} / ${item.threshold} ${item.unit} · ${stockStatus(item.current, item.threshold)}`, target: target("inventory", item.id, item.name) })), note: "100% marks the reorder point. Open an item to view its inventory record." });
       continue;
     }
     if (call.tool === "price_test") {
@@ -47,7 +47,7 @@ export function executeAssistantTools(plan: AssistantPlan, dataset: Dataset, rev
     }
     if (call.tool === "finance_report") {
       const report = buildFinanceReport(dataset);
-      blocks.push({ type: "metrics", title: "Menu report", items: report ? [{ label: "Item sales", value: usd(report.revenueCents) }, { label: "Contribution", value: usd(report.contributionCents) }, { label: "App commissions", value: usd(report.delivery.feesCents) }] : [], note: report ? `${report.source.startDate} → ${report.source.endDate}. Synthetic period; contribution excludes labor, rent, utilities, tax and payment fees. Separate from bank cash and the recorded ledger.` : "No dated sales report is available." });
+      blocks.push({ type: "metrics", title: "Menu report", items: report ? [{ label: "Item sales", value: usd(report.revenueCents) }, { label: "Contribution", value: usd(report.contributionCents) }, { label: "App commissions", value: usd(report.delivery.feesCents) }] : [], note: report ? `${report.source.startDate} → ${report.source.endDate}. Contribution excludes labor, rent, utilities, tax and payment fees. Separate from bank cash and the recorded ledger.` : "No dated sales report is available." });
       addTarget({ kind: "overview", page: "finance", id: "", label: "Financial report" }); continue;
     }
     if (call.tool === "floor_plan" || call.area === "floor") {
@@ -56,19 +56,19 @@ export function executeAssistantTools(plan: AssistantPlan, dataset: Dataset, rev
     }
     if (call.tool === "team_overview" || call.area === "employees") {
       const employees = select(dataset.operations.employees, call.ids, call.query, row => `${row.name} ${row.role}`);
-      blocks.push({ type: "table", title: "Team and scheduled hours", columns: ["Person", "Role", "Weekly hours", "Pay assumption"], rows: employees.map(row => ({ label: row.name, cells: [row.name, row.role, String(row.hoursThisWeek), `${usd(row.hourlyRateCents)}/hr`], target: addTarget(target("employee", row.id, row.name)) })), note: "Fictional roster and supplied schedule. Hours × pay alone excludes overtime, benefits and taxes; no employee-performance inference." }); continue;
+      blocks.push({ type: "table", title: "Team and scheduled hours", columns: ["Person", "Role", "Weekly hours", "Pay assumption"], rows: employees.map(row => ({ label: row.name, cells: [row.name, row.role, String(row.hoursThisWeek), `${usd(row.hourlyRateCents)}/hr`], target: addTarget(target("employee", row.id, row.name)) })), note: "Roster and supplied schedule. Hours × pay alone excludes overtime, benefits and taxes; no employee-performance inference." }); continue;
     }
     if (call.tool === "review_evidence" || call.area === "reviews") {
       const reviews = select(dataset.reviews, call.ids, call.query, row => row.text);
-      blocks.push({ type: "table", title: "Review evidence", columns: ["Date", "Rating", "Original review"], rows: reviews.map(row => ({ label: `Review ${row.date}`, cells: [row.date, `${row.rating}/5`, row.text], target: addTarget(target("review", row.id, `Review ${row.date}`)) })), note: "Verbatim demo reviews. This supplied sample does not establish a representative trend." }); continue;
+      blocks.push({ type: "table", title: "Review evidence", columns: ["Date", "Rating", "Original review"], rows: reviews.map(row => ({ label: `Review ${row.date}`, cells: [row.date, `${row.rating}/5`, row.text], target: addTarget(target("review", row.id, `Review ${row.date}`)) })), note: "Original review text. This supplied sample does not establish a representative trend." }); continue;
     }
     if (call.area === "inventory") {
       const items = select(dataset.operations.inventory, call.ids, call.query, row => row.name);
-      blocks.push({ type: "table", title: "Inventory records", columns: ["Item", "On hand", "Reorder point", "Unit cost", "Expires"], rows: items.map(row => ({ label: row.name, cells: [row.name, `${row.current} ${row.unit}`, `${row.threshold} ${row.unit}`, `${usd(row.unitCostCents)}/${row.unit}`, row.expirationDate ?? (row.expirationDate === null ? "No expiry listed" : "Not recorded")], target: addTarget(target("inventory", row.id, row.name)) })), note: items.length ? "Current recorded demo stock. Open a row to locate it in Supply Management." : "No records match. Try the ingredient name shown in inventory." }); continue;
+      blocks.push({ type: "table", title: "Inventory records", columns: ["Item", "On hand", "Reorder point", "Unit cost", "Expires"], rows: items.map(row => ({ label: row.name, cells: [row.name, `${row.current} ${row.unit}`, `${row.threshold} ${row.unit}`, `${usd(row.unitCostCents)}/${row.unit}`, row.expirationDate ?? (row.expirationDate === null ? "No expiry listed" : "Not recorded")], target: addTarget(target("inventory", row.id, row.name)) })), note: items.length ? "Current recorded stock. Open a row to locate it in Supply Management." : "No records match. Try the ingredient name shown in inventory." }); continue;
     }
     if (call.area === "menu") {
       const items = select(dataset.operations.menu, call.ids, call.query, row => row.name);
-      blocks.push({ type: "table", title: "Current menu assumptions", columns: ["Dish", "Dine-in", "App price", "Ingredients", "Dine-in contribution / unit"], rows: items.map(row => ({ label: row.name, cells: [row.name, usd(row.dineInPriceCents), usd(row.deliveryPriceCents), usd(row.ingredientCostCents), usd(channelContribution(row, "dine-in").contributionCents)], target: addTarget(target("menu", row.id, row.name)) })), note: "Current editable demo assumptions. Historical sales prices in Finance keep their original period snapshots. Contribution excludes labor and fixed costs." }); continue;
+      blocks.push({ type: "table", title: "Current menu assumptions", columns: ["Dish", "Dine-in", "App price", "Ingredients", "Dine-in contribution / unit"], rows: items.map(row => ({ label: row.name, cells: [row.name, usd(row.dineInPriceCents), usd(row.deliveryPriceCents), usd(row.ingredientCostCents), usd(channelContribution(row, "dine-in").contributionCents)], target: addTarget(target("menu", row.id, row.name)) })), note: "Current editable assumptions. Historical sales prices in Finance keep their original period snapshots. Contribution excludes labor and fixed costs." }); continue;
     }
     throw new Error("Unsupported tool combination");
   }

@@ -21,7 +21,7 @@ export function HrCalendar({ operations }: { operations: Operations }) {
         <button className="hr-icon" aria-label="Previous week" onClick={() => setOffset(value => value - 1)}><ChevronLeft size={16} /></button>
         <strong>{dateLabel(start, { month: "short", day: "numeric" })} – {dateLabel(days[6], { month: "short", day: "numeric", year: "numeric" })}</strong>
         <button className="hr-icon" aria-label="Next week" onClick={() => setOffset(value => value + 1)}><ChevronRight size={16} /></button>
-        {offset !== 0 && <button className="button quiet compact" onClick={() => setOffset(0)}>Demo week</button>}
+        {offset !== 0 && <button className="button quiet compact" onClick={() => setOffset(0)}>Schedule week</button>}
       </div>
       <select aria-label="Filter schedule by station" value={filter} onChange={event => setFilter(event.target.value)}><option>All stations</option>{stations.map(station => <option key={station}>{station}</option>)}</select>
     </div>

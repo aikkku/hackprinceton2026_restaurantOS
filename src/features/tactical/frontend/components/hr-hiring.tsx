@@ -60,7 +60,7 @@ export function HrHiring({ restaurantId }: { restaurantId: string }) {
       <div className="hr-job-actions"><button className="button ai-button compact" disabled={!draft || stale || !hiringDraftSchema.safeParse(draft).success} onClick={async () => {
         if (!draft) return;
         try { await navigator.clipboard.writeText(`${draft.title}\n${draft.employmentType} · ${draft.hoursPerWeek} hours/week\n${draft.pay}\n${draft.schedule}\n\n${draft.summary}\n\nResponsibilities\n${draft.responsibilities.map(row => `• ${row}`).join("\n")}\n\nRequirements\n${draft.requirements.map(row => `• ${row}`).join("\n")}`); setCopied(true); } catch { setError(true); }
-      }}><Copy size={14} />{copied ? "Copied" : "Copy draft"}</button><button className="button quiet compact" disabled title="Demo only — Indeed posting is not connected"><Send size={14} />Post to Indeed</button></div>
+      }}><Copy size={14} />{copied ? "Copied" : "Copy draft"}</button><button className="button quiet compact" disabled title="Indeed posting is not connected"><Send size={14} />Post to Indeed</button></div>
     </div>
   </section>;
 }

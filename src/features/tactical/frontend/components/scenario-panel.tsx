@@ -46,7 +46,7 @@ export function ReviewEvidence({ reviews }: { reviews: Fixture["reviews"] }) {
     <ul className="review-list">
       {reviews.map((review) => (
         <li key={review.id}>
-          <div className="review-meta"><span className="pill">Demo review</span> <time dateTime={review.date}>{review.date}</time> <span>{review.rating}/5</span></div>
+          <div className="review-meta"><time dateTime={review.date}>{review.date}</time> <span>{review.rating}/5</span></div>
           <blockquote>{review.text}</blockquote>
           <p>{review.themes.join(" · ")}</p>
           <small>Source ID {review.id}</small>
@@ -229,7 +229,7 @@ export function ScenarioPanel({
             </tr>)}</tbody>
           </table>
           <h3>Limits and missing data</h3>
-          <p>Extra demand, table-size mix, and actual room constraints are unknown in this demo. The model assumes extra demand and excludes fixed costs, financing, taxes, displacement, and permit requirements. Turnover targets also depend on service capacity and customer dining time.</p>
+          <p>Extra demand, table-size mix, and actual room constraints are unknown. The model assumes extra demand and excludes fixed costs, financing, taxes, displacement, and permit requirements. Turnover targets also depend on service capacity and customer dining time.</p>
           <h3>Evidence · {scenario.missionTitle}</h3>
           <ReviewEvidence reviews={scenario.evidence} />
         </>}

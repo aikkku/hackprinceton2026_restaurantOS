@@ -6,6 +6,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "RestaurantOS",
   description: "Explore practical improvements to your restaurant.",
+  icons: { icon: { url: "/restaurantos-logo.svg", type: "image/svg+xml" } },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

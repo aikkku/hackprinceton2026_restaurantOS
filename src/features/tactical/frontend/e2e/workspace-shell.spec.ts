@@ -8,9 +8,9 @@ test("laptop sidebar exposes all pages, source disclosure and purple AI navigati
   await expect(nav.getByRole("link")).toHaveCount(6);
   await expect(page.getByRole("heading", { name: "Floor Plan", exact: true })).toBeVisible();
   await expect(nav.getByRole("link", { name: "Floor Plan", exact: true })).toHaveAttribute("aria-current", "page");
-  await page.getByText("Demo data", { exact: true }).click();
+  await page.getByText("Data", { exact: true }).click();
   await expect(page.locator(".sprout-source-panel")).toBeVisible();
-  await expect(page.locator(".sprout-source-panel")).toContainText("Local mock fixture");
+  await expect(page.locator(".sprout-source-panel")).toContainText("Local workspace");
   await page.locator(".sprout-source summary").press("Escape");
   await expect(page.locator(".sprout-source")).not.toHaveAttribute("open", "");
   await nav.getByRole("link", { name: "AI Assistant", exact: true }).click();

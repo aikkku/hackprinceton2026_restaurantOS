@@ -25,11 +25,11 @@ export function NessiePanel() {
     setPending(true); setError(""); setSnapshot(null);
     try {
       const response = await fetch("/api/tactical/integrations/nessie", { method: "POST", signal: current.signal });
-      if (!response.ok) throw new Error("Nessie is unavailable. Check the server configuration and retry. Demo data is available separately.");
+      if (!response.ok) throw new Error("Nessie is unavailable. Check the server configuration and retry.");
       const data = await response.json(); const parsed = nessieSnapshotSchema.parse(data.snapshot);
       if (parsed.source !== "nessie-sandbox") throw new Error("Invalid source");
       if (controller.current === current) setSnapshot(parsed);
-    } catch { if (!current.signal.aborted) setError("Nessie is unavailable. Check the server configuration and retry. Demo data is available separately."); }
+    } catch { if (!current.signal.aborted) setError("Nessie is unavailable. Check the server configuration and retry."); }
     finally { if (controller.current === current) setPending(false); }
   }
   function exportScenario() {
@@ -39,14 +39,14 @@ export function NessiePanel() {
     const anchor = document.createElement("a"); anchor.href = url; anchor.download = "tactical-cash-scenario.json"; anchor.click(); URL.revokeObjectURL(url);
   }
   return <section className="sponsor-tool fin-bank" aria-label="Nessie sandbox finance">
-    <div className="section-header"><div><h3>Can the cash cushion support this investment?</h3><p>Capital One Nessie · sandbox cash planning</p></div><span className="pill">{snapshot?.source === "nessie-sandbox" ? "Live API · simulated funds" : snapshot ? "Local demo · no API call" : "No snapshot loaded"}</span></div>
-    <p>Compare an equipment or seating investment with a minimum reserve. This is a deterministic scenario, not AI or real banking.</p>
-    <div className="button-row"><StateButton className="button primary compact" disabled={!unlocked || pending} onClick={() => void refresh()}>{pending ? "Reading Nessie…" : "Refresh from Nessie"}</StateButton><StateButton className="button secondary compact" disabled={pending} onClick={() => { setSnapshot(defaultSnapshot); setError(""); }}>Use local demo</StateButton></div>
-    {!unlocked && <p>Unlock the AI workspace above to enable protected sandbox reads. The same workspace session protects both tools.</p>}
+    <div className="section-header"><div><h3>Can the cash cushion support this investment?</h3><p>Capital One Nessie · cash planning</p></div><span className="pill">{snapshot?.source === "nessie-sandbox" ? "Nessie API" : snapshot ? "Saved snapshot" : "No snapshot loaded"}</span></div>
+    <p>Compare an equipment or seating investment with a minimum reserve.</p>
+    <div className="button-row"><StateButton className="button primary compact" disabled={!unlocked || pending} onClick={() => void refresh()}>{pending ? "Reading Nessie…" : "Refresh from Nessie"}</StateButton><StateButton className="button secondary compact" disabled={pending} onClick={() => { setSnapshot(defaultSnapshot); setError(""); }}>Reset snapshot</StateButton></div>
+    {!unlocked && <p>Unlock the AI workspace above to enable bank data reads. The same workspace session protects both tools.</p>}
     {error && <p role="alert">{error}</p>}
     {snapshot && flows && <>
-      <p className="section-footnote">{snapshot.account.nickname} · {snapshot.account.type} · snapshot {snapshot.fetchedAt}. USD is the scenario currency assumption.</p>
-      <div className="kpi-row">{[["Sandbox balance", Math.round(snapshot.account.balance * 100)], ["Completed deposits", flows.depositCents], ["Completed withdrawals", flows.withdrawalCents]].map(([label, value]) => <div className="kpi-card" key={label}><div><span className="kpi-value">{money(Number(value))}</span><span className="kpi-label">{label}</span></div></div>)}</div>
+      <p className="section-footnote">{snapshot.source === "demo" ? "Restaurant cash account" : snapshot.account.nickname} · {snapshot.account.type} · snapshot {snapshot.fetchedAt}. USD is the scenario currency assumption.</p>
+      <div className="kpi-row">{[["Snapshot balance", Math.round(snapshot.account.balance * 100)], ["Completed deposits", flows.depositCents], ["Completed withdrawals", flows.withdrawalCents]].map(([label, value]) => <div className="kpi-card" key={label}><div><span className="kpi-value">{money(Number(value))}</span><span className="kpi-label">{label}</span></div></div>)}</div>
       <p>All returned deposit/withdrawal dates · {flows.excluded} pending, cancelled or recurring records excluded. Deposits are not necessarily sales; withdrawals are not necessarily expenses. These flows do not reconcile the account balance.</p>
       <div className="assumption-grid">{[["Proposed investment (USD)", investment, setInvestment], ["Minimum reserve (USD)", reserve, setReserve], ["Assumed monthly net cash burn (USD)", burn, setBurn]].map(([label, value, setter]) => <label key={String(label)}>{String(label)}<input type="number" min="0" max="1000000000" step="0.01" value={String(value)} onChange={event => (setter as (value: string) => void)(event.target.value)} /></label>)}</div>
       {(!valid || !assumptions.success) && <p role="alert">Enter nonnegative USD amounts up to 1 billion, with at most two decimal places.</p>}

@@ -16,7 +16,7 @@ test("seven staff, calendar shifts, filters and explanatory AI status cards", as
   await expect(page.locator(".hr-shift")).toHaveCount(5);
   await page.getByRole("button", { name: "Next week", exact: true }).click();
   await expect(page.getByText("No shifts saved for this week.")).toBeVisible();
-  await page.getByRole("button", { name: "Demo week", exact: true }).click();
+  await page.getByRole("button", { name: "Schedule week", exact: true }).click();
   await expect(page.locator(".hr-shift")).toHaveCount(5);
   await page.getByRole("navigation", { name: "HR sections" }).getByRole("button", { name: "Team" }).click();
   await expect(page.locator(".hr-person")).toHaveCount(7);

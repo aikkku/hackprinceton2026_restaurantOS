@@ -22,7 +22,7 @@ export function SupplyPage({ operations }: { operations: Operations; restaurantN
   const hasFilters = Boolean(query || category !== "All categories" || status !== "All stock");
   function clearFilters() { setQuery(""); setCategory("All categories"); setStatus("All stock"); }
   return <section className="supply-inventory" aria-label="Inventory">
-    <header className="supply-heading"><h2>Everything on hand.</h2><span className="pill">Demo inventory</span></header>
+    <header className="supply-heading"><h2>Everything on hand.</h2></header>
     <div className="supply-summary" aria-label="Inventory summary">
       <div className="supply-summary-card supply-summary-total"><span className="supply-summary-icon"><Boxes size={20} aria-hidden="true" /></span><div><span>Items tracked</span><strong>{inventory.length}</strong></div></div>
       <div className="supply-summary-card"><span className="supply-summary-icon"><TriangleAlert size={20} aria-hidden="true" /></span><div><span>Below reorder point</span><strong>{belowThreshold}</strong></div></div>
@@ -43,6 +43,6 @@ export function SupplyPage({ operations }: { operations: Operations; restaurantN
       <details><summary>Stock details<ChevronDown size={14} aria-hidden="true" /></summary><dl><div><dt>Reorder point</dt><dd>{item.threshold} {item.unit}</dd></div><div><dt>Unit cost</dt><dd>${(item.unitCostCents / 100).toFixed(2)} / {item.unit}</dd></div><div><dt>Next delivery</dt><dd>{item.nextDelivery ? dateLabel(item.nextDelivery) : "Not scheduled"}</dd></div><div><dt>Last ordered</dt><dd>{dateLabel(item.lastOrdered)}</dd></div></dl></details>
     </article>; })}</div>
     {!filtered.length && <div className="supply-empty"><span><Package size={28} aria-hidden="true" /></span><h3>{inventory.length ? "No items match your filters." : "No inventory items yet."}</h3>{inventory.length > 0 && <p>Try another search or clear the filters above.</p>}</div>}
-    <p className="supply-note">Mock stock and expiration dates · no purchasing connected.</p>
+
   </section>;
 }

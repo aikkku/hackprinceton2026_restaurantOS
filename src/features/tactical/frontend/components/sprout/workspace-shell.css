@@ -28,7 +28,7 @@
 .sprout-shell .sprout-sidebar { position: fixed; inset: 0 auto 0 0; width: var(--shell-sidebar-width); padding: 30px 18px 22px; display: flex; flex-direction: column; background: #f3f4ee; border-right: 1px solid var(--sp-line); overflow-y: auto; z-index: 20; }
 .sprout-shell .sprout-sidebar-brand { padding: 0 16px 28px; }
 .sprout-shell .sprout-brand { font-size: 28px; }
-.sprout-shell .sprout-brand svg { width: 34px; height: 34px; }
+.sprout-shell .sprout-brand-mark { width: 44px; }
 .sprout-shell .sprout-restaurant { display: grid; grid-template-columns: 36px minmax(0, 1fr); align-items: center; gap: 0 10px; padding: 16px 12px; background: var(--sp-card); border: 1px solid #dbe4d8; border-radius: 14px; margin-bottom: 28px; }
 .sprout-shell .sprout-restaurant-mark { width: 36px; height: 36px; display: grid; place-items: center; background: #d5e2d3; border-radius: 11px; color: var(--sp-primary); }
 .sprout-shell .sprout-small-label { display: block; text-transform: uppercase; font-size: 9px; line-height: 1.5; font-weight: 600; letter-spacing: .12em; color: var(--sp-muted); }
@@ -66,7 +66,7 @@
 .sprout-shell .sprout-source { position: relative; flex-shrink: 0; z-index: 15; }
 .sprout-shell .sprout-source summary { display: flex; align-items: center; gap: 8px; cursor: pointer; list-style: none; padding: 6px 11px; border: 1px solid #e4d9c7; border-radius: 999px; color: #775a36; background: #f7efdf; font-size: 10px; font-weight: 550; }
 .sprout-shell .sprout-source summary::-webkit-details-marker { display: none; }
-.sprout-shell .sprout-demo-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--sp-accent); }
+.sprout-shell .sprout-source-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--sp-accent); }
 .sprout-shell .sprout-source-panel { position: absolute; right: 0; top: calc(100% + 12px); width: 305px; padding: 22px; background: white; border: 1px solid var(--sp-line); border-radius: 16px; box-shadow: 0 12px 40px #183b3512; color: var(--sp-primary); }
 .sprout-shell .sprout-source-panel > svg { vertical-align: middle; margin-right: 9px; }
 .sprout-shell .sprout-source-panel > strong { font-size: 13px; }

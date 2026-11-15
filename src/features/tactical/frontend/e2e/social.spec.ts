@@ -28,7 +28,7 @@ test("semantic labels join to actor groups, explicit paths, source messages and 
   await expect(panel.locator(".social-timeline li")).toHaveCount(1);
   await expect(panel.locator(".social-timeline")).toContainText(sample.messages[4].text);
   const download = page.waitForEvent("download"); await panel.getByRole("button", { name: "Download analysis report" }).click(); expect((await download).suggestedFilename()).toBe("tactical-social-analysis.json");
-  await panel.getByText("Choose data, import or reopen", { exact: true }).click(); await panel.getByRole("button", { name: "Use fictional conversation" }).click();
+  await panel.getByText("Choose data, import or reopen", { exact: true }).click(); await panel.getByRole("button", { name: "Reset conversation" }).click();
   await expect(findings).toHaveCount(0); expect(errors).toEqual([]);
 });
 test("observed imports require permission, save/reopen and source failures preserve work", async ({ page }) => {

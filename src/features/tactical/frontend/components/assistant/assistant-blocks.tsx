@@ -36,7 +36,7 @@ export function AssistantChange({ proposal, busy, stale, storage, onApply, onLoc
     <header><span>{applied ? <Check size={16}/> : <SlidersHorizontal size={16}/>} {applied ? "Saved change" : "Review change"}</span><small>{storage === "mongodb" ? "MongoDB" : "Server session"}</small></header>
     <h3>{proposal.label}</h3><p>{proposal.fieldLabel} · currently {cents ? money(proposal.before) : `${proposal.before} ${proposal.unit}`}</p>
     {applied ? <strong>{cents ? money(proposal.value) : `${proposal.value} ${proposal.unit}`}</strong> : <label>{proposal.fieldLabel} ({cents ? "USD" : proposal.unit})<input aria-label={`${proposal.fieldLabel} for ${proposal.label}`} type="number" min={proposal.min / scale} max={proposal.max / scale} step={proposal.step / scale} value={value} disabled={busy || stale} onChange={event => setValue(event.target.value)}/></label>}
-    {!applied && <p className="assistant-result-note">{stale ? "The source data changed. Ask for a fresh preview." : "Applies only this field to the shared demo restaurant. No order, payment or live menu update is sent."}</p>}
+    {!applied && <p className="assistant-result-note">{stale ? "The source data changed. Ask for a fresh preview." : "Updates this field across your workspace."}</p>}
     {applied ? <button onClick={() => onLocate(proposal.target)} className="button ai-button compact">View updated record <ArrowUpRight size={14}/></button> : <button className="button ai-button compact" disabled={busy || stale || !valid} onClick={() => onApply(cents ? Math.round(number) : number)}>Apply change</button>}
   </section>;
 }
