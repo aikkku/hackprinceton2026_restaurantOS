@@ -1,5 +1,7 @@
 "use client";
 
+import { StateButton } from "./state-button";
+
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { Download, Upload } from "lucide-react";
 import type { Layout } from "../../domain/schemas";
@@ -54,10 +56,10 @@ export function LayoutTransfer({ layout, onImport, onNotice, disabled = false }:
   return (
     <div className="layout-transfer" aria-label="Layout files">
       <input ref={input} type="file" accept=".json,application/json" aria-label="Import layout JSON file" onChange={importLayout} hidden />
-      <button type="button" className="button compact quiet" disabled={disabled || reading} onClick={() => input.current?.click()}>
+      <StateButton type="button" className="button compact quiet" disabled={disabled || reading} onClick={() => input.current?.click()}>
         <Upload size={14} /> {reading ? "Reading layout…" : "Import layout"}
-      </button>
-      <button type="button" className="button compact quiet" disabled={disabled || reading} onClick={exportLayout}><Download size={14} /> Export layout</button>
+      </StateButton>
+      <StateButton type="button" className="button compact quiet" disabled={disabled || reading} onClick={exportLayout}><Download size={14} /> Export layout</StateButton>
     </div>
   );
 }

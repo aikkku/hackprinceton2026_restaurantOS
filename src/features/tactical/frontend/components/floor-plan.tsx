@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useRef, useState, type PointerEvent } from "react";
-import { displayLength, footprint, gridStep, positionObject } from "../../domain/layout";
+import { furniture, displayLength, footprint, gridStep, positionObject } from "../../domain/layout";
 import type { Layout, LayoutObject, ObjectKind } from "../../domain/schemas";
 
 type Props = {
@@ -71,6 +71,10 @@ function FurnitureArt({ object }: { object: LayoutObject }) {
         <path className="svg-arrow" d="M.5 .7V.16M.36 .33L.5 .13L.64 .33" />
       </>}
       {type === "divider" && <rect className="svg-divider" x=".02" y=".13" width=".96" height=".74" rx=".12" />}
+      {["chair", "wall", "window", "light", "decoration", "ac", "custom"].includes(type) && <>
+        <rect x=".03" y=".03" width=".94" height=".94" rx=".09" className={type === "chair" ? "svg-chair" : type === "wall" ? "svg-divider" : "svg-appliance"} />
+        <text x=".5" y=".55" textAnchor="middle" fontSize=".16" fill="currentColor">{type === "ac" ? "AC" : type === "window" ? "Window" : type === "light" ? "Light" : type === "custom" ? "Custom" : ""}</text>
+      </>}
       {type === "plant" && <>
         <circle className="svg-pot" cx=".5" cy=".54" r=".41" />
         <circle className="svg-leaf" cx=".42" cy=".4" r=".26" />
@@ -169,7 +173,7 @@ export function FloorPlan({ layout, zoom = 1, unit, selectedId, placing, snap, o
         const selected = selectedId === object.id;
         const warning = overlaps.has(object.id);
         return (
-          <g key={object.id} data-object={object.id} transform={`translate(${object.x} ${object.y})`} className="svg-object">
+          <g key={object.id} data-object={object.id} transform={`translate(${object.x} ${object.y})`} className="svg-object" aria-label={object.name ?? furniture[object.type].label}>
             <FurnitureArt object={object} />
             <rect width={width} height={depth} rx=".08" className={`svg-hit ${selected ? "is-selected" : ""} ${warning ? "is-overlap" : ""}`} />
           </g>

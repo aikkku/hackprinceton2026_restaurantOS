@@ -30,7 +30,8 @@ test("Expansion does not change Tactical styles during client navigation", async
     );
   }
   const before = await tacticalStyles();
-  await page.goto("/expansion");
+  await page.getByRole("link", { name: "Explore expansion" }).click();
+  await expect(page).toHaveURL(/\/expansion/);
   await page.getByRole("button", { name: "Continue to the scouting map" }).click();
   await expect(page.locator(".property-card")).toHaveCount(4);
   await page.getByRole("link", { name: "Manage restaurant" }).click();

@@ -1,5 +1,6 @@
 # RestaurantOS — Tactical Intelligence (Asilbek)
 
+> Historical MVP specification. The later [product refinement brief](PRODUCT_REFINEMENT_BRIEF.md) extends this scope. See [implementation status](IMPLEMENTATION_STATUS.md) for what is actually built; this specification is not a completion checklist.
 **Status:** foundation for follow-up Codex prompts; not an instruction to generate the entire application immediately.  
 **Owner:** Asilbek  
 **Partner domain:** Rain's Expansion/Strategic Intelligence  

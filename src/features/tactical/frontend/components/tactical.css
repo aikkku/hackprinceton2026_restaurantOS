@@ -617,3 +617,11 @@
   .tactical-workspace .schedule-table th, .tactical-workspace .schedule-table td { padding: 7px 8px; }
   .tactical-workspace .emp-detail-grid { grid-template-columns: minmax(0, 1fr); }
 }
+
+.tactical-workspace .layout-library { padding: 20px; margin: 16px 0; }
+.tactical-workspace .layout-library summary { cursor: pointer; font-weight: 600; }
+.tactical-workspace .layout-library p { color: var(--ros-muted); line-height: 1.6; }
+.tactical-workspace .layout-library table { width: 100%; border-collapse: collapse; text-align: left; }
+.tactical-workspace .layout-library td, .tactical-workspace .layout-library th { padding: 12px; border-bottom: 1px solid var(--ros-border); }
+.tactical-workspace .layout-library label { display: grid; gap: 8px; max-width: 360px; margin-bottom: 16px; }
+.tactical-workspace .layout-inspector textarea { width: 100%; min-height: 75px; }

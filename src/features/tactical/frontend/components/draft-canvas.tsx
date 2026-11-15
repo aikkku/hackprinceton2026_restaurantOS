@@ -161,6 +161,8 @@ function Compass({ x, y }: { x: number; y: number }) {
 }
 
 export function DraftCanvas({ draft, selectedId, onSelect, onCommit }: Props) {
+  const [preview, setPreview] = useState<FloorPlanDraft | null>(null);
+  const previewRef = useRef<FloorPlanDraft | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const dragRef = useRef<DragState | null>(null);
   const W = draft.room.width;
@@ -200,15 +202,19 @@ export function DraftCanvas({ draft, selectedId, onSelect, onCommit }: Props) {
     const updated = drag.isFixture
       ? { ...draft, fixtures: draft.fixtures.map((f) => f.id === drag.id ? { ...f, x: nx, y: ny } : f) }
       : { ...draft, tables: draft.tables.map((t) => t.id === drag.id ? { ...t, x: nx, y: ny } : t) };
-    onCommit(updated);
+    previewRef.current = updated;
+    setPreview(updated);
   }
 
   function onPointerUp(e: PointerEvent<SVGSVGElement>) {
-    if (dragRef.current?.pointerId === e.pointerId) dragRef.current = null;
+    if (dragRef.current?.pointerId !== e.pointerId) return;
+    dragRef.current = null;
+    if (e.type !== "pointercancel" && previewRef.current) onCommit(previewRef.current);
+    previewRef.current = null; setPreview(null);
   }
 
-  function onCanvasClick() {
-    if (!dragRef.current) onSelect(null);
+  function onCanvasClick(e: React.MouseEvent<SVGSVGElement>) {
+    if (!(e.target as Element).closest("[data-id]")) onSelect(null);
   }
 
   function onKeyDown(e: KeyboardEvent<SVGSVGElement>) {
@@ -257,11 +263,11 @@ export function DraftCanvas({ draft, selectedId, onSelect, onCommit }: Props) {
 
       <g transform={`translate(${PAD} ${PAD})`}>
         <DoorEl draft={draft} />
-        {draft.fixtures.map((f) => (
+        {(preview ?? draft).fixtures.map((f) => (
           <FixtureEl key={f.id} fixture={f} selected={selectedId === f.id}
             onPointerDown={(e) => startDrag(e, f.id, true)} />
         ))}
-        {draft.tables.map((t) => (
+        {(preview ?? draft).tables.map((t) => (
           <TableEl key={t.id} table={t} selected={selectedId === t.id}
             onPointerDown={(e) => startDrag(e, t.id, false)} />
         ))}
@@ -271,7 +277,7 @@ export function DraftCanvas({ draft, selectedId, onSelect, onCommit }: Props) {
       <Compass x={vw - PAD + 0.5} y={PAD - 0.5} />
 
       {/* Top-left label */}
-      <text x={PAD} y={PAD - 1.3} fontSize={0.8} fill="#6f685d" fontStyle="italic">Estimated from photos</text>
+      <text x={PAD} y={PAD - 1.3} fontSize={0.8} fill="#6f685d" fontStyle="italic">Unverified draft · dimensions in feet</text>
 
       {/* Capacity summary at bottom */}
       <text x={PAD} y={vd - 0.5} fontSize={0.75} fill="#6f685d">

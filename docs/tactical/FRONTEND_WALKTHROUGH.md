@@ -1,6 +1,8 @@
 # Tactical frontend walkthrough
 
-Use Node.js 22.18 or newer, run `npm ci` and `npm run dev`, then open `/tactical`. The root route also opens Tactical. All business records and review excerpts come from the editable [demo fixture](../../src/features/tactical/frontend/data/demo-restaurant.json). Browser storage holds saved layouts and scenarios independently.
+[Documentation index](README.md) · [Current inventory and backlog](IMPLEMENTATION_STATUS.md)
+
+Use Node.js 22.18 or newer, run `npm ci` and `npm run dev`, then open `/tactical`. The root route also opens Tactical. The core restaurant layout, assumptions and review excerpts come from the editable [demo fixture](../../src/features/tactical/frontend/data/demo-restaurant.json). Browser storage holds saved layouts and scenarios independently.
 
 ## 1. Explore the starting layout
 
@@ -20,9 +22,9 @@ Choose **Save draft**, reload, and check the saved layout. **Reset draft** resto
 
 ## 4. Inspect the mission evidence
 
-Open **Read 2 cited reviews** and **Why this mission?** to inspect the supplied evidence, demo priority, applicability, and missing information. In **Review insights**, explore theme counts, average rating, and rating distribution. Search review text, select a theme, or enable **Mission evidence only**. A search with no matches offers a way to restore all reviews.
+Open **Read 2 cited reviews** and **Why this mission?** to inspect the supplied evidence, demo priority, applicability, and missing information. Open **Customer Reviews & Social Media** in the navigation to explore theme counts, average rating, and rating distribution. Search review text, select a theme, or enable **Mission evidence only**. A search with no matches offers a way to restore all reviews.
 
-Topics and mission details are authored in the demo file. Counts are calculated from those records. Live AI and review uploads are future work.
+Topics and mission details are authored in the demo file. Counts are calculated from those records. Live review AI and review uploads are future work; the separate photo provider path is described below.
 
 ## 5. Try adding seats
 
@@ -51,3 +53,24 @@ Earlier seating snapshots are supported. Valid scenarios can be recovered when a
 The frontend uses fixture data, deterministic calculations, and local browser storage. Backend persistence, live review analysis, sponsor integrations, and the Expansion handoff are future phases. Root visual tokens remain shared, and cross-domain contracts still need agreement with Rain.
 
 Run `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build` for repository checks. The test suite covers geometry, file validation, review aggregation, scenario math, backward compatibility, and saved-data recovery.
+
+
+## 9. Compare named layouts
+
+In **Saved floor plans**, enter a name such as “Comfortable Dining” and choose **Duplicate** on a saved row. Save current edits before duplicating: it copies the saved version. Edit the new configuration and choose **Save draft**. Use **Open** to switch, **Rename** with the name field to rename, and **Use as baseline** to select the comparison baseline. The comparison shows saved seats, room area per seat and simulated revenue change; expand its assumptions. Delete an alternative with confirmation, then reload to verify the remaining library.
+
+## 10. Inspect custom objects and layout hypotheses
+
+Place an **AC unit**, **Window** or **Custom object**. Edit its name and description in the inspector, then save/reload and reselect it. Put a seating object within two meters of the AC/window center to see a proximity hypothesis under **Layout insights**. Use **Inspect affected object** to select the seating object. These are rule-based suggestions, not measured preference or safety findings.
+
+## 11. Try the separate photo draft editor
+
+Expand **Estimate a separate draft from photos** on Floor Plan. Use **Sample plan** to exercise selection, editing, undo/redo and exports without credentials. Invalid JSON should show an error and retain the current draft. The sample editor uses feet and a different JSON format; it cannot yet be imported directly into the main editor.
+
+For an authorized photo, the no-key path explicitly says that photos were not analyzed. A configured Anthropic key enables the server provider path, whose live behavior still requires verification. Correction lessons are prompt memory, not model training. Current photo drafts are not automatically saved across reloads: export them first.
+
+## 12. Review the supporting sections
+
+HR shows a fictional roster and schedule. Supply shows fictional inventory/suppliers. Finance shows sample charts, transactions, menu comparisons and a simplified capacity slider. These pages still contain embedded demo records; they do not establish real payroll, inventory or accounting. AI Assistant is intentionally inactive.
+
+For exact remaining capabilities, use the [page guide](PAGES.md) and [implementation inventory](IMPLEMENTATION_STATUS.md).

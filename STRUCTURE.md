@@ -7,20 +7,70 @@ Asilbek owns **Tactical**, which helps owners improve their existing restaurant.
 | Path | What to change here |
 | --- | --- |
 | [`src/app/`](src/app/) | Next.js route entries and root layout. [`page.tsx`](src/app/page.tsx) redirects `/` to `/tactical`. [`globals.css`](src/app/globals.css) defines app-wide colors, typography, and spacing. |
-| [`src/app/tactical/page.tsx`](src/app/tactical/page.tsx) | `/tactical` entry point and page metadata. Hands rendering off to the Tactical feature. |
+| [`src/app/tactical/page.tsx`](src/app/tactical/page.tsx) | `/tactical` page metadata; `src/app/tactical/layout.tsx` mounts the persistent Tactical workspace. Six section routes select its visible view. |
 | [`tactical/frontend/tactical-page.tsx`](src/features/tactical/frontend/tactical-page.tsx) | Loads the demo JSON, validates it, and passes it to the workspace. |
 | [`tactical/frontend/data/demo-restaurant.json`](src/features/tactical/frontend/data/demo-restaurant.json) | Edit the example restaurant, starting layout, reviews, seating mission, and default assumptions here. |
 | [`tactical/frontend/components/`](src/features/tactical/frontend/components/) | `tactical-workspace.tsx` coordinates editing, undo/redo, and saves. `floor-plan.tsx` renders the zoomable SVG scene. `layout-inspector.tsx` edits furniture measurements, and `layout-transfer.tsx` imports/exports layout JSON. `scenario-panel.tsx` owns previews and analyst details, `scenario-comparison.tsx` compares saved options, and `review-insights.tsx` explores review themes. Component CSS files use the Tactical tokens. |
 | [`tactical/frontend/layout-edit.ts`](src/features/tactical/frontend/layout-edit.ts) | Converts entered furniture measurements and validates the resulting geometry. [`layout-transfer.ts`](src/features/tactical/frontend/layout-transfer.ts) validates imported layout files. |
 | [`tactical/frontend/storage.ts`](src/features/tactical/frontend/storage.ts) | Reads browser-saved drafts and scenarios, retains compatible older snapshots, and recovers valid scenarios alongside damaged entries. The workspace saves layouts and scenarios separately in `localStorage`. |
-| [`tactical/domain/`](src/features/tactical/domain/) | `layout.ts` handles geometry and seat counts. `scenario.ts` computes seating and turnover projections and verifies saved results. `reviews.ts` counts supplied review themes and filters their sources. `schemas.ts` validates fixtures, layouts, assumptions, and scenario snapshots. |
-| [`tactical/backend/`](src/features/tactical/backend/) | Reserved for server-side data access, actions, and integrations. Tactical currently uses fixture data and browser storage. |
+| [`tactical/domain/`](src/features/tactical/domain/) | `layout.ts` handles geometry and seat counts. `layout-library.ts` validates named configurations and derives explicit proximity heuristics. `analyze.ts` validates photo requests/drafts and rotates geometry. `scenario.ts` computes seating and turnover projections and verifies saved results. `reviews.ts` counts supplied review themes and filters their sources. `schemas.ts` validates fixtures, layouts, assumptions, and scenario snapshots. |
+| [`tactical/backend/`](src/features/tactical/backend/) | `analyze.ts` owns server-side photo analysis behind `/api/tactical/analyze`; account persistence and sponsor adapters remain deferred. |
 | [`tactical/tactical.test.ts`](src/features/tactical/tactical.test.ts) | Tests fixture evidence links, geometry, capacity, and financial calculations. Adjacent test files cover turnover, review summaries, layout files, precise edits, and saved-data recovery. |
 | [`src/features/expansion/`](src/features/expansion/) | Rain's Expansion workspace: `frontend/` owns UI, API loading, fixtures and browser storage; `domain/` owns validation, scoring and finance; `backend/` streams permitted local data into a rebuildable SQLite cache and serves bounded queries. |
+
+Start with the [Tactical documentation index](docs/tactical/README.md) and [detailed implementation inventory](docs/tactical/IMPLEMENTATION_STATUS.md).
+
+See [current page guide](docs/tactical/PAGES.md) and [refinement status / remaining work](docs/tactical/IMPLEMENTATION_STATUS.md). `layout-library.tsx` presents saved layout actions and comparisons; the workspace persists them under a restaurant-scoped library key while retaining the old single-draft key for migration.
 
 The current path through Tactical is `/tactical` → validate the demo fixture → open the workspace → edit the layout → calculate the seating scenario → inspect evidence or save a snapshot. All demo interactions work without credentials.
 
 Follow the [Tactical frontend walkthrough](docs/tactical/FRONTEND_WALKTHROUGH.md) to review the editor, customer signals, seating/turnover experiments, and saved comparisons one step at a time.
+
+## Tactical structure for Asilbek and Rain
+
+```text
+src/app/tactical/
+├── layout.tsx                          # Persistent shell mounts TacticalPage
+├── page.tsx                            # Floor Plan route metadata
+├── reviews/page.tsx                    # Customer feedback section metadata
+├── hr/page.tsx                         # Team demo section metadata
+├── supply/page.tsx                     # Inventory/supplier section metadata
+├── finance/page.tsx                    # Finance section metadata
+├── ai/page.tsx                         # Inactive assistant section metadata
+└── {scenarios,decisions,analyze}/page.tsx # Compatibility redirects to Floor Plan
+src/app/api/tactical/analyze/route.ts    # Thin re-export of backend handler
+src/features/tactical/
+├── domain/
+│   ├── schemas.ts                      # Core fixture/layout/scenario contracts
+│   ├── layout.ts                       # Geometry, palette and capacity
+│   ├── layout-library.ts               # Saved configurations and explicit heuristics
+│   ├── scenario.ts                     # Canonical seating/turnover arithmetic
+│   ├── reviews.ts                      # Deterministic review aggregation/filtering
+│   └── analyze.ts                      # Photo draft/request schemas and geometry
+├── frontend/
+│   ├── tactical-page.tsx               # Validate core fixture, mount workspace
+│   ├── storage.ts                      # Legacy layout + saved scenario recovery
+│   ├── layout-edit.ts                  # Validated object measurement updates
+│   ├── layout-transfer.ts              # Main-layout JSON import validation
+│   ├── analyze-lessons.ts              # Browser correction memory for photo prompts
+│   ├── data/demo-restaurant.json        # Core editable demo; not yet all demo records
+│   ├── components/                     # Workspace, canvases, inspectors, six sections
+│   │   ├── tactical-workspace.tsx       # Also currently owns library reads/writes
+│   │   ├── state-button.tsx             # Browser-safe dynamic disabled state
+│   │   └── *.css                       # Tactical component styling
+│   └── e2e/refinement.spec.ts           # Layout, photo and hydration browser journeys
+├── backend/
+│   ├── analyze.ts                      # Anthropic photo request / labeled fallback
+│   └── README.md
+└── *.test.ts                           # Unit tests for contracts/calculations/recovery
+playwright.tactical.config.ts           # Separate Chrome/Chromium + Firefox suite
+```
+
+Section routes select mounted panels inside the workspace; they do not currently own independent page-state components. The main editor stores meters; the photo editor stores a separate approximate-feet draft. No conversion adapter connects the two yet.
+
+HR, Supply and much of Finance still embed synthetic data in their components. Consolidating that data, adding imported review analysis and deriving financial views from validated records are the next tasks; proposed future modules are listed in the inventory, not represented here as existing files.
+
+Rain can follow the same route/frontend/domain/backend boundary without importing Tactical internals. Any shared restaurant, evidence, scenario or action type still needs agreement in the shared-contract proposal.
 
 ## Expansion layout for Rain
 
@@ -61,3 +111,5 @@ Keep imports within each feature. Coordinate the app shell, design tokens, resta
 ## Run and verify locally
 
 Use Node.js 22.18 or newer. Run `npm ci` and `npm run dev`, then open `/tactical` or `/expansion`. The verification commands are `npm run lint`, `npm run typecheck`, `npm test`, and `npm run build`. `npm test` runs both features with Node's built-in test runner. Expansion browser tests run with `npm run test:e2e` after `npx playwright install chromium`, or use installed Chrome with `PLAYWRIGHT_CHANNEL=chrome npm run test:e2e`. [Package scripts](package.json)
+
+For Tactical browser regressions, build first and run `PLAYWRIGHT_CHANNEL=chrome npx playwright test --config playwright.tactical.config.ts`. This config uses port 3057 and Firefox as well as Chrome/Chromium; install the required browsers. The default root Playwright config continues to target Expansion.

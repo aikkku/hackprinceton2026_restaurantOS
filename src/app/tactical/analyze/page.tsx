@@ -1,7 +1,3 @@
-import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Analyze photos | RestaurantOS" };
-
-export default function Page() {
-  return null;
-}
+export default function Page() { redirect("/tactical"); }
