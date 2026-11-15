@@ -14,6 +14,7 @@ import type { Workspace } from "./workspace.ts";
 import { calculatePropertyScore } from "../../domain/property-score.ts";
 import { ScoreBadge, ScoreBreakdown } from "./property-score.tsx";
 import { LocationContext } from "./location-context.tsx";
+import { NearbyRestaurants } from "./nearby-restaurants.tsx";
 
 type EvidenceRef = { label: string; date: string | null; origin: string; user: boolean };
 
@@ -154,6 +155,13 @@ export function PlaceDetail({ workspace, choice, isSaved, savedCount, maxSaved, 
         busy={busy}
         frozen={workspace.source === "saved_plan"}
         onRefresh={onRefreshNeighborhood}
+      />
+
+      <NearbyRestaurants
+        runId={workspace.runId}
+        candidateId={candidate.id}
+        cuisine={workspace.bundle?.profile.intake.restaurant.cuisine ?? null}
+        restaurantName={workspace.restaurantName || null}
       />
 
       {busy && <p className="sx-small sx-muted" role="status">Checking property details…</p>}

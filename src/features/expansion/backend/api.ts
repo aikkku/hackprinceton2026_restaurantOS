@@ -29,9 +29,20 @@ export async function ownerRoute(
   }
 }
 
+/**
+ * Matches by name and code, not only `instanceof`: the repository is cached on
+ * globalThis, so after a dev hot reload it throws errors built from an older
+ * copy of the PersistenceError class.
+ */
+function isPersistenceError(error: unknown): error is PersistenceError {
+  if (error instanceof PersistenceError) return true;
+  return error instanceof Error && error.name === "PersistenceError" && "code" in error
+    && ["persistence_unavailable", "conflict", "invalid", "not_found"].includes(String((error as { code: unknown }).code));
+}
+
 export function failure(error: unknown): Response {
   if (error instanceof OwnerError) return ownerFailure(error);
-  if (error instanceof PersistenceError) {
+  if (isPersistenceError(error)) {
     const status = error.code === "persistence_unavailable" ? 503 : error.code === "conflict" ? 409 : error.code === "not_found" ? 404 : 400;
     return localResponse({ error: { code: error.code, message: error.message } }, status);
   }

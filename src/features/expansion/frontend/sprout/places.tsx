@@ -166,7 +166,7 @@ export function Places({ workspace, views, saved, selectedId, notice, onSelect, 
         </div>
       </section>
       <section className="sx-mapbox" aria-label="Map">
-        <PlacesMap places={mapPlaces} selectedId={selectedId} onSelect={onSelect} onOpen={onOpen} onToggleSave={onToggleSave} center={null} note={workspace.isSynthetic ? "Synthetic test positions" : "Positions from listing records"} />
+        <PlacesMap places={mapPlaces} selectedId={selectedId} onSelect={onSelect} onOpen={onOpen} onToggleSave={onToggleSave} center={null} note={workspace.isSynthetic ? "Synthetic test positions" : "Positions from listing records"} runId={workspace.runId} cuisine={workspace.bundle?.profile.intake.restaurant.cuisine ?? null} />
       </section>
     </main>
   );

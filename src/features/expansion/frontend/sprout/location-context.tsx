@@ -37,7 +37,7 @@ export function LocationContext({ sources, agentContext, busy, frozen, onRefresh
         const observations = useAgentContext ? agentContext!.observations.filter(o => o.provider === provider) : sources.observations.filter(o => o.provider === provider);
         return (
           <div className="sx-ev" key={provider}>
-            <h3 className="sx-strong">{provider === "acs" ? "Residents and household income" : "Nearby restaurants · 500 m"}</h3>
+            <h3 className="sx-strong">{provider === "acs" ? "Residents and household income" : "Mapped restaurants · OpenStreetMap · 500 m"}</h3>
             <p className="sx-small sx-muted">{provider === "acs" ? "Census estimates for the containing tract, not a 500 m population count." : "Mapped restaurant objects, not verified unique or same-cuisine competitors."}</p>
             {observations.length ? observations.map(o => (
               <div className="sx-stack" key={o.id}>
